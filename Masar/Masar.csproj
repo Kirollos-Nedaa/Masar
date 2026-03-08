@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Masar.Core\Masar.Core.csproj" />
+    <ProjectReference Include="..\Masar.Domain\Masar.Domain.csproj" />
+    <ProjectReference Include="..\Masar.Infrastructure\Masar.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

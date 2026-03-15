@@ -1,5 +1,6 @@
 using System.Diagnostics;
-using Masar.Models;
+using Masar.Domain.Models;
+using Masar.Domain.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Masar.Controllers

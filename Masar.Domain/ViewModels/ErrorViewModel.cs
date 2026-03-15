@@ -1,4 +1,4 @@
-namespace Masar.Models
+namespace Masar.Domain.ViewModels
 {
     public class ErrorViewModel
     {

@@ -1,0 +1,541 @@
+﻿/* ============================================================
+   MASAR — Auth Styles
+   Split-panel layout: branded left panel + clean right form
+   ============================================================ */
+
+/* ── Tokens ─────────────────────────────────────────────── */
+:root {
+    --blue: #2563EB;
+    --blue-hover: #1d4ed8;
+    --blue-50: #EFF6FF;
+    --blue-100: #DBEAFE;
+    --dark: #0F172A;
+    --slate: #1E293B;
+    --muted: #64748B;
+    --border: #E2E8F0;
+    --input-bg: #F8FAFC;
+    --white: #ffffff;
+    --green: #16a34a;
+    --red: #DC2626;
+    --red-50: #FEF2F2;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --shadow-card: 0 4px 32px rgba(15, 23, 42, 0.10);
+    --shadow-btn: 0 1px 3px rgba(37, 99, 235, 0.30);
+}
+
+/* ── Reset / Base ────────────────────────────────────────── */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body.auth-body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--input-bg);
+    color: var(--dark);
+    min-height: 100vh;
+    display: flex;
+    align-items: stretch;
+}
+
+/* ── Shell ───────────────────────────────────────────────── */
+.auth-shell {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+}
+
+/* ── Left Branding Panel ─────────────────────────────────── */
+.auth-panel {
+    width: 420px;
+    flex-shrink: 0;
+    background: var(--slate);
+    background-image: radial-gradient(ellipse 80% 60% at 20% 10%, rgba(37,99,235,0.35) 0%, transparent 70%), radial-gradient(ellipse 60% 80% at 80% 90%, rgba(37,99,235,0.20) 0%, transparent 70%);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 3rem 2.75rem;
+    position: relative;
+    overflow: hidden;
+}
+
+    /* subtle grid texture */
+    .auth-panel::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+        pointer-events: none;
+    }
+
+.auth-panel-logo {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--white);
+    letter-spacing: -.03em;
+    text-decoration: none;
+    display: inline-block;
+    position: relative;
+    z-index: 1;
+}
+
+    .auth-panel-logo span {
+        color: var(--blue);
+    }
+
+.auth-panel-body {
+    position: relative;
+    z-index: 1;
+}
+
+.auth-panel-headline {
+    font-family: 'Sora', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--white);
+    line-height: 1.25;
+    margin-bottom: 1rem;
+    letter-spacing: -.02em;
+}
+
+    .auth-panel-headline em {
+        font-style: normal;
+        color: #93C5FD; /* blue-300 */
+    }
+
+.auth-panel-sub {
+    color: #94A3B8;
+    font-size: .9375rem;
+    line-height: 1.65;
+    margin-bottom: 2.25rem;
+}
+
+/* Feature list */
+.auth-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: .875rem;
+}
+
+    .auth-features li {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        color: #CBD5E1;
+        font-size: .875rem;
+        font-weight: 500;
+    }
+
+        .auth-features li .feat-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(37,99,235,.25);
+            border: 1px solid rgba(37,99,235,.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .8rem;
+            color: #93C5FD;
+            flex-shrink: 0;
+        }
+
+.auth-panel-footer {
+    position: relative;
+    z-index: 1;
+    color: #475569;
+    font-size: .78rem;
+}
+
+/* ── Right Form Area ─────────────────────────────────────── */
+.auth-form-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    overflow-y: auto;
+}
+
+.auth-box {
+    width: 100%;
+    max-width: 440px;
+    animation: fadeUp .4s ease both;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ── Auth Card Header ────────────────────────────────────── */
+.auth-heading {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.625rem;
+    font-weight: 700;
+    color: var(--dark);
+    letter-spacing: -.025em;
+    margin-bottom: .3rem;
+    line-height: 1.2;
+}
+
+.auth-subheading {
+    color: var(--muted);
+    font-size: .9rem;
+    margin-bottom: 2rem;
+}
+
+/* ── Form Controls ───────────────────────────────────────── */
+.form-label {
+    font-size: .8125rem;
+    font-weight: 600;
+    color: var(--slate);
+    margin-bottom: .375rem;
+    display: block;
+    letter-spacing: .005em;
+}
+
+.form-control {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: .625rem .875rem;
+    font-size: .9rem;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--dark);
+    width: 100%;
+    transition: border-color .18s, box-shadow .18s;
+    line-height: 1.5;
+}
+
+    .form-control::placeholder {
+        color: #B0BAC8;
+    }
+
+    .form-control:focus {
+        border-color: var(--blue);
+        box-shadow: 0 0 0 3px rgba(37,99,235,.13);
+        outline: none;
+        background: var(--white);
+    }
+
+    .form-control.is-invalid {
+        border-color: var(--red);
+        box-shadow: none;
+    }
+
+        .form-control.is-invalid:focus {
+            box-shadow: 0 0 0 3px rgba(220,38,38,.12);
+        }
+
+.invalid-feedback, .text-danger {
+    font-size: .775rem;
+    color: var(--red);
+    margin-top: .3rem;
+    display: block;
+}
+
+/* ── Password wrapper ────────────────────────────────────── */
+.pw-wrap {
+    position: relative;
+}
+
+    .pw-wrap .form-control {
+        padding-right: 2.75rem;
+    }
+
+.btn-toggle-pw {
+    position: absolute;
+    right: .75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #94A3B8;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    font-size: 1rem;
+    transition: color .15s;
+}
+
+    .btn-toggle-pw:hover {
+        color: var(--blue);
+    }
+
+/* ── Validation summary ──────────────────────────────────── */
+.validation-box {
+    background: var(--red-50);
+    border: 1px solid #FECACA;
+    border-radius: var(--radius-md);
+    padding: .75rem 1rem;
+    margin-bottom: 1.25rem;
+    color: var(--red);
+    font-size: .83rem;
+}
+
+    .validation-box ul {
+        margin: 0;
+        padding-left: 1.1rem;
+    }
+
+    .validation-box li {
+        margin-top: .2rem;
+    }
+
+/* ── Primary Button ──────────────────────────────────────── */
+.btn-cb-primary {
+    display: block;
+    width: 100%;
+    background: var(--blue);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: .7rem 1.5rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .18s, transform .1s, box-shadow .18s;
+    box-shadow: var(--shadow-btn);
+    letter-spacing: .01em;
+    text-align: center;
+    text-decoration: none;
+    line-height: 1.5;
+}
+
+    .btn-cb-primary:hover {
+        background: var(--blue-hover);
+        box-shadow: 0 4px 14px rgba(37,99,235,.35);
+        color: var(--white);
+    }
+
+    .btn-cb-primary:active {
+        transform: scale(.98);
+    }
+
+/* ── Social Buttons ──────────────────────────────────────── */
+.btn-social {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    width: 100%;
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: .6rem 1rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .875rem;
+    font-weight: 600;
+    color: var(--dark);
+    text-decoration: none;
+    transition: border-color .18s, background .18s, box-shadow .18s;
+    cursor: pointer;
+}
+
+    .btn-social:hover {
+        border-color: var(--blue);
+        background: var(--blue-50);
+        color: var(--dark);
+        box-shadow: 0 2px 8px rgba(15,23,42,.08);
+    }
+
+/* ── Divider ─────────────────────────────────────────────── */
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    color: #94A3B8;
+    font-size: .8rem;
+    margin: 1.5rem 0;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+    .auth-divider::before,
+    .auth-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+    }
+
+/* ── Footer link ─────────────────────────────────────────── */
+.signin-link {
+    text-align: center;
+    font-size: .875rem;
+    color: var(--muted);
+    margin-top: 1.5rem;
+}
+
+    .signin-link a {
+        color: var(--blue);
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+        .signin-link a:hover {
+            text-decoration: underline;
+        }
+
+/* ── Role Cards ──────────────────────────────────────────── */
+.role-card {
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.625rem 1.25rem;
+    cursor: pointer;
+    transition: border-color .18s, box-shadow .18s, background .18s;
+    text-align: center;
+    background: var(--white);
+    position: relative;
+    user-select: none;
+    height: 100%;
+}
+
+    .role-card:hover {
+        border-color: var(--blue);
+        background: var(--blue-50);
+    }
+
+    .role-card.selected {
+        border-color: var(--blue);
+        background: var(--blue-50);
+        box-shadow: 0 0 0 4px rgba(37,99,235,.12);
+    }
+
+    .role-card .role-icon {
+        width: 52px;
+        height: 52px;
+        background: var(--blue-100);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto .875rem;
+        font-size: 1.4rem;
+        color: var(--blue);
+        transition: background .18s;
+    }
+
+    .role-card.selected .role-icon,
+    .role-card:hover .role-icon {
+        background: rgba(37,99,235,.18);
+    }
+
+    .role-card .role-title {
+        font-family: 'Sora', sans-serif;
+        font-weight: 700;
+        font-size: .9375rem;
+        color: var(--dark);
+        margin-bottom: .375rem;
+    }
+
+    .role-card .role-desc {
+        font-size: .8rem;
+        color: var(--muted);
+        line-height: 1.55;
+    }
+
+    .role-card .check-badge {
+        position: absolute;
+        top: .6rem;
+        right: .6rem;
+        width: 20px;
+        height: 20px;
+        background: var(--blue);
+        border-radius: 50%;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        color: var(--white);
+        font-size: .65rem;
+    }
+
+    .role-card.selected .check-badge {
+        display: flex;
+    }
+
+/* ── Step indicator ──────────────────────────────────────── */
+.step-bar {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-bottom: 1.75rem;
+    font-size: .78rem;
+    font-weight: 500;
+}
+
+.step-dot {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--blue-100);
+    color: var(--blue);
+    font-size: .72rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+    .step-dot.active {
+        background: var(--blue);
+        color: var(--white);
+    }
+
+    .step-dot.done {
+        background: #DCFCE7;
+        color: var(--green);
+    }
+
+.step-label {
+    color: var(--muted);
+}
+
+    .step-label.active {
+        color: var(--dark);
+        font-weight: 600;
+    }
+
+.step-connector {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 900px) {
+    .auth-panel {
+        display: none;
+    }
+
+    .auth-form-area {
+        padding: 2rem 1.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-form-area {
+        padding: 1.5rem 1rem;
+    }
+
+    .auth-heading {
+        font-size: 1.375rem;
+    }
+}

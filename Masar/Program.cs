@@ -1,4 +1,6 @@
 using DotNetEnv;
+using Masar.Core.IService;
+using Masar.Core.Services;
 using Masar.Domain.Models;
 using Masar.Infrastructure.Constants;
 using Masar.Infrastructure.Context;
@@ -20,6 +22,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 

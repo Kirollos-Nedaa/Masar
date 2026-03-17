@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Masar.Domain.Enums;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -12,8 +13,10 @@ namespace Masar.Domain.Models
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public string Gender { get; set; }
-        public DateOnly DateOfBirth { get; set; }
+        public Gender Gender { get; set; } = Gender.None;
+        public string Location { get; set; }
+        public DateOnly DateOfBirth { get; set; } = DateOnly.MaxValue;
+        public string Bio { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

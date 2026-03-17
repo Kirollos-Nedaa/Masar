@@ -24,15 +24,7 @@ namespace Masar.Infrastructure.Context
             modelBuilder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims");
 
             // Apply all entity configurations
-            modelBuilder.ApplyConfiguration(new CandidateProfileConfiguration());
-            modelBuilder.ApplyConfiguration(new EducationConfiguration());
-            modelBuilder.ApplyConfiguration(new SkillConfiguration());
-            modelBuilder.ApplyConfiguration(new CandidateSkillConfiguration());
-            modelBuilder.ApplyConfiguration(new ProfessionalLinksConfiguration());
-            modelBuilder.ApplyConfiguration(new CompanyProfileConfiguration());
-            modelBuilder.ApplyConfiguration(new JobConfiguration());
-            modelBuilder.ApplyConfiguration(new JobApplicationConfiguration());
-            modelBuilder.ApplyConfiguration(new SavedJobConfiguration());
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         }
 
         // 1. Profiles

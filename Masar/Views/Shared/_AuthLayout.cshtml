@@ -1,0 +1,75 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"] – MASAR</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/auth.css" />
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="auth-body">
+
+    <div class="auth-shell">
+
+        <!-- ── Left Branding Panel ───────────────────────────── -->
+        <aside class="auth-panel">
+            <a asp-controller="Home" asp-action="Index" class="auth-panel-logo">
+                MASAR<span>.</span>
+            </a>
+
+            <div class="auth-panel-body">
+                <h2 class="auth-panel-headline">
+                    Your career<br />
+                    starts <em>here.</em>
+                </h2>
+                <p class="auth-panel-sub">
+                    Connect with top companies, discover internships,
+                    and land the opportunity that launches your future.
+                </p>
+
+                <ul class="auth-features">
+                    <li>
+                        <span class="feat-dot"><i class="bi bi-briefcase"></i></span>
+                        Browse thousands of jobs &amp; internships
+                    </li>
+                    <li>
+                        <span class="feat-dot"><i class="bi bi-person-check"></i></span>
+                        Build a standout professional profile
+                    </li>
+                    <li>
+                        <span class="feat-dot"><i class="bi bi-graph-up-arrow"></i></span>
+                        Track every application in one place
+                    </li>
+                    <li>
+                        <span class="feat-dot"><i class="bi bi-building"></i></span>
+                        Connect directly with hiring companies
+                    </li>
+                </ul>
+            </div>
+
+            <p class="auth-panel-footer">
+                &copy; @DateTime.Now.Year Masar Platform
+            </p>
+        </aside>
+
+        <!-- ── Right Form Area ───────────────────────────────── -->
+        <main class="auth-form-area">
+            <div class="auth-box">
+                @RenderBody()
+            </div>
+        </main>
+
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>

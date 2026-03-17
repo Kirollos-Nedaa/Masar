@@ -1,0 +1,26 @@
+@{
+    var ctrl = ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+}
+
+<div class="sidebar-section-label">Main</div>
+
+<a asp-controller="Candidate" asp-action="Dashboard"
+   class="sidebar-link @(ctrl == "Candidate" && action == "Dashboard" ? "active" : "")">
+    <i class="bi bi-grid-1x2"></i> Dashboard
+</a>
+
+<a asp-controller="Candidate" asp-action="Profile"
+   class="sidebar-link @(ctrl == "Candidate" && action == "Profile" ? "active" : "")">
+    <i class="bi bi-person"></i> My Profile
+</a>
+
+<a asp-controller="Candidate" asp-action="Applications"
+   class="sidebar-link @(ctrl == "Candidate" && action == "Applications" ? "active" : "")">
+    <i class="bi bi-file-earmark-text"></i> Applications
+</a>
+
+<a asp-controller="Candidate" asp-action="SavedJobs"
+   class="sidebar-link @(ctrl == "Candidate" && action == "SavedJobs" ? "active" : "")">
+    <i class="bi bi-bookmark"></i> Saved Jobs
+</a>

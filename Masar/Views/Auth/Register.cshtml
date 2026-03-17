@@ -1,0 +1,116 @@
+﻿@model Masar.Domain.ViewModels.RegisterDto
+
+@{
+    ViewData["Title"] = "Register";
+    Layout = "_AuthLayout";
+}
+
+@* ── Step indicator ─────────────────────────────────────── *@
+<div class="step-bar">
+    <span class="step-dot active">1</span>
+    <span class="step-label active">Create account</span>
+    <span class="step-connector"></span>
+    <span class="step-dot">2</span>
+    <span class="step-label">Select role</span>
+</div>
+
+<h1 class="auth-heading">Create account</h1>
+<p class="auth-subheading">Start your career journey with Masar today</p>
+
+<form asp-controller="Auth" asp-action="Register" method="post" novalidate>
+    @Html.AntiForgeryToken()
+
+    @* Validation Summary *@
+    <div asp-validation-summary="ModelOnly" class="validation-box" style="display:none;"></div>
+
+    @* First + Last Name *@
+    <div class="row g-3 mb-3">
+        <div class="col-6">
+            <label class="form-label">First Name</label>
+            <input asp-for="FirstName" class="form-control" placeholder="John" autocomplete="given-name" />
+            <span asp-validation-for="FirstName" class="text-danger"></span>
+        </div>
+        <div class="col-6">
+            <label class="form-label">Last Name</label>
+            <input asp-for="LastName" class="form-control" placeholder="Doe" autocomplete="family-name" />
+            <span asp-validation-for="LastName" class="text-danger"></span>
+        </div>
+    </div>
+
+    @* Email *@
+    <div class="mb-3">
+        <label class="form-label">Email address</label>
+        <input asp-for="Email" class="form-control" placeholder="you@example.com" autocomplete="email" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    @* Password *@
+    <div class="mb-3">
+        <label class="form-label">Password</label>
+        <div class="pw-wrap">
+            <input asp-for="Password" type="password" id="pw" class="form-control" placeholder="Min. 8 characters" autocomplete="new-password" />
+            <button type="button" class="btn-toggle-pw" onclick="togglePw('pw','eyePw')" tabindex="-1" aria-label="Toggle password">
+                <i class="bi bi-eye" id="eyePw"></i>
+            </button>
+        </div>
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+
+    @* Confirm Password *@
+    <div class="mb-4">
+        <label class="form-label">Confirm Password</label>
+        <div class="pw-wrap">
+            <input asp-for="ConfirmPassword" type="password" id="cpw" class="form-control" placeholder="Repeat your password" autocomplete="new-password" />
+            <button type="button" class="btn-toggle-pw" onclick="togglePw('cpw','eyeCpw')" tabindex="-1" aria-label="Toggle confirm password">
+                <i class="bi bi-eye" id="eyeCpw"></i>
+            </button>
+        </div>
+        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+    </div>
+
+    @* Submit *@
+    <button type="submit" class="btn-cb-primary">Create Account</button>
+</form>
+
+@* Sign in link *@
+<div class="signin-link">
+    Already have an account?
+    <a asp-controller="Auth" asp-action="Login">Sign in</a>
+</div>
+
+@* Social divider *@
+<div class="auth-divider">or continue with</div>
+
+<div class="row g-2">
+    <div class="col-12">
+        <a href="#" class="btn-social">
+            <i class="bi bi-google"></i> Google
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Show validation box only when it has errors
+        (function () {
+            const box = document.querySelector('[data-valmsg-summary="true"], .validation-box');
+            if (box && box.querySelectorAll('li').length > 0) {
+                box.style.display = 'block';
+            }
+        })();
+
+        function togglePw(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon  = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('bi-eye', 'bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('bi-eye-slash', 'bi-eye');
+            }
+        }
+    </script>
+}

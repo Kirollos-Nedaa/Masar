@@ -1,0 +1,121 @@
+﻿@{
+    ViewData["Title"] = "Choose Your Role";
+    Layout = "_AuthLayout";
+}
+
+@* Slightly wider box for two side-by-side cards *@
+@section Styles {
+    <style>
+        .auth-box {
+            max-width: 520px;
+        }
+    </style>
+}
+
+@* ── Step indicator ─────────────────────────────────────── *@
+<div class="step-bar">
+    <span class="step-dot done"><i class="bi bi-check"></i></span>
+    <span class="step-label">Create account</span>
+    <span class="step-connector"></span>
+    <span class="step-dot active">2</span>
+    <span class="step-label active">Select role</span>
+</div>
+
+@* ── Heading ─────────────────────────────────────────────── *@
+<h1 class="auth-heading">How will you use Masar?</h1>
+<p class="auth-subheading">Choose the role that best describes you. You can always update this later.</p>
+
+@* ── Error banner (shown by JS if no role selected) ──────── *@
+<div id="roleError" class="validation-box mb-3" style="display:none;">
+    <i class="bi bi-exclamation-circle me-1"></i> Please select a role before continuing.
+</div>
+
+@* ── Role Selection Form ─────────────────────────────────── *@
+<form asp-controller="Auth" asp-action="SelectRole" method="post" id="roleForm">
+    @Html.AntiForgeryToken()
+    <input type="hidden" id="selectedRole" name="role" value="" />
+
+    <div class="row g-3 mb-4">
+
+        @* Candidate *@
+        <div class="col-12 col-sm-6">
+            <div class="role-card" id="cardCandidate" onclick="selectRole('Candidate', this)">
+                <span class="check-badge"><i class="bi bi-check"></i></span>
+                <div class="role-icon">
+                    <i class="bi bi-person-badge"></i>
+                </div>
+                <div class="role-title">Candidate</div>
+                <div class="role-desc">
+                    Find jobs &amp; internships, build your profile, and track all your applications.
+                </div>
+            </div>
+        </div>
+
+        @* Company *@
+        <div class="col-12 col-sm-6">
+            <div class="role-card" id="cardCompany" onclick="selectRole('Company', this)">
+                <span class="check-badge"><i class="bi bi-check"></i></span>
+                <div class="role-icon">
+                    <i class="bi bi-building"></i>
+                </div>
+                <div class="role-title">Company</div>
+                <div class="role-desc">
+                    Post opportunities, review applicants, and manage your hiring pipeline.
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    @* Continue Button *@
+    <button type="button" class="btn-cb-primary" onclick="submitRole()">
+        Continue &nbsp;<i class="bi bi-arrow-right"></i>
+    </button>
+
+</form>
+
+@* Back link *@
+<div class="signin-link">
+    Wrong account? <a asp-controller="Auth" asp-action="Login">Sign in to a different account</a>
+</div>
+
+@section Scripts {
+    <script>
+        var currentRole = null;
+
+        function selectRole(role, el) {
+            document.querySelectorAll('.role-card').forEach(function (c) {
+                c.classList.remove('selected');
+            });
+            el.classList.add('selected');
+            currentRole = role;
+            document.getElementById('selectedRole').value = role;
+            document.getElementById('roleError').style.display = 'none';
+        }
+
+        function submitRole() {
+            if (!currentRole) {
+                var err = document.getElementById('roleError');
+                err.style.display = 'block';
+                err.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                return;
+            }
+            document.getElementById('roleForm').submit();
+        }
+
+        // Keyboard: allow Enter to confirm a focused card
+        document.querySelectorAll('.role-card').forEach(function (card) {
+            card.setAttribute('tabindex', '0');
+            card.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    selectRole(card.dataset.role, card);
+                }
+            });
+        });
+
+        // Set data-role on each card so keyboard handler works
+        document.getElementById('cardCandidate').dataset.role = 'Candidate';
+        document.getElementById('cardCompany').dataset.role   = 'Company';
+    </script>
+}

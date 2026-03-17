@@ -28,4 +28,8 @@
     <ProjectReference Include="..\Masar.Infrastructure\Masar.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Components\" />
+  </ItemGroup>
+
 </Project>

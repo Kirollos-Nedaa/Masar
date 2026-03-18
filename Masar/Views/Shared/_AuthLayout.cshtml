@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/auth.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+    <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
 
     @await RenderSectionAsync("Styles", required: false)
 </head>
@@ -34,19 +34,19 @@
 
                 <ul class="auth-features">
                     <li>
-                        <span class="feat-dot"><i class="bi bi-briefcase"></i></span>
+                        <span class="feat-dot"><span class="iconify" data-icon="lucide:briefcase"></span></span>
                         Browse thousands of jobs &amp; internships
                     </li>
                     <li>
-                        <span class="feat-dot"><i class="bi bi-person-check"></i></span>
+                        <span class="feat-dot"><span class="iconify" data-icon="lucide:user-check"></span></span>
                         Build a standout professional profile
                     </li>
                     <li>
-                        <span class="feat-dot"><i class="bi bi-graph-up-arrow"></i></span>
+                        <span class="feat-dot"><span class="iconify" data-icon="lucide:trending-up"></span></span>
                         Track every application in one place
                     </li>
                     <li>
-                        <span class="feat-dot"><i class="bi bi-building"></i></span>
+                        <span class="feat-dot"><span class="iconify" data-icon="lucide:building"></span></span>
                         Connect directly with hiring companies
                     </li>
                 </ul>
@@ -69,6 +69,9 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        lucide.createIcons();
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 
 </body>

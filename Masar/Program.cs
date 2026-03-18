@@ -23,6 +23,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICandidateDashboardService, CandidateDashboardService>();
 
 var app = builder.Build();
 

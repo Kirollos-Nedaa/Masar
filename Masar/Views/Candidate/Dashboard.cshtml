@@ -1,14 +1,8 @@
 @{
     ViewData["Title"]      = "Dashboard";
     ViewData["HasSidebar"] = true;
-
-    // Safe ViewBag reads — avoids dynamic cast errors
-    var userName    = ViewBag.UserName          != null ? (string)ViewBag.UserName          : "Joe";
-    var profilePct  = ViewBag.ProfileCompletion != null ? (int)ViewBag.ProfileCompletion    : 50;
-    var totalApps   = ViewBag.TotalApplications != null ? (int)ViewBag.TotalApplications    : 12;
-    var savedJobs   = ViewBag.SavedJobs         != null ? (int)ViewBag.SavedJobs            : 8;
-    var underReview = ViewBag.UnderReview       != null ? (int)ViewBag.UnderReview          : 5;
 }
+@model Masar.Domain.ViewModels.CandidateDashboardDto
 
 @section Sidebar {
     <partial name="_CandidateSidebar" />
@@ -16,27 +10,27 @@
 
 @* ── Page header ──────────────────────────────────────────── *@
 <div class="page-header">
-    <h1 class="page-title">Welcome back, @(User.Identity.Name?.ToUpper() ?? "U")!</h1>
+    <h1 class="page-title">Welcome back, @Model.Name.ToUpper()!</h1>
     <p class="page-subtitle">Here's what's happening with your job search</p>
 </div>
 
 @* ── Profile completion banner ────────────────────────────── *@
-@if (profilePct < 100)
+@if (Model.ProfileCompletion < 100)
 {
     <div class="app-card mb-4">
         <div class="d-flex align-items-center justify-content-between mb-3">
             <div>
                 <div class="fw-semibold mb-1" style="color:var(--dark);">Complete Your Profile</div>
                 <div class="text-muted" style="font-size:.85rem;">
-                    @profilePct% complete — add your skills and resume to stand out
+                    @Model.ProfileCompletion% complete — add your skills and resume to stand out
                 </div>
             </div>
             <a asp-controller="Candidate" asp-action="Profile" class="btn-outline-app ms-3 text-nowrap">
-                Complete Profile <i class="bi bi-arrow-right"></i>
+                Complete Profile <span class="iconify" data-icon="lucide:arrow-right" style="font-size: 1.2rem;"></span>
             </a>
         </div>
         <div class="app-progress-wrap">
-            <div class="app-progress-bar" style="width:@profilePct%"></div>
+            <div class="app-progress-bar" style="width:@Model.ProfileCompletion%"></div>
         </div>
     </div>
 }
@@ -47,10 +41,10 @@
         <div class="stat-card">
             <div>
                 <div class="stat-card-label">Applications</div>
-                <div class="stat-card-value">@totalApps</div>
+                <div class="stat-card-value">@Model.TotalApplications</div>
             </div>
             <div class="stat-card-icon stat-icon-blue">
-                <i class="bi bi-file-earmark-text"></i>
+                <span class="iconify stat-icon" data-icon="lucide:file-text"></span>
             </div>
         </div>
     </div>
@@ -58,10 +52,10 @@
         <div class="stat-card">
             <div>
                 <div class="stat-card-label">Saved Jobs</div>
-                <div class="stat-card-value">@savedJobs</div>
+                <div class="stat-card-value">@Model.SavedJobs</div>
             </div>
             <div class="stat-card-icon stat-icon-orange">
-                <i class="bi bi-bookmark"></i>
+                <span class="iconify stat-icon" data-icon="lucide:bookmark"></span>
             </div>
         </div>
     </div>
@@ -69,10 +63,10 @@
         <div class="stat-card">
             <div>
                 <div class="stat-card-label">Under Review</div>
-                <div class="stat-card-value">@underReview</div>
+                <div class="stat-card-value">@Model.UnderReview</div>
             </div>
             <div class="stat-card-icon stat-icon-green">
-                <i class="bi bi-graph-up-arrow"></i>
+                <span class="iconify stat-icon" data-icon="lucide:clock-alert"></span>
             </div>
         </div>
     </div>
@@ -83,137 +77,73 @@
     <div class="card-section-header">
         <div class="card-section-title">Recent Applications</div>
         <a asp-controller="Candidate" asp-action="Applications" class="card-view-all">
-            View All <i class="bi bi-arrow-right"></i>
+            View All <span class="iconify" data-icon="lucide:arrow-right"></span>
         </a>
     </div>
 
-    @if (ViewBag.RecentApplications != null)
+    @if (Model.RecentApplications.Any())
     {
-        foreach (var app in ViewBag.RecentApplications)
+        foreach (var app in Model.RecentApplications)
         {
+            string badgeClass = app.Status switch
+            {
+                "Under Review" => "badge-review",
+                "Applied" => "badge-applied",
+                "Accepted" => "badge-accepted",
+                _ => "badge-rejected"
+            };
+
             <div class="app-row">
                 <div>
                     <div class="app-row-title">@app.JobTitle</div>
                     <div class="app-row-meta">@app.Company &bull; Applied @app.AppliedDate</div>
                 </div>
-                @{
-                    string badgeClass;
-                    if (app.Status == "Under Review")      badgeClass = "badge-review";
-                    else if (app.Status == "Applied")      badgeClass = "badge-applied";
-                    else if (app.Status == "Accepted")     badgeClass = "badge-accepted";
-                    else                                   badgeClass = "badge-rejected";
-                }
                 <span class="status-badge @badgeClass">@app.Status</span>
             </div>
         }
     }
     else
     {
-        @* Placeholder rows shown when no real data is wired yet *@
-        <div class="app-row">
-            <div>
-                <div class="app-row-title">Software Engineer Intern</div>
-                <div class="app-row-meta">Google &bull; Applied 2 days ago</div>
-            </div>
-            <span class="status-badge badge-review">Under Review</span>
-        </div>
-        <div class="app-row">
-            <div>
-                <div class="app-row-title">Product Manager Intern</div>
-                <div class="app-row-meta">Microsoft &bull; Applied 5 days ago</div>
-            </div>
-            <span class="status-badge badge-applied">Applied</span>
-        </div>
-        <div class="app-row">
-            <div>
-                <div class="app-row-title">Product Manager Intern</div>
-                <div class="app-row-meta">Microsoft &bull; Applied 5 days ago</div>
-            </div>
-            <span class="status-badge badge-accepted">Accepted</span>
-        </div>
-        <div class="app-row">
-            <div>
-                <div class="app-row-title">Data Analyst</div>
-                <div class="app-row-meta">Amazon &bull; Applied 1 week ago</div>
-            </div>
-            <span class="status-badge badge-rejected">Rejected</span>
+        <div class="text-center py-4">
+            <p class="text-muted text-center p-3">You haven't applied to any jobs yet.</p>
         </div>
     }
 </div>
 
 @* ── Recommended Jobs ─────────────────────────────────────── *@
-<div class="card-section-title mb-3">Recommended for You</div>
-
-<div class="row g-3">
-    @if (ViewBag.RecommendedJobs != null)
-    {
-        foreach (var job in ViewBag.RecommendedJobs)
+@if (Model.RecommendedJobs.Any())
+{
+    <div class="card-section-title mb-3">Recommended for You</div>
+    <div class="row g-3">
+        @foreach (var job in Model.RecommendedJobs)
         {
-            <div class="col-12 col-md-6">
-                <a asp-controller="Jobs" asp-action="Details" asp-route-id="@job.Id" class="job-card">
-                    <div class="job-card-title">@job.Title</div>
-                    <div class="job-card-company">@job.Company</div>
-                    <div class="job-card-meta">
-                        <span><i class="bi bi-geo-alt"></i> @job.Location</span>
-                        <span><i class="bi bi-clock"></i> @job.PostedDate</span>
-                        @if (!string.IsNullOrEmpty(job.Salary))
-                        {
-                            <span><i class="bi bi-currency-dollar"></i> @job.Salary</span>
-                        }
-                    </div>
-                    <div class="job-card-desc">@job.Description</div>
-                    <span class="job-type-tag">@job.Type</span>
-                </a>
-            </div>
+        <div class="col-12 col-md-4">
+            <a asp-controller="Jobs" asp-action="Details" asp-route-id="@job.Id" class="job-card">
+                <div class="job-card-title">@job.Title</div>
+                <div class="job-card-company">@job.Company</div>
+                <div class="job-card-meta">
+                        <span><span class="iconify" data-icon="lucide:map-pin"></span> @job.Location</span>
+                        <span><span class="iconify" data-icon="lucide:clock"></span> @job.PostedDate</span>
+                    @if (!string.IsNullOrEmpty(job.Salary))
+                    {
+                            <span><span class="iconify" data-icon="lucide:dollar-sign"></span> @job.Salary</span>
+                    }
+                </div>
+                <div class="job-card-desc">@job.Description</div>
+                <span class="job-type-tag">@job.Type</span>
+            </a>
+        </div>
         }
-    }
-    else
-    {
-        @* Placeholder cards shown until real data is wired *@
-        <div class="col-12 col-md-4">
-            <a href="#" class="job-card">
-                <div class="job-card-title">Frontend Developer Intern</div>
-                <div class="job-card-company">TechCorp</div>
-                <div class="job-card-meta">
-                    <span><i class="bi bi-geo-alt"></i> San Francisco, CA</span>
-                    <span><i class="bi bi-clock"></i> 2 days ago</span>
-                    <span><i class="bi bi-currency-dollar"></i> $25–35/hr</span>
-                </div>
-                <div class="job-card-desc">
-                    Join our team as a frontend developer intern and work on cutting-edge web applications.
-                </div>
-                <span class="job-type-tag">Internship</span>
-            </a>
+    </div>
+}
+else
+{
+    <div class="app-card mb-4">
+        <div class="card-section-header">
+            <div class="card-section-title">Recommended for You</div>
         </div>
-        <div class="col-12 col-md-4">
-            <a href="#" class="job-card">
-                <div class="job-card-title">UX Design Intern</div>
-                <div class="job-card-company">DesignCo</div>
-                <div class="job-card-meta">
-                    <span><i class="bi bi-geo-alt"></i> Remote</span>
-                    <span><i class="bi bi-clock"></i> 1 week ago</span>
-                    <span><i class="bi bi-currency-dollar"></i> $20–30/hr</span>
-                </div>
-                <div class="job-card-desc">
-                    Help design beautiful user experiences for our mobile and web applications.
-                </div>
-                <span class="job-type-tag">Internship</span>
-            </a>
+        <div class="text-center py-4">
+            <p class="text-muted">No jobs are available at the moment.</p>
         </div>
-        <div class="col-12 col-md-4">
-            <a href="#" class="job-card">
-                <div class="job-card-title">UX Design Intern</div>
-                <div class="job-card-company">DesignCo</div>
-                <div class="job-card-meta">
-                    <span><i class="bi bi-geo-alt"></i> Remote</span>
-                    <span><i class="bi bi-clock"></i> 1 week ago</span>
-                    <span><i class="bi bi-currency-dollar"></i> $20–30/hr</span>
-                </div>
-                <div class="job-card-desc">
-                    Help design beautiful user experiences for our mobile and web applications.
-                </div>
-                <span class="job-type-tag">Internship</span>
-            </a>
-        </div>
-    }
-</div>
+    </div>
+}

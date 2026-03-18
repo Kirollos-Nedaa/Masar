@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Masar.Domain\Masar.Domain.csproj" />
+    <ProjectReference Include="..\Masar.Infrastructure\Masar.Infrastructure.csproj" />
   </ItemGroup>
 	
 </Project>

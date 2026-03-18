@@ -50,7 +50,7 @@
         <div class="pw-wrap">
             <input asp-for="Password" type="password" id="pw" class="form-control" placeholder="Min. 8 characters" autocomplete="new-password" />
             <button type="button" class="btn-toggle-pw" onclick="togglePw('pw','eyePw')" tabindex="-1" aria-label="Toggle password">
-                <i class="bi bi-eye" id="eyePw"></i>
+                <span class="iconify" data-icon="lucide:eye" id="eyePw"></span>
             </button>
         </div>
         <span asp-validation-for="Password" class="text-danger"></span>
@@ -62,7 +62,7 @@
         <div class="pw-wrap">
             <input asp-for="ConfirmPassword" type="password" id="cpw" class="form-control" placeholder="Repeat your password" autocomplete="new-password" />
             <button type="button" class="btn-toggle-pw" onclick="togglePw('cpw','eyeCpw')" tabindex="-1" aria-label="Toggle confirm password">
-                <i class="bi bi-eye" id="eyeCpw"></i>
+                <span class="iconify" data-icon="lucide:eye" id="eyeCpw"></span>
             </button>
         </div>
         <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
@@ -84,7 +84,7 @@
 <div class="row g-2">
     <div class="col-12">
         <a href="#" class="btn-social">
-            <i class="bi bi-google"></i> Google
+            <span class="iconify" data-icon="logos:google-icon"></span> Google
         </a>
     </div>
 </div>
@@ -104,13 +104,15 @@
         function togglePw(inputId, iconId) {
             const input = document.getElementById(inputId);
             const icon  = document.getElementById(iconId);
+
             if (input.type === 'password') {
                 input.type = 'text';
-                icon.classList.replace('bi-eye', 'bi-eye-slash');
+                icon.setAttribute('data-icon', 'lucide:eye-off');
             } else {
                 input.type = 'password';
-                icon.classList.replace('bi-eye-slash', 'bi-eye');
+                icon.setAttribute('data-icon', 'lucide:eye');
             }
+            // No re-render call needed — Iconify watches attribute changes automatically
         }
     </script>
 }

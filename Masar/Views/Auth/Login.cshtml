@@ -27,7 +27,7 @@
         <div class="pw-wrap">
             <input asp-for="Password" type="password" id="pw" class="form-control" placeholder="••••••••" autocomplete="current-password" />
             <button type="button" class="btn-toggle-pw" onclick="togglePw('pw','eyePw')" tabindex="-1" aria-label="Toggle password">
-                <i class="bi bi-eye" id="eyePw"></i>
+                <span class="iconify" data-icon="lucide:eye" id="eyePw"></span>
             </button>
         </div>
         <span asp-validation-for="Password" class="text-danger"></span>
@@ -58,7 +58,7 @@
 <div class="row g-2">
     <div class="col-12">
         <a href="#" class="btn-social">
-            <i class="bi bi-google"></i> Google
+            <span class="iconify" data-icon="logos:google-icon"></span> Google
         </a>
     </div>
 </div>
@@ -78,12 +78,13 @@
         function togglePw(inputId, iconId) {
             const input = document.getElementById(inputId);
             const icon  = document.getElementById(iconId);
+
             if (input.type === 'password') {
                 input.type = 'text';
-                icon.classList.replace('bi-eye', 'bi-eye-slash');
+                icon.setAttribute('data-icon', 'lucide:eye-off');
             } else {
                 input.type = 'password';
-                icon.classList.replace('bi-eye-slash', 'bi-eye');
+                icon.setAttribute('data-icon', 'lucide:eye');
             }
         }
     </script>

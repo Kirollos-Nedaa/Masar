@@ -23,27 +23,10 @@ namespace Masar.Infrastructure.Config
                 .IsRequired()
                 .HasMaxLength(50);
 
-            // Gender — nullable, filled during profile completion
-            builder.Property(u => u.Gender);
-
-            // Location
-            builder.Property(u => u.Location)
-                .IsRequired(false)
-                .HasMaxLength(100);
-
-            // Date of Birth
-            builder.Property(u => u.DateOfBirth)
-                .HasColumnType("date");
-
-            // Bio
-            builder.Property(u => u.Bio)
-                .IsRequired(false)
-                .HasMaxLength(500);
-
             // CreatedAt — set once, never updated
             builder.Property(u => u.CreatedAt)
                 .IsRequired()
-                .ValueGeneratedNever();
+                .HasDefaultValueSql("GETUTCDATE()");
         }
     }
 }

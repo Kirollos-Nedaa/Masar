@@ -15,41 +15,71 @@ namespace Masar.Infrastructure.Config
         {
             builder.HasKey(cp => cp.Id);
 
+            builder.Property(cp => cp.UserId)
+                .IsRequired();
+
+            builder.HasIndex(cp => cp.UserId)
+                .IsUnique();
+
             builder.Property(cp => cp.Bio)
-                .HasMaxLength(1000);
-
-            builder.Property(cp => cp.Location)
-                .HasMaxLength(200);
-
-            builder.Property(cp => cp.ResumeUrl)
+                .IsRequired(false)
                 .HasMaxLength(500);
 
-            builder.Property(cp => cp.ProfileViews)
-                .HasDefaultValue(0);
+            builder.Property(cp => cp.PhoneNumber)
+                .HasMaxLength(20);
 
-            // One-to-One: ApplicationUser -> CandidateProfile
+            builder.Property(cp => cp.Location)
+                .IsRequired(false)
+                .HasMaxLength(100);
+
+            builder.Property(cp => cp.DateOfBirth)
+                .IsRequired(false)
+                .HasColumnType("date");
+
+            builder.Property(cp => cp.Gender)
+                .IsRequired(false);
+
+            builder.Property(cp => cp.ResumeUrl)
+                .IsRequired(false);
+
             builder.HasOne(cp => cp.User)
-                .WithOne()
+                .WithOne(u => u.CandidateProfile)
                 .HasForeignKey<CandidateProfile>(cp => cp.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // One-to-Many: CandidateProfile -> Educations
+            // Configure one-to-many relationships
             builder.HasMany(cp => cp.Educations)
                 .WithOne(e => e.CandidateProfile)
                 .HasForeignKey(e => e.CandidateProfileId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // One-to-Many: CandidateProfile -> CandidateSkills
+            // Configure one-to-many relationships
             builder.HasMany(cp => cp.CandidateSkills)
                 .WithOne(cs => cs.CandidateProfile)
                 .HasForeignKey(cs => cs.CandidateProfileId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // One-to-One: CandidateProfile -> ProfessionalLinks
-            builder.HasOne(cp => cp.ProfessionalLinks)
+            // Configure one-to-many relationships
+            builder.HasMany(cp => cp.ProfessionalLinks)
                 .WithOne(pl => pl.CandidateProfile)
-                .HasForeignKey<ProfessionalLinks>(pl => pl.CandidateProfileId)
+                .HasForeignKey(pl => pl.CandidateProfileId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure one-to-many relationships
+            builder.HasMany(cp => cp.JobApplications)
+                .WithOne(ja => ja.Candidate)
+                .HasForeignKey(ja => ja.CandidateProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure one-to-many relationships
+            builder.HasMany(cp => cp.SavedJobs)
+                .WithOne(sj => sj.Candidate)
+                .HasForeignKey(sj => sj.CandidateProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            //------------------------------------------
+            builder.HasIndex(cp => cp.UserId);
+            builder.HasIndex(cp => cp.Location);
         }
     }
 }

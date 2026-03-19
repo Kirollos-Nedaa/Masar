@@ -15,35 +15,52 @@ namespace Masar.Infrastructure.Config
         {
             builder.HasKey(j => j.Id);
 
+            //------------------------------------------
             builder.Property(j => j.Title)
                 .IsRequired()
                 .HasMaxLength(200);
 
-            builder.Property(j => j.Description)
-                .IsRequired()
-                .HasMaxLength(4000);
+            builder.Property(j => j.JobType)
+                .IsRequired();
 
-            builder.Property(j => j.Requirements)
-                .HasMaxLength(3000);
+            builder.Property(j => j.Department)
+                .IsRequired();
 
             builder.Property(j => j.Location)
+                .IsRequired()
                 .HasMaxLength(200);
 
-            builder.Property(j => j.JobType)
-                .HasMaxLength(50); // "Internship", "Full-time", "Part-time"
-
             builder.Property(j => j.WorkMode)
-                .HasMaxLength(50); // "Remote", "On-site", "Hybrid"
+                .IsRequired();
 
+            //------------------------------------------
             builder.Property(j => j.MinSalary)
                 .HasColumnType("decimal(18,2)");
 
             builder.Property(j => j.MaxSalary)
                 .HasColumnType("decimal(18,2)");
 
-            builder.Property(j => j.Views)
-                .HasDefaultValue(0);
+            //------------------------------------------
+            builder.Property(j => j.Description)
+                .IsRequired()
+                .HasMaxLength(4000);
 
+            builder.Property(j => j.Requirements)
+                .IsRequired()
+                .HasMaxLength(4000);
+
+            builder.Property(j => j.Benefits)
+                .IsRequired(false)
+                .HasMaxLength(4000);
+
+            //------------------------------------------
+            builder.Property(j => j.ApplicationDeadline)
+                .IsRequired();
+
+            builder.Property(j => j.NumberOfOpenings)
+                .IsRequired();
+
+            //------------------------------------------
             builder.Property(j => j.IsActive)
                 .HasDefaultValue(true);
 
@@ -54,17 +71,24 @@ namespace Masar.Infrastructure.Config
                 .IsRequired()
                 .HasDefaultValueSql("GETUTCDATE()");
 
-            // One-to-Many: Job -> JobApplications
-            builder.HasMany<JobApplication>()
+            // One to Many Relation
+            builder.HasMany(j => j.JobApplications)
                 .WithOne(ja => ja.Job)
                 .HasForeignKey(ja => ja.JobId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // One-to-Many: Job -> SavedJobs
-            builder.HasMany<SavedJob>()
+            // One to Many Relation
+            builder.HasMany(j => j.SavedJobs)
                 .WithOne(sj => sj.Job)
                 .HasForeignKey(sj => sj.JobId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            //------------------------------------------
+            builder.HasIndex(j => j.CompanyProfileId);
+            builder.HasIndex(j => j.Location);
+            builder.HasIndex(j => j.JobType);
+            builder.HasIndex(j => j.Department);
+            builder.HasIndex(j => j.PostedDate);
         }
     }
 }

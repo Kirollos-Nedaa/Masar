@@ -28,12 +28,12 @@ namespace Masar.Infrastructure.Config
                 .HasDefaultValueSql("GETUTCDATE()");
 
             builder.HasOne(ja => ja.Job)
-               .WithMany()
-               .HasForeignKey(ja => ja.JobId)
-               .OnDelete(DeleteBehavior.NoAction);
+                .WithMany(j => j.JobApplications)
+                .HasForeignKey(ja => ja.JobId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasOne(ja => ja.Candidate)
-                .WithMany()
+                .WithMany(c => c.JobApplications)
                 .HasForeignKey(ja => ja.CandidateProfileId)
                 .OnDelete(DeleteBehavior.NoAction);
         }

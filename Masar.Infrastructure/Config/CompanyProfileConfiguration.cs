@@ -15,11 +15,15 @@ namespace Masar.Infrastructure.Config
         {
             builder.HasKey(cp => cp.Id);
 
-            builder.Property(cp => cp.CompanyName)
+            // Unique constraint on UserId to ensure one-to-one relationship
+            builder.HasIndex(cp => cp.UserId)
+                .IsUnique();
+
+            builder.Property(cp => cp.Name)
                 .IsRequired()
                 .HasMaxLength(200);
 
-            builder.Property(cp => cp.CompanyLogo)
+            builder.Property(cp => cp.LogoUrl)
                 .IsRequired(false)
                 .HasMaxLength(500);
 
@@ -34,9 +38,21 @@ namespace Masar.Infrastructure.Config
                 .OnDelete(DeleteBehavior.Cascade);
 
             // One-to-Many: CompanyProfile -> Jobs
-            builder.HasMany<Job>()
+            builder.HasMany(cp => cp.Jobs)
                 .WithOne(j => j.Company)
                 .HasForeignKey(j => j.CompanyProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // One-to-One: CompanyProfile -> ContactInfo
+            builder.HasOne(cp => cp.ContactInfo)
+                .WithOne(ci => ci.CompanyProfile)
+                .HasForeignKey<CompanyContactInfo>(ci => ci.CompanyProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // One-to-Many: CompanyProfile -> ProfessionalLinks
+            builder.HasMany(cp => cp.ProfessionalLinks)
+                .WithOne(pl => pl.CompanyProfile)
+                .HasForeignKey(pl => pl.CompanyProfileId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

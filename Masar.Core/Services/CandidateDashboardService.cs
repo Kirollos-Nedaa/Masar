@@ -55,7 +55,7 @@ namespace Masar.Core.Services
                     .Select(a => new RecentApplicationDto
                     {
                         JobTitle = a.Job.Title,
-                        Company = a.Job.Company.CompanyName,
+                        Company = a.Job.Company.Name,
                         AppliedDate = GetRelativeDate(a.AppliedDate),
                         Status = GetStatusDisplay(a.Status)
                     })
@@ -70,7 +70,7 @@ namespace Masar.Core.Services
                 {
                     Id = j.Id,
                     Title = j.Title,
-                    Company = j.Company.CompanyName,
+                    Company = j.Company.Name,
                     Location = j.Location,
                     PostedDate = GetRelativeDate(j.PostedDate),
                     Salary = j.MinSalary != null && j.MaxSalary != null
@@ -79,7 +79,7 @@ namespace Masar.Core.Services
                     Description = j.Description.Length > 120
                                     ? j.Description.Substring(0, 120) + "..."
                                     : j.Description,
-                    Type = j.JobType
+                    Type = j.JobType.ToString()
                 })
                 .ToListAsync();
 
@@ -100,7 +100,7 @@ namespace Masar.Core.Services
         {
             if (user == null || profile == null) return 0;
 
-            // 5 sections × 20 points each = 100
+            
             int score = 0;
 
             // 1. Personal info
@@ -113,22 +113,14 @@ namespace Masar.Core.Services
 
             // 2. Education
             if (profile.Educations?.Any() == true)
-                score += 20;
+                score += 30;
 
             // 3. Skills
             if (profile.CandidateSkills?.Any() == true)
-                score += 20;
-
-            // 4. Resume
-            if (!string.IsNullOrEmpty(profile.ResumeUrl))
-                score += 20;
+                score += 30;
 
             // 5. Professional links
-            var links = profile.ProfessionalLinks;
-            if (links != null && (
-                   !string.IsNullOrEmpty(links.LinkedInUrl)
-                || !string.IsNullOrEmpty(links.GitHubUrl)
-                || !string.IsNullOrEmpty(links.PortfolioUrl)))
+            if (profile.ProfessionalLinks?.Any() == true)
                 score += 20;
 
             return score;

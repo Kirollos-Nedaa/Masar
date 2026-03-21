@@ -30,5 +30,7 @@ namespace Masar.Domain.ViewModels
         [DataType(DataType.Password)]
         [Compare("Password", ErrorMessage = "Passwords does't match")]
         public string ConfirmPassword { get; set; }
+
+        public bool Agreement { get; set; }
     }
 }

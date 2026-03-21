@@ -278,7 +278,11 @@ body.auth-body {
     }
 
 /* ── Validation summary ──────────────────────────────────── */
-.validation-box {
+.validation-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+
     background: var(--red-50);
     border: 1px solid #FECACA;
     border-radius: var(--radius-md);
@@ -288,14 +292,21 @@ body.auth-body {
     font-size: .83rem;
 }
 
-    .validation-box ul {
-        margin: 0;
-        padding-left: 1.1rem;
-    }
+.validation-wrapper .iconify {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
 
-    .validation-box li {
-        margin-top: .2rem;
-    }
+.validation-content ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.validation-content li {
+    margin-bottom: 0.2rem;
+}
 
 /* ── Primary Button ──────────────────────────────────────── */
 .btn-cb-primary {
@@ -435,7 +446,8 @@ body.auth-body {
 
     .role-card.selected .role-icon,
     .role-card:hover .role-icon {
-        background: rgba(37,99,235,.18);
+        background: rgba(37,99,235,1);
+        color: var(--white)
     }
 
     .role-card .role-title {

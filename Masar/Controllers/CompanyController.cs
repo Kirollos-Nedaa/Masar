@@ -6,13 +6,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Masar.Controllers
 {
-    [Authorize(Roles = "Candidate")]
-    public class CandidateController : Controller
+    [Authorize(Roles = "Company")]
+    public class CompanyController : Controller
     {
         private readonly IDashboardService _dashboardService;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public CandidateController(
+        public CompanyController(
             IDashboardService dashboardService,
             UserManager<ApplicationUser> userManager)
         {
@@ -20,11 +20,10 @@ namespace Masar.Controllers
             _userManager = userManager;
         }
 
-        [HttpGet]
         public async Task<IActionResult> Dashboard()
         {
             var userId = _userManager.GetUserId(User);
-            var dto = await _dashboardService.GetCandidateDashboardAsync(userId);
+            var dto = await _dashboardService.GetCompanyDashboardAsync(userId);
             return View(dto);
         }
     }

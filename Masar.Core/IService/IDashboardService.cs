@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 
 namespace Masar.Core.IService
 {
-    public interface ICandidateDashboardService
+    public interface IDashboardService
     {
-        Task<CandidateDashboardDto> GetDashboardAsync(string userId);
+        Task<CandidateDashboardDto> GetCandidateDashboardAsync(string userId);
+        Task<CompanyDashboardDto> GetCompanyDashboardAsync(string userId);
     }
 }

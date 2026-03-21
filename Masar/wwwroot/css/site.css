@@ -336,6 +336,12 @@ body.app-body {
     color: var(--orange);
 }
 
+/* ── NEW: Purple stat icon variant ──────────────────────── */
+.stat-icon-purple {
+    background: #F3E8FF;
+    color: #7C3AED;
+}
+
 .app-card .stat-card-icon {
     width: 64px;
     height: 64px;
@@ -560,6 +566,159 @@ body.app-body {
         color: var(--blue);
         background: var(--blue-50);
     }
+
+/* ── Company table ───────────────────────────────────────── */
+.company-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .company-table thead tr {
+        border-bottom: 1px solid var(--border);
+    }
+
+    .company-table th {
+        padding: .625rem 1rem;
+        font-size: .75rem;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        text-align: left;
+        white-space: nowrap;
+    }
+
+    .company-table tbody tr {
+        border-bottom: 1px solid var(--border);
+        transition: background .12s;
+    }
+
+        .company-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .company-table tbody tr:hover {
+            background: var(--bg);
+        }
+
+    .company-table td {
+        padding: .875rem 1rem;
+        vertical-align: middle;
+    }
+
+.job-table-title {
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: .2rem;
+}
+
+.job-table-meta {
+    font-size: .78rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+}
+
+.applicant-count {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    font-size: .875rem;
+    font-weight: 600;
+    color: var(--dark);
+}
+
+.table-meta-text {
+    font-size: .8rem;
+    color: var(--muted);
+}
+
+/* ── Table action buttons ────────────────────────────────── */
+.btn-table-action {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    background: var(--white);
+    color: var(--dark);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: .3rem .75rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .8rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: border-color .15s, background .15s, color .15s;
+    white-space: nowrap;
+}
+
+    .btn-table-action:hover {
+        border-color: var(--blue);
+        color: var(--blue);
+        background: var(--blue-50);
+    }
+
+.btn-table-ghost {
+    border-color: transparent;
+    background: transparent;
+    color: var(--muted);
+    padding: .3rem .5rem;
+}
+
+    .btn-table-ghost:hover {
+        border-color: var(--border);
+        color: var(--dark);
+        background: var(--bg);
+    }
+
+/* ── Recent applicants row ───────────────────────────────── */
+.applicant-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: .875rem 0;
+    border-bottom: 1px solid var(--border);
+}
+
+    .applicant-row:last-child {
+        border-bottom: none;
+    }
+
+.applicant-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--blue-100);
+    color: var(--blue);
+    font-family: 'Sora', sans-serif;
+    font-size: .9rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.applicant-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.applicant-name {
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: .15rem;
+}
+
+.applicant-meta {
+    font-size: .8rem;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 768px) {

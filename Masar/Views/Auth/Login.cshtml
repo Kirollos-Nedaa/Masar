@@ -12,7 +12,10 @@
     @Html.AntiForgeryToken()
 
     @* Validation Summary *@
-    <div asp-validation-summary="ModelOnly" class="validation-box" style="display:none;"></div>
+    <div class="validation-wrapper">
+        <span class="iconify" data-icon="lucide:circle-x"></span>
+        <div asp-validation-summary="ModelOnly" class="validation-content"></div>
+    </div>
 
     @* Email *@
     <div class="mb-3">

@@ -14,7 +14,7 @@
 
 @* ── Step indicator ─────────────────────────────────────── *@
 <div class="step-bar">
-    <span class="step-dot done"><i class="bi bi-check"></i></span>
+    <span class="step-dot done"><span class="iconify" data-icon="lucide:check" style="font-size: 1.2rem;"></span></span>
     <span class="step-label">Create account</span>
     <span class="step-connector"></span>
     <span class="step-dot active">2</span>
@@ -27,7 +27,7 @@
 
 @* ── Error banner (shown by JS if no role selected) ──────── *@
 <div id="roleError" class="validation-box mb-3" style="display:none;">
-    <i class="bi bi-exclamation-circle me-1"></i> Please select a role before continuing.
+    <span class="iconify me-1" data-icon="lucide:circle-x" style="font-size: 1.2rem;"></span> Please select a role before continuing.
 </div>
 
 @* ── Role Selection Form ─────────────────────────────────── *@
@@ -40,9 +40,9 @@
         @* Candidate *@
         <div class="col-12 col-sm-6">
             <div class="role-card" id="cardCandidate" onclick="selectRole('Candidate', this)">
-                <span class="check-badge"><i class="bi bi-check"></i></span>
+                <span class="check-badge"><span class="iconify" data-icon="lucide:check" style="font-size: 0.9rem;"></span></span>
                 <div class="role-icon">
-                    <i class="bi bi-person-badge"></i>
+                    <span class="iconify" data-icon="lucide:user" style="font-size: 2rem;"></span>
                 </div>
                 <div class="role-title">Candidate</div>
                 <div class="role-desc">
@@ -54,9 +54,9 @@
         @* Company *@
         <div class="col-12 col-sm-6">
             <div class="role-card" id="cardCompany" onclick="selectRole('Company', this)">
-                <span class="check-badge"><i class="bi bi-check"></i></span>
+                <span class="check-badge"><span class="iconify" data-icon="lucide:check" style="font-size: 0.9rem;"></span></span>
                 <div class="role-icon">
-                    <i class="bi bi-building"></i>
+                    <span class="iconify" data-icon="lucide:building-2" style="font-size: 2rem;"></span>
                 </div>
                 <div class="role-title">Company</div>
                 <div class="role-desc">
@@ -69,7 +69,7 @@
 
     @* Continue Button *@
     <button type="button" class="btn-cb-primary" onclick="submitRole()">
-        Continue &nbsp;<i class="bi bi-arrow-right"></i>
+        Continue &nbsp;<span class="iconify" data-icon="lucide:arrow-right" style="font-size: 1.2rem;"></span>
     </button>
 
 </form>

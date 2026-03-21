@@ -1,27 +1,26 @@
-﻿using Masar.Core.IService;
+﻿// Masar.Core/Services/DashboardService.cs
+
+using Masar.Core.IService;
 using Masar.Domain.Enums;
 using Masar.Domain.Models;
 using Masar.Domain.ViewModels;
 using Masar.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Masar.Core.Services
 {
-    public class CandidateDashboardService : ICandidateDashboardService
+    public class DashboardService : IDashboardService
     {
         private readonly AppDbContext _context;
 
-        public CandidateDashboardService(AppDbContext context)
+        public DashboardService(AppDbContext context)
         {
             _context = context;
         }
 
-        public async Task<CandidateDashboardDto> GetDashboardAsync(string userId)
+
+        //-───────────── CANDIDATE DASHBOARD -────────────────────────────────────────────
+        public async Task<CandidateDashboardDto> GetCandidateDashboardAsync(string userId)
         {
             var user = await _context.Users.FindAsync(userId);
 
@@ -43,7 +42,7 @@ namespace Masar.Core.Services
             var underReview = profile == null ? 0 :
                 await _context.JobApplications
                     .CountAsync(a => a.CandidateProfileId == profile.Id
-                      && a.Status == ApplicationStatus.UnderReview);
+                               && a.Status == ApplicationStatus.UnderReview);
 
             // ── Recent Applications (last 5) ───────────────────
             var recentApps = profile == null
@@ -61,7 +60,7 @@ namespace Masar.Core.Services
                     })
                     .ToListAsync();
 
-            // ── Recommended Jobs (latest active, simple version) ─
+            // ── Recommended Jobs (latest 3 active jobs) ────────
             var recommendedJobs = await _context.Jobs
                 .Where(j => j.IsActive)
                 .OrderByDescending(j => j.PostedDate)
@@ -74,11 +73,11 @@ namespace Masar.Core.Services
                     Location = j.Location,
                     PostedDate = GetRelativeDate(j.PostedDate),
                     Salary = j.MinSalary != null && j.MaxSalary != null
-                                    ? $"${j.MinSalary}–{j.MaxSalary}"
-                                    : "N/A",
+                                     ? $"${j.MinSalary}–{j.MaxSalary}"
+                                     : "N/A",
                     Description = j.Description.Length > 120
-                                    ? j.Description.Substring(0, 120) + "..."
-                                    : j.Description,
+                                     ? j.Description.Substring(0, 120) + "..."
+                                     : j.Description,
                     Type = j.JobType.ToString()
                 })
                 .ToListAsync();
@@ -95,15 +94,88 @@ namespace Masar.Core.Services
             };
         }
 
-        // ── Helpers ────────────────────────────────────────────
+
+        //-─────────── COMPANY DASHBOARD -────────────────────────────────────────────
+        public async Task<CompanyDashboardDto> GetCompanyDashboardAsync(string userId)
+        {
+            // Resolve the company profile that belongs to this user
+            var companyProfile = await _context.CompanyProfiles
+                .FirstOrDefaultAsync(c => c.UserId == userId);
+
+            if (companyProfile == null)
+                return new CompanyDashboardDto();
+
+            var companyId = companyProfile.Id;
+            var cutoff24h = DateTime.UtcNow.AddHours(-24);
+
+            // ── Stats ──────────────────────────────────────────
+            var activeJobs = await _context.Jobs
+                .CountAsync(j => j.CompanyProfileId == companyId && j.IsActive);
+
+            var totalApplicants = await _context.JobApplications
+                .CountAsync(a => a.Job.CompanyProfileId == companyId);
+
+            var newApplicants = await _context.JobApplications
+                .CountAsync(a => a.Job.CompanyProfileId == companyId
+                             && a.AppliedDate >= cutoff24h);
+
+            var pendingReviews = await _context.JobApplications
+                .CountAsync(a => a.Job.CompanyProfileId == companyId
+                             && (a.Status == ApplicationStatus.Applied
+                              || a.Status == ApplicationStatus.UnderReview));
+
+            // ── Posted Jobs (last 5, newest first) ────────────
+            var postedJobs = await _context.Jobs
+                .Where(j => j.CompanyProfileId == companyId)
+                .OrderByDescending(j => j.PostedDate)
+                .Take(5)
+                .Select(j => new PostedJobDto
+                {
+                    Id = j.Id,
+                    Title = j.Title,
+                    Location = j.Location,
+                    JobType = j.JobType.ToString(),
+                    Status = j.IsActive ? "Active" : "Closed",
+                    ApplicantCount = j.JobApplications.Count,
+                    PostedDate = GetRelativeDate(j.PostedDate)
+                })
+                .ToListAsync();
+
+            // ── Recent Applicants (last 5 across all jobs) ─────
+            var recentApplicants = await _context.JobApplications
+                .Where(a => a.Job.CompanyProfileId == companyId)
+                .OrderByDescending(a => a.AppliedDate)
+                .Take(5)
+                .Select(a => new RecentApplicantDto
+                {
+                    JobId = a.JobId,
+                    Name = a.Candidate.User.FirstName + " " + a.Candidate.User.LastName,
+                    JobTitle = a.Job.Title,
+                    AppliedDate = GetRelativeDate(a.AppliedDate),
+                    Status = GetStatusDisplay(a.Status)
+                })
+                .ToListAsync();
+
+            return new CompanyDashboardDto
+            {
+                ActiveJobs = activeJobs,
+                TotalApplicants = totalApplicants,
+                NewApplicants = newApplicants,
+                PendingReviews = pendingReviews,
+                PostedJobs = postedJobs,
+                RecentApplicants = recentApplicants
+            };
+        }
+
+
+        //-─────────────────────────────── SHARED HELPERS -────────────────────────────────────────────
         private static int CalculateProfileCompletion(ApplicationUser? user, CandidateProfile? profile)
         {
             if (user == null || profile == null) return 0;
 
-            
             int score = 0;
 
-            // 1. Personal info
+            // Personal info — 20 pts
             if (!string.IsNullOrEmpty(user.FirstName)
              && !string.IsNullOrEmpty(user.LastName)
              && !string.IsNullOrEmpty(user.PhoneNumber)
@@ -111,15 +183,15 @@ namespace Masar.Core.Services
              && !string.IsNullOrEmpty(profile.Bio))
                 score += 20;
 
-            // 2. Education
+            // Education — 30 pts
             if (profile.Educations?.Any() == true)
                 score += 30;
 
-            // 3. Skills
+            // Skills — 30 pts
             if (profile.CandidateSkills?.Any() == true)
                 score += 30;
 
-            // 5. Professional links
+            // Professional links — 20 pts
             if (profile.ProfessionalLinks?.Any() == true)
                 score += 20;
 

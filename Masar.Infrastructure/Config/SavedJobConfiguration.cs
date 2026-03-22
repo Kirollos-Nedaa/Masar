@@ -20,18 +20,21 @@ namespace Masar.Infrastructure.Config
                 .IsUnique();
 
             builder.Property(sj => sj.SavedAt)
-                .IsRequired()
-                .HasDefaultValueSql("GETUTCDATE()");
+                .IsRequired();
 
             builder.HasOne(sj => sj.Job)
-                .WithMany()
+                .WithMany(j => j.SavedJobs)
                 .HasForeignKey(sj => sj.JobId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasOne(sj => sj.Candidate)
-                .WithMany()
+                .WithMany(c => c.SavedJobs)
                 .HasForeignKey(sj => sj.CandidateProfileId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            //------------------------------------------
+            builder.HasIndex(sj => sj.CandidateProfileId);
+            builder.HasIndex(sj => sj.JobId);
         }
     }
 }

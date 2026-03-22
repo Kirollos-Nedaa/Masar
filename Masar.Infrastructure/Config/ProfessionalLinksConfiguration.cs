@@ -9,21 +9,25 @@ using System.Threading.Tasks;
 
 namespace Masar.Infrastructure.Config
 {
-    public class ProfessionalLinksConfiguration : IEntityTypeConfiguration<ProfessionalLinks>
+    public class ProfessionalLinksConfiguration : IEntityTypeConfiguration<ProfessionalLink>
     {
-        public void Configure(EntityTypeBuilder<ProfessionalLinks> builder)
+        public void Configure(EntityTypeBuilder<ProfessionalLink> builder)
         {
             builder.HasKey(pl => pl.Id);
 
-            builder.Property(pl => pl.LinkedInUrl)
+            builder.Property(pl => pl.Url)
                 .IsRequired()
-                .HasMaxLength(300);
+                .HasMaxLength(500);
 
-            builder.Property(pl => pl.GitHubUrl)
-                .HasMaxLength(300);
+            builder.HasOne(pl => pl.CandidateProfile)
+                .WithMany(cp => cp.ProfessionalLinks)
+                .HasForeignKey(pl => pl.CandidateProfileId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Property(pl => pl.PortfolioUrl)
-                .HasMaxLength(300);
+            builder.HasOne(pl => pl.CompanyProfile)
+                .WithMany(cp => cp.ProfessionalLinks)
+                .HasForeignKey(pl => pl.CompanyProfileId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

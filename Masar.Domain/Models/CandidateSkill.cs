@@ -11,8 +11,11 @@ namespace Masar.Domain.Models
     public class CandidateSkill
     {
         public int Id { get; set; }
+
+        // Foreign key to CandidateProfile
         public int CandidateProfileId { get; set; }
         public CandidateProfile CandidateProfile { get; set; }
+
         public int SkillId { get; set; }
         public Skill Skill { get; set; }
     }

@@ -24,15 +24,7 @@ namespace Masar.Infrastructure.Context
             modelBuilder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims");
 
             // Apply all entity configurations
-            modelBuilder.ApplyConfiguration(new CandidateProfileConfiguration());
-            modelBuilder.ApplyConfiguration(new EducationConfiguration());
-            modelBuilder.ApplyConfiguration(new SkillConfiguration());
-            modelBuilder.ApplyConfiguration(new CandidateSkillConfiguration());
-            modelBuilder.ApplyConfiguration(new ProfessionalLinksConfiguration());
-            modelBuilder.ApplyConfiguration(new CompanyProfileConfiguration());
-            modelBuilder.ApplyConfiguration(new JobConfiguration());
-            modelBuilder.ApplyConfiguration(new JobApplicationConfiguration());
-            modelBuilder.ApplyConfiguration(new SavedJobConfiguration());
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         }
 
         // 1. Profiles
@@ -42,12 +34,14 @@ namespace Masar.Infrastructure.Context
         // 2. Job System & Interactions
         public DbSet<Job> Jobs { get; set; }
         public DbSet<JobApplication> JobApplications { get; set; }
+        public DbSet<JobQuestion> JobQuestions { get; set; }
         public DbSet<SavedJob> SavedJobs { get; set; }
 
-        // 3. Candidate Details
+        // 3. Candidate & Company Details
         public DbSet<Education> Educations { get; set; }
         public DbSet<Skill> Skills { get; set; }
         public DbSet<CandidateSkill> CandidateSkills { get; set; }
-        public DbSet<ProfessionalLinks> ProfessionalLinks { get; set; }
+        public DbSet<CompanyContactInfo> CompanyContactInfos { get; set; }
+        public DbSet<ProfessionalLink> ProfessionalLinks { get; set; }
     }
 }

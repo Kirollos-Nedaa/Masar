@@ -1,0 +1,193 @@
+﻿@{
+    ViewData["Title"] = "Company Dashboard";
+    ViewData["HasSidebar"] = true;
+}
+@model Masar.Domain.ViewModels.CompanyDashboardDto
+
+@section Sidebar {
+    <partial name="_CompanySidebar" />
+}
+
+@* ── Page header ──────────────────────────────────────────── *@
+<div class="page-header d-flex align-items-start justify-content-between">
+    <div>
+        <h1 class="page-title">Company Dashboard</h1>
+        <p class="page-subtitle">Manage your job postings and review candidates</p>
+    </div>
+</div>
+
+@* ── Stats ────────────────────────────────────────────────── *@
+<div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-card-label">Active Jobs</div>
+                <div class="stat-card-value">@Model.ActiveJobs</div>
+            </div>
+            <div class="stat-card-icon stat-icon-blue">
+                <span class="iconify stat-icon" data-icon="lucide:briefcase"></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-card-label">Total Applicants</div>
+                <div class="stat-card-value">@Model.TotalApplicants</div>
+            </div>
+            <div class="stat-card-icon stat-icon-green">
+                <span class="iconify stat-icon" data-icon="lucide:users"></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-card-label">New Applicants</div>
+                <div class="stat-card-value">@Model.NewApplicants</div>
+            </div>
+            <div class="stat-card-icon stat-icon-orange">
+                <span class="iconify stat-icon" data-icon="lucide:user-plus"></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-card-label">Pending Reviews</div>
+                <div class="stat-card-value">@Model.PendingReviews</div>
+            </div>
+            <div class="stat-card-icon stat-icon-purple">
+                <span class="iconify stat-icon" data-icon="lucide:clock-alert"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ── Posted Jobs Table ────────────────────────────────────── *@
+<div class="app-card mb-4">
+    <div class="card-section-header">
+        <div class="card-section-title">Posted Jobs</div>
+        <a asp-controller="Company" asp-action="Jobs" class="card-view-all">
+            View All <span class="iconify" data-icon="lucide:arrow-right"></span>
+        </a>
+    </div>
+
+    @if (Model.PostedJobs != null && Model.PostedJobs.Any())
+    {
+        <div class="table-responsive">
+            <table class="company-table">
+                <thead>
+                    <tr>
+                        <th>Job Title</th>
+                        <th>Status</th>
+                        <th>Applicants</th>
+                        <th>Posted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var job in Model.PostedJobs)
+                    {
+                        string jobBadgeClass = job.Status == "Active" ? "badge-accepted" : "badge-rejected";
+
+                        <tr>
+                            <td>
+                                <div class="job-table-title">@job.Title</div>
+                                <div class="job-table-meta">
+                                    <span class="iconify" data-icon="lucide:map-pin"></span>
+                                    @job.Location &bull; @job.JobType
+                                </div>
+                            </td>
+                            <td>
+                                <span class="status-badge @jobBadgeClass">@job.Status</span>
+                            </td>
+                            <td>
+                                <div class="applicant-count">
+                                    <span class="iconify" data-icon="lucide:users"></span>
+                                    @job.ApplicantCount
+                                </div>
+                            </td>
+                            <td class="table-meta-text">@job.PostedDate</td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <a asp-controller="Company"
+                                       asp-action="Applicants"
+                                       asp-route-jobId="@job.Id"
+                                       class="btn-table-action">
+                                        <span class="iconify" data-icon="lucide:users"></span>
+                                        Applicants
+                                    </a>
+                                    <a asp-controller="Company"
+                                       asp-action="EditJob"
+                                       asp-route-id="@job.Id"
+                                       class="btn-table-action btn-table-ghost">
+                                        <span class="iconify" data-icon="lucide:pencil"></span>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-4">
+            <p class="text-muted mb-3">You haven't posted any jobs yet.</p>
+            <a asp-controller="Company" asp-action="PostJob" class="btn-primary-app">
+                <span class="iconify" data-icon="lucide:plus-circle"></span>
+                Post Your First Job
+            </a>
+        </div>
+    }
+</div>
+
+@* ── Recent Applicants ────────────────────────────────────── *@
+<div class="app-card">
+    <div class="card-section-header">
+        <div class="card-section-title">Recent Applicants</div>
+    </div>
+
+    @if (Model.RecentApplicants != null && Model.RecentApplicants.Any())
+    {
+        foreach (var applicant in Model.RecentApplicants)
+        {
+            string appBadgeClass = applicant.Status switch
+            {
+                "Under Review" => "badge-review",
+                "Applied" => "badge-applied",
+                "Accepted" => "badge-accepted",
+                _ => "badge-rejected"
+            };
+
+            <div class="applicant-row">
+                <div class="applicant-avatar">
+                    @(applicant.Name.Length > 0 ? applicant.Name[0].ToString().ToUpper() : "?")
+                </div>
+                <div class="applicant-info">
+                    <div class="applicant-name">@applicant.Name</div>
+                    <div class="applicant-meta">
+                        Applied for <strong>@applicant.JobTitle</strong> &bull; @applicant.AppliedDate
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="status-badge @appBadgeClass">@applicant.Status</span>
+                    <a asp-controller="Company"
+                       asp-action="Applicants"
+                       asp-route-jobId="@applicant.JobId"
+                       class="btn-table-action">
+                        Review
+                    </a>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="text-center py-4">
+            <p class="text-muted">No applicants yet. Post a job to start receiving applications.</p>
+        </div>
+    }
+</div>

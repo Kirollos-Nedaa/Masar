@@ -1,0 +1,26 @@
+@{
+    var ctrl   = ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+}
+
+<div class="sidebar-section-label">Main</div>
+
+<a asp-controller="Company" asp-action="Dashboard"
+   class="sidebar-link @(ctrl == "Company" && action == "Dashboard" ? "active" : "")">
+    <span class="iconify stat-icon" data-icon="lucide:layout-panel-left"></span> Dashboard
+</a>
+
+<a asp-controller="Company" asp-action="Profile"
+   class="sidebar-link @(ctrl == "Company" && action == "Profile" ? "active" : "")">
+    <span class="iconify stat-icon" data-icon="lucide:building-2"></span> Company Profile
+</a>
+
+<a asp-controller="Company" asp-action="PostJob"
+   class="sidebar-link @(ctrl == "Company" && action == "PostJob" ? "active" : "")">
+    <span class="iconify stat-icon" data-icon="lucide:plus-circle"></span> Post a Job
+</a>
+
+<a asp-controller="Company" asp-action="Jobs"
+   class="sidebar-link @(ctrl == "Company" && action == "Jobs" ? "active" : "")">
+    <span class="iconify stat-icon" data-icon="lucide:briefcase"></span> Posted Jobs
+</a>

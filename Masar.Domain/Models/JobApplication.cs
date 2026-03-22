@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Masar.Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -17,7 +18,10 @@ namespace Masar.Domain.Models
         public int CandidateProfileId { get; set; }
         public CandidateProfile Candidate { get; set; }
 
-        public string Status { get; set; }
+        public string? ResumeUrl { get; set; }
+        public string? CoverLetterUrl { get; set; }
+
+        public ApplicationStatus Status { get; set; } = ApplicationStatus.Applied;
         public DateTime AppliedDate { get; set; } = DateTime.UtcNow;
     }
 }

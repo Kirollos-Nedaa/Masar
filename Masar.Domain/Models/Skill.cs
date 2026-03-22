@@ -11,6 +11,7 @@ namespace Masar.Domain.Models
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public ICollection<CandidateSkill> CandidateSkills { get; set; }
+        public string NormalizedName { get; set; }
+        public ICollection<CandidateSkill> CandidateSkills { get; set; } = new List<CandidateSkill>();
     } 
 }

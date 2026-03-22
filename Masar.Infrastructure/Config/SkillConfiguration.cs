@@ -20,7 +20,7 @@ namespace Masar.Infrastructure.Config
                 .HasMaxLength(100);
 
             // Enforce unique skill names globally
-            builder.HasIndex(s => s.Name)
+            builder.HasIndex(s => s.NormalizedName)
                 .IsUnique();
 
             // One-to-Many: Skill -> CandidateSkills

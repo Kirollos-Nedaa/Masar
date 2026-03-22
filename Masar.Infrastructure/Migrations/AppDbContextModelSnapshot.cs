@@ -30,15 +30,17 @@ namespace Masar.Infrastructure.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
+                    b.Property<int?>("CompanyProfileId")
+                        .HasColumnType("int");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateOnly>("DateOfBirth")
-                        .HasColumnType("date");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -49,15 +51,13 @@ namespace Masar.Infrastructure.Migrations
 
                     b.Property<string>("FirstName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Gender")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("LastName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -94,6 +94,8 @@ namespace Masar.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CompanyProfileId");
+
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
@@ -114,27 +116,33 @@ namespace Masar.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Bio")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<string>("Location")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<int>("ProfileViews")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
-                    b.Property<string>("ResumeUrl")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateOnly?>("DateOfBirth")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("Gender")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("ResumeUrl")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Location");
 
                     b.HasIndex("UserId")
                         .IsUnique();
@@ -166,6 +174,34 @@ namespace Masar.Infrastructure.Migrations
                     b.ToTable("CandidateSkills");
                 });
 
+            modelBuilder.Entity("Masar.Domain.Models.CompanyContactInfo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("CompanyProfileId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyProfileId")
+                        .IsUnique();
+
+                    b.ToTable("CompanyContactInfos");
+                });
+
             modelBuilder.Entity("Masar.Domain.Models.CompanyProfile", b =>
                 {
                     b.Property<int>("Id")
@@ -174,19 +210,25 @@ namespace Masar.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("CompanyLogo")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("CompanyName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Industry")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LogoUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int?>("Size")
+                        .HasColumnType("int");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -247,7 +289,17 @@ namespace Masar.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("ApplicationDeadline")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Benefits")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
                     b.Property<int>("CompanyProfileId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Department")
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
@@ -260,10 +312,13 @@ namespace Masar.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
-                    b.Property<string>("JobType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<bool>("IsFeatured")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("JobType")
+                        .HasColumnType("int");
 
                     b.Property<string>("Location")
                         .IsRequired()
@@ -276,34 +331,44 @@ namespace Masar.Infrastructure.Migrations
                     b.Property<decimal?>("MinSalary")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int>("NumberOfOpenings")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("PostedDate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
+                    b.Property<bool>("RequireCoverLetter")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("RequireCv")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Requirements")
                         .IsRequired()
-                        .HasMaxLength(3000)
-                        .HasColumnType("nvarchar(3000)");
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<int>("Views")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
-                    b.Property<string>("WorkMode")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<int>("WorkMode")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CompanyProfileId");
+
+                    b.HasIndex("Department");
+
+                    b.HasIndex("JobType");
+
+                    b.HasIndex("Location");
+
+                    b.HasIndex("PostedDate");
 
                     b.ToTable("Jobs");
                 });
@@ -324,15 +389,17 @@ namespace Masar.Infrastructure.Migrations
                     b.Property<int>("CandidateProfileId")
                         .HasColumnType("int");
 
+                    b.Property<string>("CoverLetterUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("JobId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasDefaultValue("Applied");
+                    b.Property<string>("ResumeUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -344,7 +411,7 @@ namespace Masar.Infrastructure.Migrations
                     b.ToTable("JobApplications");
                 });
 
-            modelBuilder.Entity("Masar.Domain.Models.ProfessionalLinks", b =>
+            modelBuilder.Entity("Masar.Domain.Models.JobQuestion", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -352,28 +419,57 @@ namespace Masar.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CandidateProfileId")
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("JobId")
                         .HasColumnType("int");
 
-                    b.Property<string>("GitHubUrl")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
 
-                    b.Property<string>("LinkedInUrl")
+                    b.Property<string>("QuestionText")
                         .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("PortfolioUrl")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CandidateProfileId")
-                        .IsUnique();
+                    b.HasIndex("JobId");
+
+                    b.ToTable("JobQuestions");
+                });
+
+            modelBuilder.Entity("Masar.Domain.Models.ProfessionalLink", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CandidateProfileId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CompanyProfileId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LinksNames")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CandidateProfileId");
+
+                    b.HasIndex("CompanyProfileId");
 
                     b.ToTable("ProfessionalLinks");
                 });
@@ -393,11 +489,11 @@ namespace Masar.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("SavedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CandidateProfileId");
 
                     b.HasIndex("JobId");
 
@@ -420,9 +516,13 @@ namespace Masar.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("Name")
+                    b.HasIndex("NormalizedName")
                         .IsUnique();
 
                     b.ToTable("Skills");
@@ -561,10 +661,19 @@ namespace Masar.Infrastructure.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Masar.Domain.Models.ApplicationUser", b =>
+                {
+                    b.HasOne("Masar.Domain.Models.CompanyProfile", "CompanyProfile")
+                        .WithMany()
+                        .HasForeignKey("CompanyProfileId");
+
+                    b.Navigation("CompanyProfile");
+                });
+
             modelBuilder.Entity("Masar.Domain.Models.CandidateProfile", b =>
                 {
                     b.HasOne("Masar.Domain.Models.ApplicationUser", "User")
-                        .WithOne()
+                        .WithOne("CandidateProfile")
                         .HasForeignKey("Masar.Domain.Models.CandidateProfile", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -589,6 +698,17 @@ namespace Masar.Infrastructure.Migrations
                     b.Navigation("CandidateProfile");
 
                     b.Navigation("Skill");
+                });
+
+            modelBuilder.Entity("Masar.Domain.Models.CompanyContactInfo", b =>
+                {
+                    b.HasOne("Masar.Domain.Models.CompanyProfile", "CompanyProfile")
+                        .WithOne("ContactInfo")
+                        .HasForeignKey("Masar.Domain.Models.CompanyContactInfo", "CompanyProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CompanyProfile");
                 });
 
             modelBuilder.Entity("Masar.Domain.Models.CompanyProfile", b =>
@@ -616,7 +736,7 @@ namespace Masar.Infrastructure.Migrations
             modelBuilder.Entity("Masar.Domain.Models.Job", b =>
                 {
                     b.HasOne("Masar.Domain.Models.CompanyProfile", "Company")
-                        .WithMany()
+                        .WithMany("Jobs")
                         .HasForeignKey("CompanyProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -627,15 +747,15 @@ namespace Masar.Infrastructure.Migrations
             modelBuilder.Entity("Masar.Domain.Models.JobApplication", b =>
                 {
                     b.HasOne("Masar.Domain.Models.CandidateProfile", "Candidate")
-                        .WithMany()
+                        .WithMany("JobApplications")
                         .HasForeignKey("CandidateProfileId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Masar.Domain.Models.Job", "Job")
-                        .WithMany()
+                        .WithMany("JobApplications")
                         .HasForeignKey("JobId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Candidate");
@@ -643,27 +763,44 @@ namespace Masar.Infrastructure.Migrations
                     b.Navigation("Job");
                 });
 
-            modelBuilder.Entity("Masar.Domain.Models.ProfessionalLinks", b =>
+            modelBuilder.Entity("Masar.Domain.Models.JobQuestion", b =>
                 {
-                    b.HasOne("Masar.Domain.Models.CandidateProfile", "CandidateProfile")
-                        .WithOne("ProfessionalLinks")
-                        .HasForeignKey("Masar.Domain.Models.ProfessionalLinks", "CandidateProfileId")
+                    b.HasOne("Masar.Domain.Models.Job", "Job")
+                        .WithMany("JobQuestions")
+                        .HasForeignKey("JobId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Job");
+                });
+
+            modelBuilder.Entity("Masar.Domain.Models.ProfessionalLink", b =>
+                {
+                    b.HasOne("Masar.Domain.Models.CandidateProfile", "CandidateProfile")
+                        .WithMany("ProfessionalLinks")
+                        .HasForeignKey("CandidateProfileId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Masar.Domain.Models.CompanyProfile", "CompanyProfile")
+                        .WithMany("ProfessionalLinks")
+                        .HasForeignKey("CompanyProfileId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("CandidateProfile");
+
+                    b.Navigation("CompanyProfile");
                 });
 
             modelBuilder.Entity("Masar.Domain.Models.SavedJob", b =>
                 {
                     b.HasOne("Masar.Domain.Models.CandidateProfile", "Candidate")
-                        .WithMany()
+                        .WithMany("SavedJobs")
                         .HasForeignKey("CandidateProfileId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Masar.Domain.Models.Job", "Job")
-                        .WithMany()
+                        .WithMany("SavedJobs")
                         .HasForeignKey("JobId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
@@ -724,14 +861,40 @@ namespace Masar.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Masar.Domain.Models.ApplicationUser", b =>
+                {
+                    b.Navigation("CandidateProfile");
+                });
+
             modelBuilder.Entity("Masar.Domain.Models.CandidateProfile", b =>
                 {
                     b.Navigation("CandidateSkills");
 
                     b.Navigation("Educations");
 
-                    b.Navigation("ProfessionalLinks")
-                        .IsRequired();
+                    b.Navigation("JobApplications");
+
+                    b.Navigation("ProfessionalLinks");
+
+                    b.Navigation("SavedJobs");
+                });
+
+            modelBuilder.Entity("Masar.Domain.Models.CompanyProfile", b =>
+                {
+                    b.Navigation("ContactInfo");
+
+                    b.Navigation("Jobs");
+
+                    b.Navigation("ProfessionalLinks");
+                });
+
+            modelBuilder.Entity("Masar.Domain.Models.Job", b =>
+                {
+                    b.Navigation("JobApplications");
+
+                    b.Navigation("JobQuestions");
+
+                    b.Navigation("SavedJobs");
                 });
 
             modelBuilder.Entity("Masar.Domain.Models.Skill", b =>

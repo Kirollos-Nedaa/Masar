@@ -1,32 +1,57 @@
-using DotNetEnv;
+﻿using DotNetEnv;
+using Masar.Core.IService;
+using Masar.Core.Services;
 using Masar.Domain.Models;
 using Masar.Infrastructure.Constants;
 using Masar.Infrastructure.Context;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System;
 
 Env.Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Database
+// ── Database ───────────────────────────────────────────────
 var conn = Environment.GetEnvironmentVariable("CONN_STRING");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(conn, sqlOptions => sqlOptions.EnableRetryOnFailure()));
 
+// ── Identity ───────────────────────────────────────────────
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
-// Add services to the container.
+// ── Google Client ID → IConfiguration ─────────────────────
+builder.Configuration["Authentication:Google:ClientId"] =
+    Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID")
+    ?? throw new InvalidOperationException("GOOGLE_CLIENT_ID is not set in .env");
+
+// ── Session ────────────────────────────────────────────────
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.Name = ".Masar.Session";
+});
+
+// ── MVC ────────────────────────────────────────────────────
 builder.Services.AddControllersWithViews();
+
+// ── App services ───────────────────────────────────────────
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IGoogleTokenValidator, GoogleTokenValidator>();
 
 var app = builder.Build();
 
-// Seed database
+// ── Seed database ──────────────────────────────────────────
 await SeedDatabaseAsync(app.Services);
 
-// Configure the HTTP request pipeline.
+// ── Middleware pipeline ────────────────────────────────────
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -35,9 +60,9 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
 
+app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -47,9 +72,7 @@ app.MapControllerRoute(
 
 app.Run();
 
-// =============================================
-// Database Seeding
-// =============================================
+// ── Database seeding ───────────────────────────────────────
 async Task SeedDatabaseAsync(IServiceProvider services)
 {
     using var scope = services.CreateScope();
@@ -58,21 +81,15 @@ async Task SeedDatabaseAsync(IServiceProvider services)
     try
     {
         var context = serviceProvider.GetRequiredService<AppDbContext>();
-        var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-        // Apply migrations automatically
         await context.Database.MigrateAsync();
 
-        // Seed roles
         var roles = new[] { Roles.Admin, Roles.Candidate, Roles.Company };
-
         foreach (var role in roles)
         {
             if (!await roleManager.RoleExistsAsync(role))
-            {
                 await roleManager.CreateAsync(new IdentityRole(role));
-            }
         }
     }
     catch (Exception ex)

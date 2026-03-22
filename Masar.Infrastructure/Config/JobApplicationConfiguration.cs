@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Masar.Domain.Enums;
 
 namespace Masar.Infrastructure.Config
 {
@@ -20,21 +21,19 @@ namespace Masar.Infrastructure.Config
                 .IsUnique();
 
             builder.Property(ja => ja.Status)
-                .IsRequired()
-                .HasMaxLength(50)
-                .HasDefaultValue("Applied"); // Applied, Under Review, Accepted, Rejected
+                .IsRequired();
 
             builder.Property(ja => ja.AppliedDate)
                 .IsRequired()
                 .HasDefaultValueSql("GETUTCDATE()");
 
             builder.HasOne(ja => ja.Job)
-               .WithMany()
-               .HasForeignKey(ja => ja.JobId)
-               .OnDelete(DeleteBehavior.NoAction);
+                .WithMany(j => j.JobApplications)
+                .HasForeignKey(ja => ja.JobId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasOne(ja => ja.Candidate)
-                .WithMany()
+                .WithMany(c => c.JobApplications)
                 .HasForeignKey(ja => ja.CandidateProfileId)
                 .OnDelete(DeleteBehavior.NoAction);
         }

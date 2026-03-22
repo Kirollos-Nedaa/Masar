@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Masar.Domain.Enums;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
@@ -16,8 +18,14 @@ namespace Masar.Domain.Models
         public string UserId { get; set; }
         public ApplicationUser User { get; set; }
 
-        public string CompanyName { get; set; }
-        public string CompanyLogo { get; set; }
-        public string Description { get; set; }
+        public string? Name { get; set; }
+        public string? LogoUrl { get; set; }
+        public string? Industry { get; set; }
+        public CompanySize? Size { get; set; }
+        public string? Description { get; set; }
+
+        public CompanyContactInfo? ContactInfo { get; set; }
+        public ICollection<ProfessionalLink> ProfessionalLinks { get; set; } = new List<ProfessionalLink>();
+        public ICollection<Job> Jobs { get; set; } = new List<Job>();
     }
 }

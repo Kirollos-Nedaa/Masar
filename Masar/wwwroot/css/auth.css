@@ -282,7 +282,6 @@ body.auth-body {
     display: flex;
     align-items: flex-start;
     gap: 0.5rem;
-
     background: var(--red-50);
     border: 1px solid #FECACA;
     border-radius: var(--radius-md);

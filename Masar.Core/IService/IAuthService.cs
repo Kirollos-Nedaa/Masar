@@ -10,9 +10,9 @@ namespace Masar.Core.IService
     public interface IAuthService
     {
         Task<(bool Success, string UserId, IEnumerable<string> Errors)> RegisterAsync(RegisterDto dto);
-
-        Task AssignRoleAsync(string userId, string role);
-        Task SignInAsync(string userId);
         Task<AuthResult> LoginAsync(LoginDto model);
+        Task SignInAsync(string userId);
+        Task AssignRoleAsync(string userId, string role);
+        Task<(AuthResult Result, bool IsNewUser)> GoogleLoginAsync(string idToken);
     }
 }

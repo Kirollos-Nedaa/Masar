@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Masar.Domain.Validations;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -30,7 +31,5 @@ namespace Masar.Domain.ViewModels
         [DataType(DataType.Password)]
         [Compare("Password", ErrorMessage = "Passwords does't match")]
         public string ConfirmPassword { get; set; }
-
-        public bool Agreement { get; set; }
     }
 }

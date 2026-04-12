@@ -1,0 +1,382 @@
+@model Masar.Domain.ViewModels.CandidateDtos.PersonalInfoDto
+
+@{
+    ViewData["Title"] = "Edit Personal Info";
+    ViewData["HasSidebar"] = true;
+}
+
+@section Sidebar {
+    <partial name="_CandidateSidebar" />
+}
+
+@* ── Page Header ──────────────────────────────────────────── *@
+<div class="page-header d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="page-title">Edit Personal Information</h1>
+        <p class="page-subtitle">Update your basic profile details</p>
+    </div>
+    <a asp-controller="Candidate" asp-action="Profile" class="btn-outline-app">
+        <span class="iconify" data-icon="lucide:arrow-left"></span> Back to Profile
+    </a>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="epi-alert-error mb-4">
+        <span class="iconify" data-icon="lucide:circle-alert"></span>
+        @Html.ValidationSummary(false)
+    </div>
+}
+
+<form asp-controller="Candidate" asp-action="EditPersonalInfo" method="post" id="personalInfoForm">
+    @Html.AntiForgeryToken()
+
+    <div class="app-card">
+        <div class="card-section-header mb-4">
+            <div class="card-section-title">Personal Information</div>
+        </div>
+
+        @* ── Row 1 — First Name, Last Name ────────────────── *@
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-sm-6">
+                <label class="epi-label">First Name</label>
+                <input asp-for="FirstName" class="epi-input" placeholder="John" />
+                <span asp-validation-for="FirstName" class="epi-error"></span>
+            </div>
+            <div class="col-12 col-sm-6">
+                <label class="epi-label">Last Name</label>
+                <input asp-for="LastName" class="epi-input" placeholder="Doe" />
+                <span asp-validation-for="LastName" class="epi-error"></span>
+            </div>
+        </div>
+
+        @* ── Row 2 — Email, Phone ─────────────────────────── *@
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-sm-6">
+                <label class="epi-label">Email Address</label>
+                <input asp-for="Email" type="email" class="epi-input"
+                       placeholder="you@example.com" />
+                <span asp-validation-for="Email" class="epi-error"></span>
+            </div>
+            <div class="col-12 col-sm-6">
+                <label class="epi-label">Phone Number</label>
+                <input type="hidden" asp-for="PhoneNumber" id="PhoneNumber" />
+                <div class="phone-input-wrap">
+                    <div class="phone-country-btn" id="countryBtn" onclick="toggleCountryDropdown()">
+                        @* Renders circle-flags icon, updated by JS after API loads *@
+                        <span id="selectedFlag">
+                            <span class="iconify" data-icon="circle-flags:eg"
+                                  style="font-size:1.25rem;"></span>
+                        </span>
+                        <span id="selectedCode">+20</span>
+                        <span class="iconify phone-chevron" data-icon="lucide:chevron-down"></span>
+                    </div>
+                    <div class="phone-country-dropdown" id="countryDropdown" style="display:none;">
+                        <div class="phone-search-wrap">
+                            <span class="iconify phone-search-icon" data-icon="lucide:search"></span>
+                            <input type="text" id="countrySearch"
+                                   class="phone-search-input"
+                                   placeholder="Search country..."
+                                   oninput="filterCountries(this.value)"
+                                   onclick="event.stopPropagation()" />
+                        </div>
+                        <ul id="countryList" class="phone-country-list"></ul>
+                    </div>
+                    <input type="text" id="phoneLocal"
+                           class="epi-input phone-local-input"
+                           placeholder="010XXXXXXXX"
+                           oninput="formatPhone()"
+                           onkeypress="return /[0-9]/.test(event.key)"
+                           inputmode="numeric" />
+                </div>
+                <span class="epi-hint">Leading zero is removed automatically</span>
+                <span asp-validation-for="PhoneNumber" class="epi-error"></span>
+            </div>
+        </div>
+
+        @* ── Row 3 — Gender, Location, Date of Birth ─────── *@
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-sm-4">
+                <label class="epi-label">Gender</label>
+                <select asp-for="Gender"
+                        asp-items="@(new SelectList(Enum.GetValues(typeof(Masar.Domain.Enums.Gender)).Cast<Masar.Domain.Enums.Gender>()))"
+                        class="epi-input epi-select">
+                    <option value="">Select gender</option>
+                </select>
+                <span asp-validation-for="Gender" class="epi-error"></span>
+            </div>
+            <div class="col-12 col-sm-4">
+                <label class="epi-label">Location</label>
+                <div class="position-relative">
+                    <input type="text" id="locationDisplay"
+                           class="epi-input"
+                           placeholder="Type a city..."
+                           autocomplete="off"
+                           oninput="onLocationInput(this.value)"
+                           value="@Model.Location" />
+                    <input type="hidden" asp-for="Location" id="locationHidden" />
+                    <ul id="locationSuggestions" class="location-suggestions" style="display:none;"></ul>
+                </div>
+                <span asp-validation-for="Location" class="epi-error"></span>
+            </div>
+            <div class="col-12 col-sm-4">
+                <label class="epi-label">Date of Birth</label>
+                <div class="date-input-wrap">
+                    <input asp-for="DateOfBirth" type="date" class="epi-input" />
+                </div>
+                <span asp-validation-for="DateOfBirth" class="epi-error"></span>
+            </div>
+        </div>
+
+        @* ── Row 4 — Bio ──────────────────────────────────── *@
+        <div class="row g-3">
+            <div class="col-12">
+                <label class="epi-label">
+                    Bio
+                    <span class="epi-char-count" id="bioCount">0 / 500</span>
+                </label>
+                <textarea asp-for="Bio" rows="4" class="epi-input epi-textarea"
+                          placeholder="Tell companies a bit about yourself..."
+                          maxlength="500"
+                          oninput="updateBioCount(this)"></textarea>
+                <span asp-validation-for="Bio" class="epi-error"></span>
+            </div>
+        </div>
+    </div>
+
+    @* ── Actions ──────────────────────────────────────────── *@
+    <div class="d-flex justify-content-end gap-2 mt-4">
+        <a asp-controller="Candidate" asp-action="Profile" class="btn-outline-app">
+            Cancel
+        </a>
+        <button type="submit" class="btn-primary-app">
+            <span class="iconify" data-icon="lucide:save"></span> Save Changes
+        </button>
+    </div>
+</form>
+
+
+@section Scripts {
+    <script>
+        // ── Bio character counter ─────────────────────────────────
+        function updateBioCount(textarea) {
+            document.getElementById('bioCount').textContent =
+                `${textarea.value.length} / 500`;
+        }
+
+        // ── Init on load ──────────────────────────────────────────
+        window.addEventListener('DOMContentLoaded', () => {
+            const bio = document.querySelector('textarea[name="Bio"]');
+            if (bio) updateBioCount(bio);
+
+            // Countries load async — phone init happens inside loadCountries()
+            loadCountries();
+
+            // Initialize location display from hidden field
+            const locHidden = document.getElementById('locationHidden');
+            if (locHidden.value) {
+                document.getElementById('locationDisplay').value = locHidden.value;
+            }
+        });
+
+        // ── Countries — loaded from REST Countries API ────────────
+        let countries = [];
+        let selectedCountry = null;
+
+        async function loadCountries() {
+            try {
+                const res = await fetch(
+                    'https://restcountries.com/v3.1/all?fields=name,idd,cca2'
+                );
+                const data = await res.json();
+
+                countries = data
+                    .filter(c => c.idd?.root && c.idd?.suffixes?.length === 1)
+                    .map(c => ({
+                        name: c.name.common,
+                        code: `${c.idd.root}${c.idd.suffixes[0]}`,
+                        iso:  c.cca2.toLowerCase(), // "eg", "us", "gb" etc.
+                    }))
+                    .sort((a, b) => a.name.localeCompare(b.name));
+
+                // Default to Egypt
+                selectedCountry = countries.find(c => c.iso === 'eg') ?? countries[0];
+                updateSelectedDisplay();
+
+                // Restore existing phone value if editing
+                const existingPhone = '@Html.Raw(Model.PhoneNumber ?? "")';
+                if (existingPhone) initPhoneFromValue(existingPhone);
+
+            } catch (err) {
+                console.error('Failed to load countries:', err);
+            }
+        }
+
+        function updateSelectedDisplay() {
+            if (!selectedCountry) return;
+            document.getElementById('selectedFlag').innerHTML =
+                `<span class="iconify"
+                       data-icon="circle-flags:${selectedCountry.iso}"
+                       style="font-size:1.25rem;"></span>`;
+            document.getElementById('selectedCode').textContent = selectedCountry.code;
+            Iconify.scan(document.getElementById('selectedFlag'));
+        }
+
+        function renderCountryList(list) {
+            const ul = document.getElementById('countryList');
+            ul.innerHTML = list.map(c => `
+                <li class="phone-country-item" onclick="selectCountry('${c.iso}')">
+                    <span class="iconify"
+                          data-icon="circle-flags:${c.iso}"
+                          style="font-size:1.2rem; flex-shrink:0;"></span>
+                    <span>${c.name}</span>
+                    <span class="phone-country-item-code">${c.code}</span>
+                </li>
+            `).join('');
+            Iconify.scan(ul);
+        }
+
+        function filterCountries(query) {
+            const q = query.toLowerCase();
+            const filtered = countries.filter(c =>
+                c.name.toLowerCase().includes(q) ||
+                c.code.includes(query)
+            );
+            renderCountryList(filtered);
+        }
+
+        function selectCountry(iso) {
+            selectedCountry = countries.find(c => c.iso === iso) ?? countries[0];
+            updateSelectedDisplay();
+            document.getElementById('countryDropdown').style.display = 'none';
+            formatPhone();
+        }
+
+        function toggleCountryDropdown() {
+            const dd = document.getElementById('countryDropdown');
+            const isOpen = dd.style.display !== 'none';
+            dd.style.display = isOpen ? 'none' : 'block';
+            if (!isOpen) {
+                renderCountryList(countries);
+                document.getElementById('countrySearch').value = '';
+                document.getElementById('countrySearch').focus();
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.phone-input-wrap')) {
+                document.getElementById('countryDropdown').style.display = 'none';
+            }
+        });
+
+        function formatPhone() {
+            if (!selectedCountry) return;
+            let local = document.getElementById('phoneLocal').value.trim();
+            // Remove leading zero
+            if (local.startsWith('0')) local = local.substring(1);
+            // Safety net — strip any non-digits
+            local = local.replace(/\D/g, '');
+            document.getElementById('PhoneNumber').value =
+                local ? `${selectedCountry.code} ${local}` : '';
+        }
+
+        function initPhoneFromValue(fullPhone) {
+            if (!countries.length) return;
+            // Sort by code length desc so "+966" matches before "+9"
+            const sorted = [...countries].sort(
+                (a, b) => b.code.length - a.code.length
+            );
+            const matched = sorted.find(c => fullPhone.startsWith(c.code));
+            if (matched) {
+                selectedCountry = matched;
+                updateSelectedDisplay();
+                const local = fullPhone.replace(matched.code, '').trim();
+                document.getElementById('phoneLocal').value = local;
+            }
+        }
+
+        // ── Location autocomplete (Nominatim) ─────────────────────
+        let locationDebounce;
+
+        async function onLocationInput(value) {
+            clearTimeout(locationDebounce);
+            const suggestions = document.getElementById('locationSuggestions');
+            document.getElementById('locationHidden').value = '';
+
+            if (!value.trim() || value.length < 2) {
+                suggestions.style.display = 'none';
+                return;
+            }
+
+            locationDebounce = setTimeout(async () => {
+                try {
+                    const res = await fetch(
+                        `https://nominatim.openstreetmap.org/search?` +
+                        `q=${encodeURIComponent(value)}&format=json&limit=6` +
+                        `&featuretype=city&addressdetails=1`,
+                        { headers: { 'Accept-Language': 'en' } }
+                    );
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    renderLocationSuggestions(data);
+                } catch {
+                    suggestions.style.display = 'none';
+                }
+            }, 350);
+        }
+
+        function renderLocationSuggestions(results) {
+            const suggestions = document.getElementById('locationSuggestions');
+
+            if (!results.length) {
+                suggestions.style.display = 'none';
+                return;
+            }
+
+            suggestions.innerHTML = results.map(r => {
+                const city = r.address?.city
+                          ?? r.address?.town
+                          ?? r.address?.village
+                          ?? r.address?.county
+                          ?? r.name;
+
+                // 2-letter ISO uppercased e.g. "EG"
+                const countryCode = (r.address?.country_code ?? '').toUpperCase();
+                const label = countryCode ? `${city}, ${countryCode}` : city;
+
+                return `
+                    <li class="location-item"
+                        onclick="selectLocation('${label.replace(/'/g, "\\'")}')">
+                        <span class="iconify location-item-icon"
+                              data-icon="lucide:map-pin"></span>
+                        ${label}
+                    </li>
+                `;
+            }).join('');
+
+            suggestions.style.display = 'block';
+            Iconify.scan(suggestions);
+        }
+
+        function selectLocation(label) {
+            document.getElementById('locationDisplay').value = label;
+            document.getElementById('locationHidden').value  = label;
+            document.getElementById('locationSuggestions').style.display = 'none';
+        }
+
+        // Close location dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.position-relative')) {
+                document.getElementById('locationSuggestions').style.display = 'none';
+            }
+        });
+
+        // Ensure phone hidden field is populated before submit
+        document.getElementById('personalInfoForm').addEventListener('submit', () => {
+            formatPhone();
+        });
+    </script>
+
+    <partial name="_ValidationScriptsPartial" />
+}

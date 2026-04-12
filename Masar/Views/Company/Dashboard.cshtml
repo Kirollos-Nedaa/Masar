@@ -1,8 +1,9 @@
-﻿@{
+﻿@using Masar.Domain.ViewModels.CompanyDtos
+@{
     ViewData["Title"] = "Company Dashboard";
     ViewData["HasSidebar"] = true;
 }
-@model Masar.Domain.ViewModels.CompanyDashboardDto
+@model CompanyDashboardDto
 
 @section Sidebar {
     <partial name="_CompanySidebar" />

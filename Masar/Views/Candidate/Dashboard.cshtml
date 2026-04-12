@@ -1,8 +1,9 @@
+@using Masar.Domain.ViewModels.CandidateDtos
 @{
     ViewData["Title"]      = "Dashboard";
     ViewData["HasSidebar"] = true;
 }
-@model Masar.Domain.ViewModels.CandidateDashboardDto
+@model CandidateDashboardDto
 
 @section Sidebar {
     <partial name="_CandidateSidebar" />
@@ -22,16 +23,31 @@
             <div>
                 <div class="fw-bold mb-1" style="color:var(--dark);">Complete Your Profile</div>
                 <div class="text-muted" style="font-size:.85rem;">
-                    @Model.ProfileCompletion% complete — add your skills and resume to stand out
+                    @Model.ProfileCompletion% complete - Add the following to complete:
                 </div>
             </div>
+
             <a asp-controller="Candidate" asp-action="Profile" class="btn-outline-app ms-3 text-nowrap">
                 Complete Profile <span class="iconify" data-icon="lucide:arrow-right" style="font-size: 1.2rem;"></span>
             </a>
         </div>
+
         <div class="app-progress-wrap">
             <div class="app-progress-bar" style="width:@Model.ProfileCompletion%"></div>
         </div>
+
+        @* ── Missing Hints Section ───────────────────────────── *@
+        @if (Model.ProfileHints != null && Model.ProfileHints.Any())
+        {
+            <div class="mt-3">
+                <ul class="mb-0" style="padding-left: 18px; font-size:.85rem;">
+                    @foreach (var hint in Model.ProfileHints)
+                    {
+                        <li class="text-muted">@hint</li>
+                    }
+                </ul>
+            </div>
+        }
     </div>
 }
 

@@ -1,11 +1,9 @@
-﻿// Masar/Controllers/AuthController.cs
-
-using Masar.Domain.ViewModels;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Masar.Core.IService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Masar.Domain.Models;
+using Masar.Domain.ViewModels.AuthDtos;
 
 namespace Masar.Controllers
 {

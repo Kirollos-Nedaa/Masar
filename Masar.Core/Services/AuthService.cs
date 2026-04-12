@@ -1,6 +1,6 @@
 ﻿using Masar.Core.IService;
 using Masar.Domain.Models;
-using Masar.Domain.ViewModels;
+using Masar.Domain.ViewModels.AuthDtos;
 using Microsoft.AspNetCore.Identity;
 
 namespace Masar.Core.Services

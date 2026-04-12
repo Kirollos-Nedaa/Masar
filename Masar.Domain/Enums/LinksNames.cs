@@ -11,7 +11,7 @@ namespace Masar.Domain.Enums
         None = 0,
         LinkedIn = 1,
         GitHub = 2,
-        Protfolio = 3,
+        Portfolio = 3,
         CompanyWebsite = 4,
         Other = 5
     }

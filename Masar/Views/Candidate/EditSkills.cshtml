@@ -1,0 +1,240 @@
+﻿@model EditSkillsDto
+@using Masar.Domain.ViewModels.CandidateDtos
+
+@{
+    ViewData["Title"] = "Manage Skills";
+    ViewData["HasSidebar"] = true;
+}
+
+@section Sidebar {
+    <partial name="_CandidateSidebar" />
+}
+
+<div class="page-header d-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-title">Manage Skills</h1>
+        <p class="page-subtitle">Select from existing skills or add your own</p>
+    </div>
+    <a asp-controller="Candidate" asp-action="Profile" class="btn-outline-app">
+        <span class="iconify" data-icon="lucide:arrow-left"></span> Back to Profile
+    </a>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert-error mb-4">
+        <span class="iconify" data-icon="lucide:circle-alert"></span>
+        @Html.ValidationSummary(false)
+    </div>
+}
+
+<form asp-controller="Candidate" asp-action="EditSkills" method="post">
+    @Html.AntiForgeryToken()
+
+    @* ── Card 1 — Your Current Skills ────────────────────── *@
+    <div class="app-card mb-4">
+        <div class="card-section-header">
+            <div class="card-section-title">
+                Your Skills
+                <span class="skill-count-badge">
+                    @Model.CurrentSkills.Count / @EditSkillsDto.MaxSkills
+                </span>
+            </div>
+        </div>
+
+        @* Hidden inputs for selected skill IDs *@
+        <div id="selectedSkillsHidden">
+            @for (int i = 0; i < Model.CurrentSkills.Count; i++)
+            {
+                <input type="hidden" name="SelectedSkillIds[@i]"
+                       value="@Model.CurrentSkills[i].Id" />
+            }
+        </div>
+
+        @* Current skill badges with remove *@
+        <div class="d-flex flex-wrap gap-2 mb-4" id="currentSkillsDisplay">
+            @if (Model.CurrentSkills.Any())
+            {
+                @foreach (var skill in Model.CurrentSkills)
+                {
+                    <span class="skill-badge selected-skill"
+                          data-skill-id="@skill.Id"
+                          data-skill-name="@skill.Name"
+                          onclick="removeSkill(@skill.Id, '@skill.Name', this)">
+
+                        @skill.Name
+
+                        <button type="button" class="skill-remove-btn">
+                            <span class="iconify" data-icon="lucide:x"></span>
+                        </button>
+                    </span>
+                }
+            }
+            else
+            {
+                <p class="text-muted mb-0" id="noCurrentSkills">
+                    No skills selected yet. Pick from below.
+                </p>
+            }
+        </div>
+
+        @* Custom skill input *@
+        <div class="inline-edit-section">
+            <label class="profile-field-label mb-2">Add a custom skill</label>
+            <div class="d-flex gap-2 align-items-center">
+                <input type="text" name="CustomSkillName" id="customSkillInput"
+                       class="form-control form-control-sm"
+                       placeholder="e.g. Blender, Solidity..."
+                       style="max-width:260px;" />
+                <span class="text-muted" style="font-size:.8rem;">
+                    (will be added to the skill pool for everyone)
+                </span>
+            </div>
+        </div>
+    </div>
+
+    @* ── Card 2 — Available Skills ────────────────────────── *@
+    <div class="app-card mb-4">
+        <div class="card-section-header">
+            <div class="card-section-title">Available Skills</div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2" id="availableSkillsDisplay">
+            @if (Model.AvailableSkills.Any())
+            {
+                @foreach (var skill in Model.AvailableSkills)
+                {
+                    <span class="skill-badge available-skill"
+                          data-skill-id="@skill.Id"
+                          data-skill-name="@skill.Name"
+                          onclick="addSkill(@skill.Id, '@skill.Name', this)"
+                          style="cursor:pointer;">
+                        <span class="iconify" data-icon="lucide:plus"
+                              style="font-size:.75rem;"></span>
+                        @skill.Name
+                    </span>
+                }
+            }
+            else
+            {
+                <p class="text-muted mb-0">All available skills are already in your profile.</p>
+            }
+        </div>
+    </div>
+
+    @* ── Save ─────────────────────────────────────────────── *@
+    <div class="d-flex justify-content-end gap-2">
+        <a asp-controller="Candidate" asp-action="Profile" class="btn-outline-app">
+            Cancel
+        </a>
+        <button type="submit" class="btn-primary-app">
+            <span class="iconify" data-icon="lucide:save"></span> Save Skills
+        </button>
+    </div>
+
+</form>
+
+
+@section Scripts {
+    <script>
+        const MAX_SKILLS = @EditSkillsDto.MaxSkills;
+        let selectedCount = @Model.CurrentSkills.Count;
+
+        // ── Add skill from available pool ─────────────────────────
+        function addSkill(id, name, el) {
+            if (selectedCount >= MAX_SKILLS) {
+                showLimitError();
+                return;
+            }
+
+            // Move badge to current skills display
+            const currentDisplay = document.getElementById('currentSkillsDisplay');
+            document.getElementById('noCurrentSkills')?.remove();
+
+            const badge = document.createElement('span');
+            badge.className = 'skill-badge selected-skill';
+            badge.dataset.skillId = id;
+            badge.dataset.skillName = name;
+            badge.innerHTML = `
+                ${name}
+                <button type="button" class="skill-remove-btn"
+                        onclick="removeSkill(${id}, '${name}', this)">
+                    <span class="iconify" data-icon="lucide:x"></span>
+                </button>
+            `;
+            currentDisplay.appendChild(badge);
+            Iconify.scan(badge);
+
+            // Add hidden input
+            addHiddenInput(id);
+
+            // Dim in available pool instead of removing
+            // so user can see it's already selected
+            el.classList.add('dimmed');
+
+            selectedCount++;
+            updateCountBadge();
+        }
+
+        // ── Remove skill from current ─────────────────────────────
+        function removeSkill(id, name, btn) {
+            btn.closest('.skill-badge').remove();
+
+            // Remove hidden input
+            const hidden = document.querySelector(
+                `#selectedSkillsHidden input[value="${id}"]`);
+            hidden?.remove();
+
+            // Re-index remaining hidden inputs to maintain consecutive indices
+            const container = document.getElementById('selectedSkillsHidden');
+            const inputs = container.querySelectorAll('input');
+            inputs.forEach((input, index) => {
+                input.name = `SelectedSkillIds[${index}]`;
+            });
+
+            // Re-enable in available pool
+            const availableBadge = document.querySelector(
+                `#availableSkillsDisplay [data-skill-id="${id}"]`);
+            availableBadge?.classList.remove('dimmed');
+
+            selectedCount--;
+            updateCountBadge();
+
+            if (selectedCount === 0) {
+                const noSkills = document.createElement('p');
+                noSkills.className = 'text-muted mb-0';
+                noSkills.id = 'noCurrentSkills';
+                noSkills.textContent = 'No skills selected yet. Pick from below.';
+                document.getElementById('currentSkillsDisplay').appendChild(noSkills);
+            }
+        }
+
+        function addHiddenInput(id) {
+            const container = document.getElementById('selectedSkillsHidden');
+            const count = container.querySelectorAll('input').length;
+            const inp = document.createElement('input');
+            inp.type = 'hidden';
+            inp.name = `SelectedSkillIds[${count}]`;
+            inp.value = id;
+            container.appendChild(inp);
+        }
+
+        function updateCountBadge() {
+            document.querySelector('.skill-count-badge').textContent =
+                `${selectedCount} / ${MAX_SKILLS}`;
+        }
+
+        function showLimitError() {
+            document.getElementById('limitError')?.remove();
+            const err = document.createElement('p');
+            err.id = 'limitError';
+            err.style.cssText = 'color:var(--red);font-size:.8125rem;margin-top:.5rem;font-weight:500;';
+            err.innerHTML = `<span class="iconify" data-icon="lucide:circle-alert"></span>
+                Maximum of ${MAX_SKILLS} skills reached.`;
+            document.getElementById('currentSkillsDisplay')
+                .insertAdjacentElement('afterend', err);
+            Iconify.scan(err);
+            setTimeout(() => document.getElementById('limitError')?.remove(), 3000);
+        }
+    </script>
+}

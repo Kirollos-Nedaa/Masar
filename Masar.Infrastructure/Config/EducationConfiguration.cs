@@ -26,10 +26,12 @@ namespace Masar.Infrastructure.Config
                 .HasMaxLength(200);
 
             builder.Property(e => e.StartYear)
-                .IsRequired();
+                .IsRequired()
+                .HasColumnType("date");
 
             builder.Property(e => e.ExpectedGraduation)
-                .IsRequired();
+                .IsRequired()
+                .HasColumnType("date");
         }
     }
 }

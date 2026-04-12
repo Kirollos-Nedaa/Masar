@@ -1,0 +1,292 @@
+﻿@model Masar.Domain.ViewModels.CandidateDtos.CandidateProfileDto
+
+@{
+    ViewData["Title"] = "My Profile";
+    ViewData["HasSidebar"] = true;
+}
+
+@section Sidebar {
+    <partial name="_CandidateSidebar" />
+}
+
+@* ── Page Header ──────────────────────────────────────────── *@
+<div class="page-header d-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-title">My Profile</h1>
+        <p class="page-subtitle">Your professional information visible to companies</p>
+    </div>
+</div>
+
+@* ── Personal Information ─────────────────────────────────── *@
+<div class="app-card mb-4">
+    <div class="card-section-header">
+        <div class="card-section-title">Personal Information</div>
+        <a asp-controller="Candidate" asp-action="EditPersonalInfo" class="btn-edit-section">
+            <span class="iconify" data-icon="lucide:square-pen"></span> Edit
+        </a>
+    </div>
+
+    @* Row 1 — First Name, Last Name *@
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-sm-6">
+            <div class="profile-field-label">First Name</div>
+            <div class="profile-field-value">@(Model.FirstName ?? "Not provided")</div>
+        </div>
+        <div class="col-12 col-sm-6">
+            <div class="profile-field-label">Last Name</div>
+            <div class="profile-field-value">@(Model.LastName ?? "Not provided")</div>
+        </div>
+    </div>
+
+    @* Row 2 — Gender, Location, Date of Birth *@
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-sm-4">
+            <div class="profile-field-label">Gender</div>
+            <div class="profile-field-value">@(Model.Gender.HasValue ? Model.Gender.ToString() : "Not provided")</div>
+        </div>
+        <div class="col-12 col-sm-4">
+            <div class="profile-field-label">Location</div>
+            <div class="profile-field-value">@(Model.Location ?? "Not provided")</div>
+        </div>
+        <div class="col-12 col-sm-4">
+            <div class="profile-field-label">Date of Birth</div>
+            <div class="profile-field-value">
+                @(Model.DateOfBirth.HasValue ? Model.DateOfBirth.Value.ToString("MMMM dd, yyyy") : "Not provided")
+            </div>
+        </div>
+    </div>
+
+    @* Row 3 — Email, Phone *@
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-sm-6">
+            <div class="profile-field-label">Email</div>
+            <div class="profile-field-value">@(Model.Email ?? "Not provided")</div>
+        </div>
+        <div class="col-12 col-sm-6">
+            <div class="profile-field-label">Phone Number</div>
+            <div class="profile-field-value">@(Model.PhoneNumber ?? "Not provided")</div>
+        </div>
+    </div>
+
+    @* Row 4 — Bio *@
+    <div class="row g-3">
+        <div class="col-12">
+            <div class="profile-field-label">Bio</div>
+            <div class="profile-field-value">@(Model.Bio ?? "No bio added yet.")</div>
+        </div>
+    </div>
+
+</div>
+
+@* ── Education ────────────────────────────────────────────── *@
+<div class="app-card mb-4">
+    <div class="card-section-header">
+        <div class="card-section-title">Education</div>
+        <a asp-controller="Candidate" asp-action="EditEducation" class="btn-edit-section">
+            <span class="iconify" data-icon="lucide:square-pen"></span> Edit
+        </a>
+    </div>
+
+    @if (Model.Education != null)
+    {
+        <div class="education-block">
+            <div class="education-icon">
+                <span class="iconify" data-icon="lucide:graduation-cap"></span>
+            </div>
+            <div class="education-details">
+                <div class="education-university">@Model.Education.University</div>
+                <div class="education-degree">
+                    @Model.Education.Degree
+                    @if (!string.IsNullOrEmpty(Model.Education.Major))
+                    {
+                        <span class="text-muted"> &mdash; @Model.Education.Major</span>
+                    }
+                </div>
+                <div class="education-years text-muted" style="font-size:.82rem; margin-top:.25rem;">
+                    @if (Model.Education.StartYear.HasValue)
+                    {
+                        @Model.Education.StartYear.Value.ToString("yyyy")
+                    }
+                    @if (Model.Education.ExpectedGraduation.HasValue)
+                    {
+                        <span> &ndash; @Model.Education.ExpectedGraduation.Value.ToString("yyyy")</span>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <p class="text-muted mb-0">No education added yet.</p>
+    }
+</div>
+
+@* ── Skills ───────────────────────────────────────────────── *@
+<div class="app-card mb-4">
+    <div class="card-section-header">
+        <div class="card-section-title">Skills</div>
+        <a asp-controller="Candidate" asp-action="EditSkills" class="btn-edit-section">
+            <span class="iconify" data-icon="lucide:settings-2"></span> Manage Skills
+        </a>
+    </div>
+
+    @if (Model.SkillNames.Any())
+    {
+        <div class="d-flex flex-wrap gap-2">
+            @foreach (var skill in Model.SkillNames)
+            {
+                <span class="skill-badge">@skill</span>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-muted mb-0">No skills added yet.
+            <a asp-controller="Candidate" asp-action="EditSkills">Add your first skill</a>
+        </p>
+    }
+</div>
+
+@* ── Resume ───────────────────────────────────────────────── *@
+<div class="app-card mb-4">
+    <div class="card-section-header">
+        <div class="card-section-title">Resume</div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.ResumeUrl))
+    {
+        <div class="resume-row">
+            <span class="iconify resume-icon" data-icon="lucide:file-text"></span>
+            <div class="resume-info">
+                <div class="resume-name">resume.pdf</div>
+                <div class="resume-meta text-muted">Uploaded</div>
+            </div>
+            <a href="@Model.ResumeUrl" target="_blank" class="btn-outline-app btn-sm-app">
+                <span class="iconify" data-icon="lucide:eye"></span> View
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="resume-upload-zone">
+            <span class="iconify resume-upload-icon" data-icon="lucide:upload"></span>
+            <p class="mb-1">Drop your resume here or click to browse</p>
+            <p class="text-muted mb-3" style="font-size:.82rem;">PDF, DOC, DOCX (max 5MB)</p>
+            <button type="button" class="btn-primary-app btn-sm-app">
+                <span class="iconify" data-icon="lucide:upload"></span> Upload Resume
+            </button>
+        </div>
+    }
+</div>
+
+@* ── Professional Links ───────────────────────────────────── *@
+<div class="app-card mb-4">
+    <div class="card-section-header">
+        <div class="card-section-title">Professional Links</div>
+        <a asp-controller="Candidate" asp-action="EditSkills" class="btn-edit-section">
+            <span class="iconify" data-icon="lucide:settings-2"></span> Manage Links
+        </a>
+    </div>
+
+    @* Existing links display *@
+    <div class="links-list mb-3" id="linksContainer">
+        @foreach (var link in Model.ProfessionalLinks)
+        {
+            <div class="link-row" data-link-id="@link.Id">
+                <span class="link-type-badge">@link.LinkName</span>
+                <a href="@link.Url" target="_blank" class="link-url">@link.Url</a>
+                <button type="button" class="btn-icon-danger" onclick="removeLink(this)">
+                    <span class="iconify" data-icon="lucide:x"></span>
+                </button>
+            </div>
+        }
+        @if (!Model.ProfessionalLinks.Any())
+        {
+            <p class="text-muted" id="noLinksMsg">No links added yet.</p>
+        }
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+        // ── Links ─────────────────────────────────────────────────
+        let links = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+         Model.ProfessionalLinks.Select(l => new
+         {
+             id = l.Id,
+             linkName = (int)l.LinkName,
+             url = l.Url
+         })
+    ));
+
+        function addLink() {
+            const type = document.getElementById('linkTypeSelect').value;
+            const url  = document.getElementById('linkUrlInput').value.trim();
+            if (!url) return;
+
+            links.push({ id: null, linkName: parseInt(type), url: url });
+            document.getElementById('linkUrlInput').value = '';
+            renderLinks();
+        }
+
+        function removeLink(btn) {
+            const row = btn.closest('.link-row');
+            const index = [...document.querySelectorAll('.link-row')].indexOf(row);
+            links.splice(index, 1);
+            renderLinks();
+        }
+
+        function renderLinks() {
+            const container = document.getElementById('linksContainer');
+            if (!container) return;
+
+            const names = { 1:'LinkedIn', 2:'GitHub', 3:'Portfolio', 4:'CompanyWebsite', 5:'Other' };
+
+            if (links.length === 0) {
+                container.innerHTML = '<p class="text-muted" id="noLinksMsg">No links added yet.</p>';
+                return;
+            }
+
+            container.innerHTML = links.map((l) => `
+                <div class="link-row">
+                    <span class="link-type-badge">${names[l.linkName] ?? 'Other'}</span>
+                    <a href="${l.url}" target="_blank" class="link-url">${l.url}</a>
+                    <button type="button" class="btn-icon-danger" onclick="removeLink(this)">
+                        <span class="iconify" data-icon="lucide:x"></span>
+                    </button>
+                </div>
+            `).join('');
+
+            Iconify.scan(container);
+        }
+
+        function saveLinks() {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '@Url.Action("UpdateLinks", "Candidate")';
+
+            const t = document.createElement('input');
+            t.type = 'hidden';
+            t.name = '__RequestVerificationToken';
+            t.value = token;
+            form.appendChild(t);
+
+            links.forEach((l, i) => {
+                const addHidden = (name, val) => {
+                    const inp = document.createElement('input');
+                    inp.type = 'hidden'; inp.name = name; inp.value = val ?? '';
+                    form.appendChild(inp);
+                };
+                addHidden(`links[${i}].Id`, l.id);
+                addHidden(`links[${i}].LinkName`, l.linkName);
+                addHidden(`links[${i}].Url`, l.url);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+    </script>
+}

@@ -44,6 +44,7 @@ builder.Services.AddControllersWithViews();
 // ── App services ───────────────────────────────────────────
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IGoogleTokenValidator, GoogleTokenValidator>();
 
 var app = builder.Build();

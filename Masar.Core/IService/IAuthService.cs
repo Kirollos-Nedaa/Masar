@@ -1,4 +1,4 @@
-﻿using Masar.Domain.ViewModels;
+﻿using Masar.Domain.ViewModels.AuthDtos;
 using System;
 using System.Collections.Generic;
 using System.Linq;

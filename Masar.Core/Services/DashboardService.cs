@@ -1,9 +1,12 @@
 ﻿// Masar.Core/Services/DashboardService.cs
 
+using Humanizer;
 using Masar.Core.IService;
 using Masar.Domain.Enums;
 using Masar.Domain.Models;
 using Masar.Domain.ViewModels;
+using Masar.Domain.ViewModels.CandidateDtos;
+using Masar.Domain.ViewModels.CompanyDtos;
 using Masar.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,10 +15,12 @@ namespace Masar.Core.Services
     public class DashboardService : IDashboardService
     {
         private readonly AppDbContext _context;
+        private readonly IProfileService _profileService;
 
-        public DashboardService(AppDbContext context)
+        public DashboardService(AppDbContext context, IProfileService profileService)
         {
             _context = context;
+            _profileService = profileService;
         }
 
 
@@ -86,6 +91,7 @@ namespace Masar.Core.Services
             {
                 Name = user?.FirstName ?? "User",
                 ProfileCompletion = CalculateProfileCompletion(user, profile),
+                ProfileHints = GetProfileCompletionHints(user, profile),
                 TotalApplications = totalApps,
                 SavedJobs = savedJobs,
                 UnderReview = underReview,
@@ -175,27 +181,66 @@ namespace Masar.Core.Services
 
             int score = 0;
 
-            // Personal info — 20 pts
-            if (!string.IsNullOrEmpty(user.FirstName)
-             && !string.IsNullOrEmpty(user.LastName)
-             && !string.IsNullOrEmpty(user.PhoneNumber)
-             && !string.IsNullOrEmpty(profile.Location)
-             && !string.IsNullOrEmpty(profile.Bio))
-                score += 20;
+            // Personal info — 30 pts
+            bool hasAllPersonalInfo =
+                !string.IsNullOrWhiteSpace(user.FirstName) &&
+                !string.IsNullOrWhiteSpace(user.LastName) &&
+                !string.IsNullOrWhiteSpace(user.Email) &&
+                profile.Gender.HasValue &&
+                !string.IsNullOrWhiteSpace(profile.Location) &&
+                profile.DateOfBirth.HasValue &&
+                !string.IsNullOrWhiteSpace(profile.PhoneNumber) &&
+                !string.IsNullOrWhiteSpace(profile.Bio);
+
+            if (hasAllPersonalInfo)
+                score += 30;
 
             // Education — 30 pts
             if (profile.Educations?.Any() == true)
                 score += 30;
 
-            // Skills — 30 pts
+            // Skills — 20 pts
             if (profile.CandidateSkills?.Any() == true)
-                score += 30;
+                score += 20;
 
             // Professional links — 20 pts
             if (profile.ProfessionalLinks?.Any() == true)
                 score += 20;
 
             return score;
+        }
+
+        private static List<string> GetProfileCompletionHints(ApplicationUser user, CandidateProfile profile)
+        {
+            var hints = new List<string>();
+
+            // Personal Info (ALL required)
+            bool hasAllPersonalInfo =
+                !string.IsNullOrWhiteSpace(user.FirstName) &&
+                !string.IsNullOrWhiteSpace(user.LastName) &&
+                !string.IsNullOrWhiteSpace(user.Email) &&
+                profile.Gender.HasValue &&
+                !string.IsNullOrWhiteSpace(profile.Location) &&
+                profile.DateOfBirth.HasValue &&
+                !string.IsNullOrWhiteSpace(profile.PhoneNumber) &&
+                !string.IsNullOrWhiteSpace(profile.Bio);
+
+            if (!hasAllPersonalInfo)
+                hints.Add("Complete your personal information");
+
+            // Education
+            if (profile.Educations?.Any() != true)
+                hints.Add("Add your education");
+
+            // Skills
+            if (profile.CandidateSkills?.Any() != true)
+                hints.Add("Add your skills");
+
+            // Professional Links
+            if (profile.ProfessionalLinks?.Any() != true)
+                hints.Add("Add professional links");
+
+            return hints;
         }
 
         private static string GetStatusDisplay(ApplicationStatus status) => status switch

@@ -8,17 +8,14 @@ namespace Masar.Core.Services
     public class AuthService : IAuthService
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager; 
-        private readonly IGoogleTokenValidator _googleValidator;
+        private readonly SignInManager<ApplicationUser> _signInManager;
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager,
-            IGoogleTokenValidator googleValidator)
+            SignInManager<ApplicationUser> signInManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
-            _googleValidator = googleValidator;
         }
 
         public async Task<(bool Success, string UserId, IEnumerable<string> Errors)> RegisterAsync(RegisterDto dto)
@@ -70,38 +67,59 @@ namespace Masar.Core.Services
         }
 
         // Google OAuth
-        public async Task<(AuthResult Result, bool IsNewUser)> GoogleLoginAsync(string idToken)
+        public async Task<(AuthResult Result, bool IsNewUser)> ExternalGoogleLoginAsync(ExternalLoginInfo info)
         {
-            // Step 1 — validate the token Google signed, get the claims back
-            var payload = await _googleValidator.ValidateAsync(idToken);
-
-            if (payload == null)
-                return (new AuthResult { Success = false, Errors = ["Invalid Google token."] }, false);
-
-            var email = payload.Email;
-
-            // Step 2 — check if this Google account is already linked to a local account
-            var existingLogin = await _userManager.FindByLoginAsync("Google", payload.Subject);
+            // Existing linked Google account
+            var existingLogin = await _userManager.FindByLoginAsync(
+                info.LoginProvider,
+                info.ProviderKey);
 
             if (existingLogin != null)
             {
-                // Returning Google user — sign them straight in
                 await _signInManager.SignInAsync(existingLogin, isPersistent: false);
-                return (new AuthResult { Success = true, UserId = existingLogin.Id }, false);
+
+                return (
+                    new AuthResult
+                    {
+                        Success = true,
+                        UserId = existingLogin.Id
+                    },
+                    false
+                );
             }
 
-            // Step 3 — check if a local account exists with this email
-            // (user may have registered with a password before trying Google)
+            var email = info.Principal.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+
+            if (string.IsNullOrEmpty(email))
+            {
+                return (
+                    new AuthResult
+                    {
+                        Success = false,
+                        Errors = ["Google account did not provide an email address."]
+                    },
+                    false
+                );
+            }
+
+            // Existing account by email → link Google account
             var userByEmail = await _userManager.FindByEmailAsync(email);
 
             if (userByEmail != null)
             {
-                // Link Google to the existing account so next time Step 2 is used
-                await _userManager.AddLoginAsync(
-                    userByEmail,
-                    new UserLoginInfo("Google", payload.Subject, "Google"));
+                var addLoginResult = await _userManager.AddLoginAsync(userByEmail, info);
 
-                // Auto-confirm email since Google already verified it
+                if (!addLoginResult.Succeeded)
+                {
+                    return (
+                        new AuthResult
+                        {
+                            Success = false
+                        },
+                        false
+                    );
+                }
+
                 if (!userByEmail.EmailConfirmed)
                 {
                     userByEmail.EmailConfirmed = true;
@@ -109,36 +127,63 @@ namespace Masar.Core.Services
                 }
 
                 await _signInManager.SignInAsync(userByEmail, isPersistent: false);
-                return (new AuthResult { Success = true, UserId = userByEmail.Id }, false);
+
+                return (
+                    new AuthResult
+                    {
+                        Success = true,
+                        UserId = userByEmail.Id
+                    },
+                    false
+                );
             }
 
-            // Step 4 — brand-new user, create the account from Google claims
+            // Brand new user
             var newUser = new ApplicationUser
             {
                 UserName = email,
                 Email = email,
-                EmailConfirmed = true,   // Google already verified it
-                FirstName = payload.GivenName ?? string.Empty,
-                LastName = payload.FamilyName ?? string.Empty,
+                EmailConfirmed = true,
+                FirstName = info.Principal.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value ?? string.Empty,
+                LastName = info.Principal.FindFirst(System.Security.Claims.ClaimTypes.Surname)?.Value ?? string.Empty
             };
 
             var createResult = await _userManager.CreateAsync(newUser);
 
             if (!createResult.Succeeded)
             {
-                var errors = createResult.Errors.Select(e => e.Description).ToList();
-                return (new AuthResult { Success = false, Errors = errors }, false);
+                return (
+                    new AuthResult
+                    {
+                        Success = false
+                    },
+                    false
+                );
             }
 
-            // Link Google login and sign in
-            await _userManager.AddLoginAsync(
-                newUser,
-                new UserLoginInfo("Google", payload.Subject, "Google"));
+            var linkResult = await _userManager.AddLoginAsync(newUser, info);
+
+            if (!linkResult.Succeeded)
+            {
+                return (
+                    new AuthResult
+                    {
+                        Success = false
+                    },
+                    false
+                );
+            }
 
             await _signInManager.SignInAsync(newUser, isPersistent: false);
 
-            // IsNewUser = true so the controller sends them to SelectRole
-            return (new AuthResult { Success = true, UserId = newUser.Id }, true);
+            return (
+                new AuthResult
+                {
+                    Success = true,
+                    UserId = newUser.Id
+                },
+                true
+            );
         }
     }
 }

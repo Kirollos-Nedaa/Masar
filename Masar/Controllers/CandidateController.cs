@@ -131,7 +131,15 @@ namespace Masar.Controllers
             return RedirectToAction(nameof(Profile));
         }
 
-        // ── Update links ──────────────────
+        // ── Edit links ──────────────────
+        [HttpGet]
+        public async Task<IActionResult> EditLinks()
+        {
+            var userId = _userManager.GetUserId(User);
+            var dto = await _profileService.GetMyCandidateProfileAsync(userId);
+            return View(dto);
+        }
+
         [HttpPost]
         public async Task<IActionResult> UpdateLinks(List<ProfessionalLinkDto> links)
         {

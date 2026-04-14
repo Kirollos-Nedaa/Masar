@@ -18,6 +18,12 @@
 </div>
 
 @* ── Personal Information ─────────────────────────────────── *@
+@functions {
+    string MissingLabel(bool condition) => condition ? "field-missing-label" : "";
+    string MissingValue(bool condition) => condition ? "field-missing-value" : "";
+    string DisplayOrDefault(string value) => string.IsNullOrWhiteSpace(value) ? "Not provided" : value;
+}
+
 <div class="app-card mb-4">
     <div class="card-section-header">
         <div class="card-section-title">Personal Information</div>
@@ -28,54 +34,91 @@
 
     @* Row 1 — First Name, Last Name *@
     <div class="row g-3 mb-3">
+        @{
+            var firstMissing = string.IsNullOrWhiteSpace(Model.FirstName);
+            var lastMissing = string.IsNullOrWhiteSpace(Model.LastName);
+        }
+
         <div class="col-12 col-sm-6">
-            <div class="profile-field-label">First Name</div>
-            <div class="profile-field-value">@(Model.FirstName ?? "Not provided")</div>
+            <div class="profile-field-label @MissingLabel(firstMissing)">First Name</div>
+            <div class="profile-field-value @MissingValue(firstMissing)">
+                @DisplayOrDefault(Model.FirstName)
+            </div>
         </div>
+
         <div class="col-12 col-sm-6">
-            <div class="profile-field-label">Last Name</div>
-            <div class="profile-field-value">@(Model.LastName ?? "Not provided")</div>
+            <div class="profile-field-label @MissingLabel(lastMissing)">Last Name</div>
+            <div class="profile-field-value @MissingValue(lastMissing)">
+                @DisplayOrDefault(Model.LastName)
+            </div>
         </div>
     </div>
 
     @* Row 2 — Gender, Location, Date of Birth *@
     <div class="row g-3 mb-3">
+        @{
+            var genderMissing = !Model.Gender.HasValue;
+            var locationMissing = string.IsNullOrWhiteSpace(Model.Location);
+            var dobMissing = !Model.DateOfBirth.HasValue;
+        }
+
         <div class="col-12 col-sm-4">
-            <div class="profile-field-label">Gender</div>
-            <div class="profile-field-value">@(Model.Gender.HasValue ? Model.Gender.ToString() : "Not provided")</div>
+            <div class="profile-field-label @MissingLabel(genderMissing)">Gender</div>
+            <div class="profile-field-value @MissingValue(genderMissing)">
+                @(Model.Gender?.ToString() ?? "Not provided")
+            </div>
         </div>
+
         <div class="col-12 col-sm-4">
-            <div class="profile-field-label">Location</div>
-            <div class="profile-field-value">@(Model.Location ?? "Not provided")</div>
+            <div class="profile-field-label @MissingLabel(locationMissing)">Location</div>
+            <div class="profile-field-value @MissingValue(locationMissing)">
+                @DisplayOrDefault(Model.Location)
+            </div>
         </div>
+
         <div class="col-12 col-sm-4">
-            <div class="profile-field-label">Date of Birth</div>
-            <div class="profile-field-value">
-                @(Model.DateOfBirth.HasValue ? Model.DateOfBirth.Value.ToString("MMMM dd, yyyy") : "Not provided")
+            <div class="profile-field-label @MissingLabel(dobMissing)">Date of Birth</div>
+            <div class="profile-field-value @MissingValue(dobMissing)">
+                @(Model.DateOfBirth?.ToString("MMMM dd, yyyy") ?? "Not provided")
             </div>
         </div>
     </div>
 
     @* Row 3 — Email, Phone *@
     <div class="row g-3 mb-3">
+        @{
+            var emailMissing = string.IsNullOrWhiteSpace(Model.Email);
+            var phoneMissing = string.IsNullOrWhiteSpace(Model.PhoneNumber);
+        }
+
         <div class="col-12 col-sm-6">
-            <div class="profile-field-label">Email</div>
-            <div class="profile-field-value">@(Model.Email ?? "Not provided")</div>
+            <div class="profile-field-label @MissingLabel(emailMissing)">Email</div>
+            <div class="profile-field-value @MissingValue(emailMissing)">
+                @DisplayOrDefault(Model.Email)
+            </div>
         </div>
+
         <div class="col-12 col-sm-6">
-            <div class="profile-field-label">Phone Number</div>
-            <div class="profile-field-value">@(Model.PhoneNumber ?? "Not provided")</div>
+            <div class="profile-field-label @MissingLabel(phoneMissing)">Phone Number</div>
+            <div class="profile-field-value @MissingValue(phoneMissing)">
+                @DisplayOrDefault(Model.PhoneNumber)
+            </div>
         </div>
     </div>
 
     @* Row 4 — Bio *@
     <div class="row g-3">
+        @{
+            var bioMissing = string.IsNullOrWhiteSpace(Model.Bio);
+        }
+
         <div class="col-12">
-            <div class="profile-field-label">Bio</div>
-            <div class="profile-field-value">@(Model.Bio ?? "No bio added yet.")</div>
+            <div class="profile-field-label @MissingLabel(bioMissing)">Bio</div>
+            <div class="profile-field-value @MissingValue(bioMissing)">
+                @(string.IsNullOrWhiteSpace(Model.Bio) ? "No bio added yet." : Model.Bio)
+            </div>
         </div>
     </div>
-
 </div>
 
 @* ── Education ────────────────────────────────────────────── *@
@@ -105,11 +148,11 @@
                 <div class="education-years text-muted" style="font-size:.82rem; margin-top:.25rem;">
                     @if (Model.Education.StartYear.HasValue)
                     {
-                        @Model.Education.StartYear.Value.ToString("yyyy")
+                        @Model.Education.StartYear.Value.ToString("MM/yyyy")
                     }
                     @if (Model.Education.ExpectedGraduation.HasValue)
                     {
-                        <span> &ndash; @Model.Education.ExpectedGraduation.Value.ToString("yyyy")</span>
+                        <span> &ndash; @Model.Education.ExpectedGraduation.Value.ToString("MM/yyyy")</span>
                     }
                 </div>
             </div>
@@ -183,110 +226,57 @@
 <div class="app-card mb-4">
     <div class="card-section-header">
         <div class="card-section-title">Professional Links</div>
-        <a asp-controller="Candidate" asp-action="EditSkills" class="btn-edit-section">
+        <a asp-controller="Candidate" asp-action="EditLinks" class="btn-edit-section">
             <span class="iconify" data-icon="lucide:settings-2"></span> Manage Links
         </a>
     </div>
 
-    @* Existing links display *@
-    <div class="links-list mb-3" id="linksContainer">
-        @foreach (var link in Model.ProfessionalLinks)
-        {
-            <div class="link-row" data-link-id="@link.Id">
-                <span class="link-type-badge">@link.LinkName</span>
-                <a href="@link.Url" target="_blank" class="link-url">@link.Url</a>
-                <button type="button" class="btn-icon-danger" onclick="removeLink(this)">
-                    <span class="iconify" data-icon="lucide:x"></span>
-                </button>
-            </div>
-        }
-        @if (!Model.ProfessionalLinks.Any())
-        {
-            <p class="text-muted" id="noLinksMsg">No links added yet.</p>
-        }
-    </div>
-</div>
-
-
-@section Scripts {
-    <script>
-        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-
-        // ── Links ─────────────────────────────────────────────────
-        let links = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
-         Model.ProfessionalLinks.Select(l => new
-         {
-             id = l.Id,
-             linkName = (int)l.LinkName,
-             url = l.Url
-         })
-    ));
-
-        function addLink() {
-            const type = document.getElementById('linkTypeSelect').value;
-            const url  = document.getElementById('linkUrlInput').value.trim();
-            if (!url) return;
-
-            links.push({ id: null, linkName: parseInt(type), url: url });
-            document.getElementById('linkUrlInput').value = '';
-            renderLinks();
-        }
-
-        function removeLink(btn) {
-            const row = btn.closest('.link-row');
-            const index = [...document.querySelectorAll('.link-row')].indexOf(row);
-            links.splice(index, 1);
-            renderLinks();
-        }
-
-        function renderLinks() {
-            const container = document.getElementById('linksContainer');
-            if (!container) return;
-
-            const names = { 1:'LinkedIn', 2:'GitHub', 3:'Portfolio', 4:'CompanyWebsite', 5:'Other' };
-
-            if (links.length === 0) {
-                container.innerHTML = '<p class="text-muted" id="noLinksMsg">No links added yet.</p>';
-                return;
-            }
-
-            container.innerHTML = links.map((l) => `
-                <div class="link-row">
-                    <span class="link-type-badge">${names[l.linkName] ?? 'Other'}</span>
-                    <a href="${l.url}" target="_blank" class="link-url">${l.url}</a>
-                    <button type="button" class="btn-icon-danger" onclick="removeLink(this)">
-                        <span class="iconify" data-icon="lucide:x"></span>
-                    </button>
-                </div>
-            `).join('');
-
-            Iconify.scan(container);
-        }
-
-        function saveLinks() {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '@Url.Action("UpdateLinks", "Candidate")';
-
-            const t = document.createElement('input');
-            t.type = 'hidden';
-            t.name = '__RequestVerificationToken';
-            t.value = token;
-            form.appendChild(t);
-
-            links.forEach((l, i) => {
-                const addHidden = (name, val) => {
-                    const inp = document.createElement('input');
-                    inp.type = 'hidden'; inp.name = name; inp.value = val ?? '';
-                    form.appendChild(inp);
+    @if (Model.ProfessionalLinks.Any())
+    {
+        <div>
+            @foreach (var link in Model.ProfessionalLinks)
+            {
+                string icon = (int)link.LinkName switch
+                {
+                    1 => "simple-icons:linkedin",
+                    2 => "simple-icons:github",
+                    3 => "lucide:globe",
+                    _ => "lucide:link"
                 };
-                addHidden(`links[${i}].Id`, l.id);
-                addHidden(`links[${i}].LinkName`, l.linkName);
-                addHidden(`links[${i}].Url`, l.url);
-            });
+                string color = (int)link.LinkName switch
+                {
+                    1 => "#0A66C2",
+                    2 => "#24292E",
+                    3 => "#2563EB",
+                    _ => "#64748B"
+                };
+                string label = (int)link.LinkName switch
+                {
+                    1 => "LinkedIn",
+                    2 => "GitHub",
+                    3 => "Portfolio",
+                    _ => "Other"
+                };
 
-            document.body.appendChild(form);
-            form.submit();
-        }
-    </script>
-}
+                <div class="saved-link-row">
+                    <div class="saved-link-icon-wrap">
+                        <span class="iconify"
+                              data-icon="@icon"
+                              style="color:@color;width:1.1rem;height:1.1rem;"></span>
+                    </div>
+                    <span class="saved-link-name">@label</span>
+                    <a href="@link.Url" target="_blank" class="saved-link-url">@link.Url</a>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-3">
+            <span class="iconify"
+                  data-icon="lucide:link"
+                  style="width:2rem;height:2rem;color:var(--border);display:block;margin:0 auto .5rem;"></span>
+            <p class="text-muted mb-2" style="font-size:.875rem;">No links added yet.</p>
+        </div>
+    }
+</div>

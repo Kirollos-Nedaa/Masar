@@ -1,5 +1,109 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model Masar.Domain.ViewModels.CandidateDtos.EducationDto
+
 @{
+    ViewData["Title"] = "Edit Education";
+    ViewData["HasSidebar"] = true;
+}
+
+@section Sidebar {
+    <partial name="_CandidateSidebar" />
+}
+
+@* ── Page Header ──────────────────────────────────────────── *@
+<div class="page-header d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="page-title">Edit Education</h1>
+        <p class="page-subtitle">Update your academic background</p>
+    </div>
+    <a asp-controller="Candidate" asp-action="Profile" class="btn-outline-app">
+        <span class="iconify" data-icon="lucide:arrow-left"></span> Back to Profile
+    </a>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="epi-alert-error mb-4">
+        <span class="iconify" data-icon="lucide:circle-alert"></span>
+        @Html.ValidationSummary(false)
+    </div>
+}
+
+<form asp-controller="Candidate" asp-action="EditEducation" method="post">
+    @Html.AntiForgeryToken()
+
+    <div class="app-card">
+        <div class="card-section-header mb-4">
+            <div class="card-section-title">
+                <span class="iconify me-2" data-icon="lucide:graduation-cap"></span>
+                Academic Information
+            </div>
+        </div>
+
+        @* ── University ───────────────────────────────────── *@
+        <div class="row g-3 mb-3">
+            <div class="col-12">
+                <label class="epi-label">University / Institution</label>
+                <input asp-for="University"
+                       class="epi-input"
+                       placeholder="e.g. Cairo University" />
+                <span asp-validation-for="University" class="epi-error"></span>
+            </div>
+        </div>
+
+        @* ── Degree + Major ───────────────────────────────── *@
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-sm-6">
+                <label class="epi-label">Degree</label>
+                <input asp-for="Degree"
+                       class="epi-input"
+                       placeholder="e.g. Bachelor of Science" />
+                <span asp-validation-for="Degree" class="epi-error"></span>
+            </div>
+            <div class="col-12 col-sm-6">
+                <label class="epi-label">Major / Field of Study</label>
+                <input asp-for="Major"
+                       class="epi-input"
+                       placeholder="e.g. Computer Science" />
+                <span asp-validation-for="Major" class="epi-error"></span>
+            </div>
+        </div>
+
+        @* ── Start Year + Expected Graduation ─────────────── *@
+        <div class="row g-3">
+            <div class="col-12 col-sm-6">
+                <label class="epi-label">Start Date</label>
+                <div class="date-input-wrap">
+                    <input asp-for="StartYear"
+                           type="date"
+                           class="epi-input" />
+                </div>
+                <span asp-validation-for="StartYear" class="epi-error"></span>
+            </div>
+            <div class="col-12 col-sm-6">
+                <label class="epi-label">Expected Graduation</label>
+                <div class="date-input-wrap">
+                    <input asp-for="ExpectedGraduation"
+                           type="date"
+                           class="epi-input" />
+                </div>
+                <span asp-validation-for="ExpectedGraduation" class="epi-error"></span>
+            </div>
+        </div>
+
+    </div>
+
+    @* ── Actions ──────────────────────────────────────────── *@
+    <div class="d-flex justify-content-end gap-2 mt-4">
+        <a asp-controller="Candidate" asp-action="Profile" class="btn-outline-app">
+            Cancel
+        </a>
+        <button type="submit" class="btn-primary-app">
+            <span class="iconify" data-icon="lucide:save"></span> Save Education
+        </button>
+    </div>
+
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
 }

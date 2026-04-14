@@ -1,0 +1,191 @@
+﻿@model Masar.Domain.ViewModels.CandidateDtos.CandidateProfileDto
+
+@{
+    ViewData["Title"] = "Professional Links";
+    ViewData["HasSidebar"] = true;
+}
+
+@section Sidebar {
+    <partial name="_CandidateSidebar" />
+}
+
+@* ── Page Header ──────────────────────────────────────────── *@
+<div class="page-header d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="page-title">Professional Links</h1>
+        <p class="page-subtitle">Add links to your profiles and portfolio</p>
+    </div>
+    <a asp-controller="Candidate" asp-action="Profile" class="btn-outline-app">
+        <span class="iconify" data-icon="lucide:arrow-left"></span> Back to Profile
+    </a>
+</div>
+
+<form asp-controller="Candidate" asp-action="UpdateLinks" method="post" id="linksForm">
+    @Html.AntiForgeryToken()
+
+    <div class="app-card mb-4">
+        <div class="card-section-header">
+            <div class="card-section-title">
+                <span class="iconify me-2" data-icon="lucide:link"></span>
+                Your Links
+            </div>
+        </div>
+
+        @* ── Saved Links List — rendered by JS ────────────── *@
+        <div id="linksContainer"></div>
+
+        @* ── Add Link Row ─────────────────────────────────── *@
+        <div class="add-link-row mt-3">
+
+            @* Dropdown with embedded icon — mirrors phone number pattern *@
+            <div class="link-type-wrap">
+                <div class="link-type-icon-btn" id="addLinkIconSlot">
+                    <span class="iconify"
+                          data-icon="simple-icons:linkedin"
+                          style="color:#0A66C2;width:1.1rem;height:1.1rem;"></span>
+                </div>
+                <select id="addLinkType"
+                        class="epi-input epi-select link-type-select"
+                        onchange="updateAddIcon()">
+                    <option value="1">LinkedIn</option>
+                    <option value="2">GitHub</option>
+                    <option value="3">Portfolio</option>
+                    <option value="4">Other</option>
+                </select>
+            </div>
+
+            <input type="text"
+                   id="addLinkUrl"
+                   class="epi-input"
+                   placeholder="https://..." />
+
+            <button type="button" class="btn-primary-app" onclick="addLink()">
+                <span class="iconify" data-icon="lucide:plus"></span> Add
+            </button>
+        </div>
+        <p id="addLinkError" class="epi-error" style="display:none;">
+            Please enter a valid URL starting with https://
+        </p>
+
+    </div>
+
+    @* Hidden inputs injected by JS before submit *@
+    <div id="hiddenInputs"></div>
+
+    @* ── Actions ──────────────────────────────────────────── *@
+    <div class="d-flex justify-content-end gap-2">
+        <a asp-controller="Candidate" asp-action="Profile" class="btn-outline-app">
+            Cancel
+        </a>
+        <button type="submit" class="btn-primary-app">
+            <span class="iconify" data-icon="lucide:save"></span> Save Links
+        </button>
+    </div>
+
+</form>
+
+@section Scripts {
+    <script>
+        const iconMap = {
+            1: { icon: 'simple-icons:linkedin',  label: 'LinkedIn',        color: '#0A66C2' },
+            2: { icon: 'simple-icons:github',    label: 'GitHub',          color: '#24292E' },
+            3: { icon: 'lucide:globe',           label: 'Portfolio',       color: '#2563EB' },
+            4: { icon: 'lucide:link',            label: 'Other',           color: '#64748B' },
+        };
+
+        // Seed existing links from server
+        let links = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+            Model.ProfessionalLinks?.Select(l => new
+            {
+                id = l.Id,
+                linkName = (int)l.LinkName,
+                url = l.Url
+            })
+        ))
+
+        // ── Render saved links list ───────────────────────────────
+        function renderLinks() {
+            const container = document.getElementById('linksContainer');
+
+            if (links.length === 0) {
+                container.innerHTML = `
+                    <p class="text-muted mb-3" style="font-size:.875rem;">
+                        No links added yet. Use the form below to add your first link.
+                    </p>`;
+                return;
+            }
+
+            container.innerHTML = links.map((l, i) => {
+                const meta = iconMap[l.linkName] ?? iconMap[5];
+                return `
+                    <div class="saved-link-row">
+                        <div class="saved-link-icon-wrap">
+                            <span class="iconify"
+                                  data-icon="${meta.icon}"
+                                  style="color:${meta.color};width:1.1rem;height:1.1rem;"></span>
+                        </div>
+                        <span class="saved-link-name">${meta.label}</span>
+                        <a href="${l.url}" target="_blank" class="saved-link-url">${l.url}</a>
+                        <button type="button" class="btn-icon-danger" onclick="removeLink(${i})">
+                            <span class="iconify" data-icon="lucide:x"></span>
+                        </button>
+                    </div>`;
+            }).join('');
+
+            Iconify.scan(container);
+        }
+
+        // ── Update icon slot when dropdown changes ────────────────
+        function updateAddIcon() {
+            const type = parseInt(document.getElementById('addLinkType').value);
+            const meta = iconMap[type] ?? iconMap[5];
+            const slot = document.getElementById('addLinkIconSlot');
+            slot.innerHTML = `
+                <span class="iconify"
+                      data-icon="${meta.icon}"
+                      style="color:${meta.color};width:1.1rem;height:1.1rem;"></span>`;
+            Iconify.scan(slot);
+        }
+
+        // ── Add link ──────────────────────────────────────────────
+        function addLink() {
+            const type = parseInt(document.getElementById('addLinkType').value);
+            const url  = document.getElementById('addLinkUrl').value.trim();
+            const err  = document.getElementById('addLinkError');
+
+            if (!url || !url.startsWith('http')) {
+                err.style.display = 'block';
+                return;
+            }
+
+            err.style.display = 'none';
+            links.push({ id: null, linkName: type, url });
+            document.getElementById('addLinkUrl').value = '';
+            renderLinks();
+        }
+
+        // ── Remove link ───────────────────────────────────────────
+        function removeLink(index) {
+            links.splice(index, 1);
+            renderLinks();
+        }
+
+        // ── Inject hidden inputs before submit ────────────────────
+        document.getElementById('linksForm').addEventListener('submit', () => {
+            const container = document.getElementById('hiddenInputs');
+            container.innerHTML = links.map((l, i) => `
+                <input type="hidden" name="links[${i}].Id"       value="${l.id ?? ''}" />
+                <input type="hidden" name="links[${i}].LinkName" value="${l.linkName}" />
+                <input type="hidden" name="links[${i}].Url"      value="${l.url}" />
+            `).join('');
+        });
+
+        // ── Enter key on URL input ────────────────────────────────
+        document.getElementById('addLinkUrl').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); addLink(); }
+        });
+
+        // Init
+        renderLinks();
+    </script>
+}

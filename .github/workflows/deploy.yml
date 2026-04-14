@@ -8,6 +8,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: windows-latest
+    environment: production
 
     steps:
     - name: Checkout code
@@ -27,16 +28,17 @@ jobs:
     - name: Publish
       run: dotnet publish -c Release -o publish
 
+    - name: Check secrets
+      run: |
+        if ("${{ secrets.PUBLISH_URL }}" -eq "") { echo "URL MISSING"; exit 1 }
+        if ("${{ secrets.PUBLISH_USERNAME }}" -eq "") { echo "USERNAME MISSING"; exit 1 }
+        if ("${{ secrets.PUBLISH_PASSWORD }}" -eq "") { echo "PASSWORD MISSING"; exit 1 }
+
     - name: Deploy via Web Deploy
       run: |
         & "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe" `
         -verb:sync `
         -source:contentPath="${{ github.workspace }}\publish" `
         -dest:contentPath="site59629",computerName="${{ secrets.PUBLISH_URL }}",userName="${{ secrets.PUBLISH_USERNAME }}",password="${{ secrets.PUBLISH_PASSWORD }}",authType="Basic" `
-        -allowUntrusted=true
+        -allowUntrusted
       shell: pwsh
-
-    - name: Debug secrets presence
-      run: |
-        echo "URL exists: ${{ secrets.PUBLISH_URL != '' }}"
-        echo "User exists: ${{ secrets.PUBLISH_USERNAME != '' }}"

@@ -24,7 +24,6 @@
     --shadow-md: 0 4px 16px rgba(15,23,42,.08);
 }
 
-
 /* Remove default calendar icon */
 input[type="date"]::-webkit-calendar-picker-indicator {
     opacity: 0;

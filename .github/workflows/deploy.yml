@@ -1,0 +1,36 @@
+name: Deploy to MonsterASP
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration Release
+
+    - name: Publish
+      run: dotnet publish -c Release -o publish
+
+    - name: Deploy via Web Deploy
+      run: |
+        dotnet tool install -g microsoft.web.deploy
+        & "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe" `
+        -verb:sync `
+        -source:contentPath="${{ github.workspace }}\publish" `
+        -dest:contentPath="your-site-name",computerName="${{ secrets.PUBLISH_URL }}",userName="${{ secrets.PUBLISH_USERNAME }}",password="${{ secrets.PUBLISH_PASSWORD }}",authType="Basic"

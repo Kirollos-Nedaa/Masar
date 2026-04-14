@@ -37,10 +37,16 @@ jobs:
     - name: Deploy via Web Deploy
       shell: pwsh
       run: |
+        $source = "${{ github.workspace }}\publish"
+    
+        $url = $env:PUBLISH_URL
+        $user = $env:PUBLISH_USERNAME
+        $pass = $env:PUBLISH_PASSWORD
+    
         & "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe" `
           -verb:sync `
-          -source:contentPath="${{ github.workspace }}\publish" `
-          -dest:contentPath="site59629",computerName="$env:PUBLISH_URL",userName="$env:PUBLISH_USERNAME",password="$env:PUBLISH_PASSWORD",authType="Basic" `
+          -source:contentPath="$source" `
+          -dest:contentPath="site59629",computerName="$url",userName="$user",password="$pass",authType="Basic" `
           -allowUntrusted
       env:
         PUBLISH_URL: ${{ secrets.PUBLISH_URL }}

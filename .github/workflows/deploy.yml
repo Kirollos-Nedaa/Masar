@@ -44,7 +44,7 @@ jobs:
         $pass = $env:PUBLISH_PASSWORD
     
         & "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe" `
-          -verb:sync `
+        -verb:sync `
           -source:contentPath="$source" `
           -dest:contentPath="site59629",computerName="$url",userName="$user",password="$pass",authType="Basic" `
           -allowUntrusted

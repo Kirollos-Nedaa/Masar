@@ -1,0 +1,48 @@
+name: Deploy to MonsterASP
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  build-and-deploy:
+    runs-on: windows-latest
+    environment: production
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration Release
+
+    - name: Publish
+      run: dotnet publish -c Release -o publish
+
+    - name: Check secrets
+      run: |
+        if (-not "${{ secrets.PUBLISH_URL }}") { throw "URL MISSING" }
+        if (-not "${{ secrets.PUBLISH_USERNAME }}") { throw "USERNAME MISSING" }
+        if (-not "${{ secrets.PUBLISH_PASSWORD }}") { throw "PASSWORD MISSING" }
+
+    - name: Deploy via Web Deploy
+      shell: cmd
+      env:
+        PUBLISH_URL: ${{ secrets.PUBLISH_URL }}
+        PUBLISH_USERNAME: ${{ secrets.PUBLISH_USERNAME }}
+        PUBLISH_PASSWORD: ${{ secrets.PUBLISH_PASSWORD }}
+      run: |
+        "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe" ^
+          -verb:sync ^
+          -source:contentPath="${{ github.workspace }}\publish" ^
+          -dest:contentPath="site59629",computerName="%PUBLISH_URL%",userName="%PUBLISH_USERNAME%",password="%PUBLISH_PASSWORD%",authType="Basic" ^
+          -allowUntrusted

@@ -29,8 +29,14 @@ jobs:
 
     - name: Deploy via Web Deploy
       run: |
-        dotnet tool install -g microsoft.web.deploy
         & "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe" `
         -verb:sync `
         -source:contentPath="${{ github.workspace }}\publish" `
-        -dest:contentPath="site59629",computerName="${{ secrets.PUBLISH_URL }}",userName="${{ secrets.PUBLISH_USERNAME }}",password="${{ secrets.PUBLISH_PASSWORD }}",authType="Basic"
+        -dest:contentPath="site59629",computerName="${{ secrets.PUBLISH_URL }}",userName="${{ secrets.PUBLISH_USERNAME }}",password="${{ secrets.PUBLISH_PASSWORD }}",authType="Basic" `
+        -allowUntrusted=true
+      shell: pwsh
+
+    - name: Debug secrets presence
+      run: |
+        echo "URL exists: ${{ secrets.PUBLISH_URL != '' }}"
+        echo "User exists: ${{ secrets.PUBLISH_USERNAME != '' }}"

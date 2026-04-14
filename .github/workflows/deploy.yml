@@ -30,22 +30,11 @@ jobs:
 
     - name: Check secrets
       run: |
-        if ("${{ secrets.PUBLISH_URL }}" -eq "") { echo "URL MISSING"; exit 1 }
-        if ("${{ secrets.PUBLISH_USERNAME }}" -eq "") { echo "USERNAME MISSING"; exit 1 }
-        if ("${{ secrets.PUBLISH_PASSWORD }}" -eq "") { echo "PASSWORD MISSING"; exit 1 }
+        if (-not "${{ secrets.PUBLISH_URL }}") { throw "URL MISSING" }
+        if (-not "${{ secrets.PUBLISH_USERNAME }}") { throw "USERNAME MISSING" }
+        if (-not "${{ secrets.PUBLISH_PASSWORD }}") { throw "PASSWORD MISSING" }
 
     - name: Deploy via Web Deploy
       shell: pwsh
       run: |
-        $source = "${{ github.workspace }}\publish"
-    
-        $url = $env:PUBLISH_URL
-        $user = $env:PUBLISH_USERNAME
-        $pass = $env:PUBLISH_PASSWORD
-    
-        & "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe" `
-        -verb:sync `
-        -source:contentPath="${{ github.workspace }}\publish" `
-        -dest:contentPath="site59629",computerName="${{ secrets.PUBLISH_URL }}",userName="${{ secrets.PUBLISH_USERNAME }}",password="${{ secrets.PUBLISH_PASSWORD }}",authType="Basic" `
-        -allowUntrusted
-      shell: pwsh
+        & "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe" -verb:sync -source:contentPath="${{ github.workspace }}\publish" -dest:contentPath="site59629",computerName="${{ secrets.PUBLISH_URL }}",userName="${{ secrets.PUBLISH_USERNAME }}",password="${{ secrets.PUBLISH_PASSWORD }}",authType="Basic" -allowUntrusted

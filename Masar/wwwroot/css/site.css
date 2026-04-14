@@ -1559,3 +1559,90 @@ body.app-body {
     padding: 8px;
     border-radius: 8px;
 }
+
+/* ── Company Profile ─────────────────────────────────────── */
+.company-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.company-logo-wrap {
+    flex-shrink: 0;
+}
+
+.company-logo-img {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-lg);
+    object-fit: cover;
+    border: 1.5px solid var(--border);
+}
+
+.company-logo-placeholder {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-lg);
+    background: var(--blue-50);
+    border: 1.5px solid var(--blue-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: var(--blue);
+}
+
+.company-profile-meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.company-profile-name {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--dark);
+    letter-spacing: -.02em;
+    margin-bottom: .5rem;
+}
+
+.company-profile-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+.company-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: .25rem .75rem;
+    font-size: .8rem;
+    font-weight: 500;
+    color: var(--muted);
+}
+
+/* ── Contact info item ───────────────────────────────────── */
+.contact-info-item {
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+}
+
+.contact-info-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    background: var(--blue-50);
+    border: 1px solid var(--blue-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    color: var(--blue);
+    flex-shrink: 0;
+    margin-top: .15rem;
+}

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Masar.Domain.Models;
 using Masar.Domain.ViewModels.AuthDtos;
+using Masar.Infrastructure.Context;
 
 namespace Masar.Controllers
 {
@@ -12,11 +13,13 @@ namespace Masar.Controllers
         private readonly IAuthService _authService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly AppDbContext _context;
 
         public AuthController(
             IAuthService authService,
             UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager)
+            SignInManager<ApplicationUser> signInManager,
+            AppDbContext context)
         {
             _authService = authService;
             _userManager = userManager;

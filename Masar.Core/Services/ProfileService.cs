@@ -256,7 +256,7 @@ namespace Masar.Core.Services
             profile.Name = dto.CompanyName;
             profile.Industry = dto.Industry;
             profile.Size = dto.Size;
-            profile.Description = dto.Description;
+            profile.Description = dto.Description ?? string.Empty; // Ensure Description is not null
             profile.LogoUrl = dto.LogoUrl;
 
             // ── Contact info: upsert ──────────────────────────────
@@ -282,17 +282,31 @@ namespace Masar.Core.Services
                 .Include(p => p.ProfessionalLinks)
                 .FirstOrDefaultAsync(p => p.UserId == userId);
 
-            // ── Links: replace all ────────────────────────────────
-            var companyLinks = profile.ProfessionalLinks.ToList();
-            _context.ProfessionalLinks.RemoveRange(companyLinks);
-            foreach (var link in links)
+            if (profile == null)
             {
-                _context.ProfessionalLinks.Add(new ProfessionalLink
+                profile = new CompanyProfile { UserId = userId };
+                _context.CompanyProfiles.Add(profile);
+                await _context.SaveChangesAsync();
+            }
+
+            // Ensure list is not null
+            profile.ProfessionalLinks ??= new List<ProfessionalLink>();
+
+            // Remove existing links
+            _context.ProfessionalLinks.RemoveRange(profile.ProfessionalLinks);
+
+            // Add new ones (handle null input too)
+            if (links != null && links.Any())
+            {
+                foreach (var link in links)
                 {
-                    CompanyProfileId = profile.Id,
-                    LinksNames = link.LinkName,
-                    Url = link.Url
-                });
+                    _context.ProfessionalLinks.Add(new ProfessionalLink
+                    {
+                        CompanyProfileId = profile.Id,
+                        Url = link.Url,
+                        LinksNames = link.LinkName
+                    });
+                }
             }
 
             await _context.SaveChangesAsync();

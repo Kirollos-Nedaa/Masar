@@ -37,18 +37,36 @@
                             </span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end app-dropdown">
-                            <li>
-                                <a class="dropdown-item app-dropdown-item"
-                                   asp-controller="Candidate" asp-action="Profile">
-                                    <span class="iconify me-1" data-icon="lucide:user"></span> My Profile
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item app-dropdown-item"
-                                   asp-controller="Candidate" asp-action="Dashboard">
-                                    <span class="iconify me-1" data-icon="lucide:layout-panel-left"></span> Dashboard
-                                </a>
-                            </li>
+                            @if (User.IsInRole("Company"))
+                            {
+                                <li>
+                                    <a class="dropdown-item app-dropdown-item"
+                                       asp-controller="Company" asp-action="Profile">
+                                        <span class="iconify me-1" data-icon="lucide:building"></span> My Profile
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item app-dropdown-item"
+                                       asp-controller="Company" asp-action="Dashboard">
+                                        <span class="iconify me-1" data-icon="lucide:layout-panel-left"></span> Dashboard
+                                    </a>
+                                </li>
+                            }
+                            else if (User.IsInRole("Candidate"))
+                            {
+                                <li>
+                                    <a class="dropdown-item app-dropdown-item"
+                                       asp-controller="Candidate" asp-action="Profile">
+                                        <span class="iconify me-1" data-icon="lucide:user"></span> My Profile
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item app-dropdown-item"
+                                       asp-controller="Candidate" asp-action="Dashboard">
+                                        <span class="iconify me-1" data-icon="lucide:layout-panel-left"></span> Dashboard
+                                    </a>
+                                </li>
+                            }
                             <li><hr class="dropdown-divider" /></li>
                             <li>
                                 <form asp-controller="Auth" asp-action="Logout" method="post" class="d-inline">

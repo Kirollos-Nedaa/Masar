@@ -80,6 +80,13 @@ namespace Masar.Controllers
         }
 
         // ── Update Links (inline on profile page) ─────────────
+        [HttpGet]
+        public async Task<IActionResult> EditLinks()
+        {
+            var userId = _userManager.GetUserId(User);
+            var dto = await _profileService.GetMyCompanyProfileAsync(userId);
+            return View(dto);
+        }
 
         [HttpPost]
         public async Task<IActionResult> UpdateLinks(List<ProfessionalLinkDto> links)

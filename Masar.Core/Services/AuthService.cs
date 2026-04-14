@@ -1,6 +1,7 @@
 ﻿using Masar.Core.IService;
 using Masar.Domain.Models;
 using Masar.Domain.ViewModels.AuthDtos;
+using Masar.Infrastructure.Context;
 using Microsoft.AspNetCore.Identity;
 
 namespace Masar.Core.Services
@@ -9,13 +10,16 @@ namespace Masar.Core.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly AppDbContext _context;
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager)
+            SignInManager<ApplicationUser> signInManager,
+            AppDbContext context)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _context = context;
         }
 
         public async Task<(bool Success, string UserId, IEnumerable<string> Errors)> RegisterAsync(RegisterDto dto)
@@ -43,6 +47,20 @@ namespace Masar.Core.Services
             if (user != null)
             {
                 await _userManager.AddToRoleAsync(user, role);
+
+                // Create appropriate profile based on role
+                if (role == "Company")
+                {
+                    var companyProfile = new CompanyProfile { UserId = userId };
+                    _context.CompanyProfiles.Add(companyProfile);
+                }
+                else if (role == "Candidate")
+                {
+                    var candidateProfile = new CandidateProfile { UserId = userId };
+                    _context.CandidateProfiles.Add(candidateProfile);
+                }
+
+                await _context.SaveChangesAsync();
             }
         }
 

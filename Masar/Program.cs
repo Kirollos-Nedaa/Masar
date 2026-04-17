@@ -13,6 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ── Database ───────────────────────────────────────────────
 var conn = Environment.GetEnvironmentVariable("CONN_STRING");
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(conn, sqlOptions => sqlOptions.EnableRetryOnFailure()));
 
@@ -21,10 +22,14 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
-// ── Google Client ID → IConfiguration ─────────────────────
-builder.Configuration["Authentication:Google:ClientId"] =
-    Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID")
-    ?? throw new InvalidOperationException("GOOGLE_CLIENT_ID is not set in .env");
+// ── Authentication (Google) ───────────────────────────────
+builder.Services.AddAuthentication()
+    .AddGoogle(options =>
+    {
+        options.ClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
+        options.ClientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET");
+        options.SignInScheme = IdentityConstants.ExternalScheme;
+    });
 
 // ── Session ────────────────────────────────────────────────
 builder.Services.AddDistributedMemoryCache();
@@ -44,7 +49,7 @@ builder.Services.AddControllersWithViews();
 // ── App services ───────────────────────────────────────────
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
-builder.Services.AddScoped<IGoogleTokenValidator, GoogleTokenValidator>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
 
 var app = builder.Build();
 

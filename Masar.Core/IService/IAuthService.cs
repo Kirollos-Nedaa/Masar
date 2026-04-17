@@ -1,4 +1,5 @@
-﻿using Masar.Domain.ViewModels;
+﻿using Masar.Domain.ViewModels.AuthDtos;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,6 @@ namespace Masar.Core.IService
         Task<AuthResult> LoginAsync(LoginDto model);
         Task SignInAsync(string userId);
         Task AssignRoleAsync(string userId, string role);
-        Task<(AuthResult Result, bool IsNewUser)> GoogleLoginAsync(string idToken);
+        Task<(AuthResult Result, bool IsNewUser)> ExternalGoogleLoginAsync(ExternalLoginInfo info);
     }
 }

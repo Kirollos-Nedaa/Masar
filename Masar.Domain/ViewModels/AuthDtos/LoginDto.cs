@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Masar.Domain.ViewModels
+namespace Masar.Domain.ViewModels.AuthDtos
 {
     public class LoginDto
     {

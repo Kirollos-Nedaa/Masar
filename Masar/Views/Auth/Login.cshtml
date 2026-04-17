@@ -1,4 +1,5 @@
-﻿@model Masar.Domain.ViewModels.LoginDto
+﻿@using Masar.Domain.ViewModels.AuthDtos
+@model LoginDto
 
 @{
     ViewData["Title"] = "Sign In";
@@ -60,11 +61,9 @@
 
 <div class="row g-2">
     <div class="col-12">
-        <button type="button" class="btn-social" id="googleBtn">
+        <a href="/Auth/ExternalLogin?provider=Google" class="btn-social">
             <span class="iconify" data-icon="logos:google-icon"></span> Google
-        </button>
-        <div id="google-hidden-btn" style="display:none;"></div>
-        <div id="google-error" class="validation-box mt-2" style="display:none;"></div>
+        </a>
     </div>
 </div>
 
@@ -91,57 +90,6 @@
                 input.type = 'password';
                 icon.setAttribute('data-icon', 'lucide:eye');
             }
-        }
-
-        async function handleGoogleCredential(response) {
-            const idToken = response.credential ?? response.id_token;
-
-            if (!idToken) {
-                console.error('No token found in response:', response);
-                return;
-            }
-
-            const token = document.querySelector('input[name=__RequestVerificationToken]');
-            if (!token) {
-                console.error('Antiforgery token not found');
-                return;
-            }
-
-            const res = await fetch('/Auth/GoogleAuth', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'RequestVerificationToken': token.value
-                },
-                body: 'idToken=' + encodeURIComponent(idToken)
-            });
-
-            const data = await res.json();
-            console.log('Server response:', data);
-
-            if (data.success) {
-                window.location.href = data.redirectUrl;
-            } else {
-                const err = document.getElementById('google-error');
-                err.textContent = data.error;
-                err.style.display = 'block';
-            }
-        }
-
-        function initGoogleSignIn() {
-            google.accounts.id.initialize({
-                client_id: '@System.Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID")',
-                callback: handleGoogleCredential
-            });
-
-            google.accounts.id.renderButton(
-                document.getElementById('google-hidden-btn'),
-                { theme: 'outline', size: 'large', type: 'standard' }
-            );
-
-            document.getElementById('googleBtn').addEventListener('click', function () {
-                document.getElementById('google-hidden-btn').querySelector('div[role=button]').click();
-            });
         }
     </script>
 

@@ -1,0 +1,185 @@
+﻿@model Masar.Domain.ViewModels.CompanyDtos.CompanyInfoDto
+
+@{
+    ViewData["Title"] = "Edit Company Info";
+    ViewData["HasSidebar"] = true;
+}
+
+@section Sidebar {
+    <partial name="_CompanySidebar" />
+}
+
+@* ── Page Header ──────────────────────────────────────────── *@
+<div class="page-header d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="page-title">Edit Company Information</h1>
+        <p class="page-subtitle">Update your company details</p>
+    </div>
+    <a asp-controller="Company" asp-action="Profile" class="btn-outline-app">
+        <span class="iconify" data-icon="lucide:arrow-left"></span> Back to Profile
+    </a>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="epi-alert-error mb-4">
+        <span class="iconify" data-icon="lucide:circle-alert"></span>
+        @Html.ValidationSummary(false)
+    </div>
+}
+
+<form asp-controller="Company" asp-action="EditInfo" method="post">
+    @Html.AntiForgeryToken()
+
+    @* ── Basic Information ────────────────────────────────── *@
+    <div class="app-card mb-4">
+        <div class="card-section-header mb-4">
+            <div class="card-section-title">
+                <span class="iconify me-2" data-icon="lucide:building-2"></span>
+                Basic Information
+            </div>
+        </div>
+
+        @* Logo URL *@
+        <div class="row g-3 mb-3">
+            <div class="col-12">
+                <label class="epi-label">Logo URL</label>
+                <input asp-for="LogoUrl"
+                       class="epi-input"
+                       placeholder="https://example.com/logo.png" />
+                <span asp-validation-for="LogoUrl" class="epi-error"></span>
+            </div>
+        </div>
+
+        @* Company Name *@
+        <div class="row g-3 mb-3">
+            <div class="col-12">
+                <label class="epi-label">Company Name</label>
+                <input asp-for="CompanyName"
+                       class="epi-input"
+                       placeholder="e.g. Acme Corporation" />
+                <span asp-validation-for="CompanyName" class="epi-error"></span>
+            </div>
+        </div>
+
+        @* Industry + Size *@
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-sm-6">
+                <label class="epi-label">Industry</label>
+                <select asp-for="Industry" class="epi-input epi-select">
+                    <option value="">Select industry</option>
+                    <option value="Technology">Technology</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Healthcare">Healthcare</option>
+                    <option value="Education">Education</option>
+                    <option value="Manufacturing">Manufacturing</option>
+                    <option value="Retail">Retail</option>
+                    <option value="Energy">Energy</option>
+                    <option value="Transportation">Transportation</option>
+                    <option value="Hospitality">Hospitality</option>
+                    <option value="Construction">Construction</option>
+                    <option value="Agriculture">Agriculture</option>
+                    <option value="Media">Media</option>
+                    <option value="Telecommunications">Telecommunications</option>
+                    <option value="Government">Government</option>
+                    <option value="NonProfit">Non-Profit</option>
+                    <option value="Other">Other</option>
+                </select>
+                <span asp-validation-for="Industry" class="epi-error"></span>
+            </div>
+            <div class="col-12 col-sm-6">
+                <label class="epi-label">Company Size</label>
+                <select asp-for="Size" class="epi-input epi-select">
+                    <option value="">Select size</option>
+                    <option value="1">1–10 employees</option>
+                    <option value="2">11–50 employees</option>
+                    <option value="3">51–250 employees</option>
+                    <option value="4">251–1,000 employees</option>
+                    <option value="5">1,001+ employees</option>
+                </select>
+                <span asp-validation-for="Size" class="epi-error"></span>
+            </div>
+        </div>
+
+        @* Description *@
+        <div class="row g-3">
+            <div class="col-12">
+                <label class="epi-label">
+                    Description
+                    <span class="epi-char-count" id="descCount">0 / 2000</span>
+                </label>
+                <textarea asp-for="Description"
+                          rows="5"
+                          class="epi-input epi-textarea"
+                          placeholder="Tell candidates about your company..."
+                          maxlength="2000"
+                          oninput="updateDescCount(this)"></textarea>
+                <span asp-validation-for="Description" class="epi-error"></span>
+            </div>
+        </div>
+    </div>
+
+    @* ── Contact Information ──────────────────────────────── *@
+    <div class="app-card mb-4">
+        <div class="card-section-header mb-4">
+            <div class="card-section-title">
+                <span class="iconify me-2" data-icon="lucide:phone"></span>
+                Contact Information
+            </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-sm-6">
+                <label class="epi-label">Contact Email</label>
+                <input asp-for="ContactEmail"
+                       type="email"
+                       class="epi-input"
+                       placeholder="contact@company.com" />
+                <span asp-validation-for="ContactEmail" class="epi-error"></span>
+            </div>
+            <div class="col-12 col-sm-6">
+                <label class="epi-label">Contact Phone</label>
+                <input asp-for="ContactPhone"
+                       class="epi-input"
+                       placeholder="+1 234 567 8900" />
+                <span asp-validation-for="ContactPhone" class="epi-error"></span>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-12">
+                <label class="epi-label">Address</label>
+                <input asp-for="Address"
+                       class="epi-input"
+                       placeholder="123 Main St, Cairo, Egypt" />
+                <span asp-validation-for="Address" class="epi-error"></span>
+            </div>
+        </div>
+    </div>
+
+    @* ── Actions ──────────────────────────────────────────── *@
+    <div class="d-flex justify-content-end gap-2">
+        <a asp-controller="Company" asp-action="Profile" class="btn-outline-app">
+            Cancel
+        </a>
+        <button type="submit" class="btn-primary-app">
+            <span class="iconify" data-icon="lucide:save"></span> Save Changes
+        </button>
+    </div>
+
+</form>
+
+@section Scripts {
+    <script>
+        function updateDescCount(textarea) {
+            document.getElementById('descCount').textContent =
+                `${textarea.value.length} / 2000`;
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const desc = document.querySelector('textarea[name="Description"]');
+            if (desc) updateDescCount(desc);
+        });
+    </script>
+    <partial name="_ValidationScriptsPartial" />
+}

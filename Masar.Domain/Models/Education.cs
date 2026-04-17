@@ -18,7 +18,7 @@ namespace Masar.Domain.Models
         public string University { get; set; }
         public string Degree { get; set; }
         public string Major { get; set; }
-        public int StartYear { get; set; }
-        public int ExpectedGraduation { get; set; }
+        public DateOnly StartYear { get; set; }
+        public DateOnly ExpectedGraduation { get; set; }
     }
 }

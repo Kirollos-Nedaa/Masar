@@ -1,0 +1,199 @@
+﻿@model Masar.Domain.ViewModels.CompanyDtos.CompanyProfileDto
+
+@{
+    ViewData["Title"] = "Company Profile";
+    ViewData["HasSidebar"] = true;
+}
+
+@section Sidebar {
+    <partial name="_CompanySidebar" />
+}
+
+@* ── Page Header ──────────────────────────────────────────── *@
+<div class="page-header d-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-title">Company Profile</h1>
+        <p class="page-subtitle">Your company information visible to candidates</p>
+    </div>
+    <a asp-controller="Company" asp-action="EditInfo" class="btn-primary-app">
+        <span class="iconify" data-icon="lucide:square-pen"></span> Edit Profile
+    </a>
+</div>
+
+@* ── Logo + Basic Info ────────────────────────────────────── *@
+<div class="app-card mb-4">
+    <div class="card-section-header">
+        <div class="card-section-title">Company Information</div>
+        <a asp-controller="Company" asp-action="EditInfo" class="btn-edit-section">
+            <span class="iconify" data-icon="lucide:square-pen"></span> Edit
+        </a>
+    </div>
+
+    <div class="company-profile-header mb-4">
+        @* Logo *@
+        <div class="company-logo-wrap">
+            @if (!string.IsNullOrEmpty(Model.LogoUrl))
+            {
+                <img src="@Model.LogoUrl" alt="@Model.CompanyName logo" class="company-logo-img" />
+            }
+            else
+            {
+                <div class="company-logo-placeholder">
+                    <span class="iconify" data-icon="lucide:building-2"></span>
+                </div>
+            }
+        </div>
+
+        @* Name + Industry + Size *@
+        <div class="company-profile-meta">
+            <h2 class="company-profile-name">
+                @(Model.CompanyName ?? "Company Name Not Set")
+            </h2>
+            <div class="company-profile-tags">
+                @if (!string.IsNullOrEmpty(Model.Industry))
+                {
+                    <span class="company-tag">
+                        <span class="iconify" data-icon="lucide:briefcase"></span>
+                        @Model.Industry
+                    </span>
+                }
+                @if (Model.Size.HasValue && Model.Size.Value != Masar.Domain.Enums.CompanySize.None)
+                {
+                    string sizeLabel = Model.Size.Value switch
+                    {
+                        Masar.Domain.Enums.CompanySize.Mini => "1–10 employees",
+                        Masar.Domain.Enums.CompanySize.Small => "11–50 employees",
+                        Masar.Domain.Enums.CompanySize.Medium => "51–250 employees",
+                        Masar.Domain.Enums.CompanySize.Large => "251–1,000 employees",
+                        Masar.Domain.Enums.CompanySize.Enterprise => "1,001+ employees",
+                        _ => ""
+                    };
+                    <span class="company-tag">
+                        <span class="iconify" data-icon="lucide:users"></span>
+                        @sizeLabel
+                    </span>
+                }
+            </div>
+        </div>
+    </div>
+
+    @* Description *@
+    <div class="profile-field-label">About</div>
+    <div class="profile-field-value">
+        @(string.IsNullOrEmpty(Model.Description) ? "No description added yet." : Model.Description)
+    </div>
+</div>
+
+@* ── Contact Information ──────────────────────────────────── *@
+<div class="app-card mb-4">
+    <div class="card-section-header">
+        <div class="card-section-title">Contact Information</div>
+        <a asp-controller="Company" asp-action="EditInfo" class="btn-edit-section">
+            <span class="iconify" data-icon="lucide:square-pen"></span> Edit
+        </a>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12 col-sm-4">
+            <div class="contact-info-item">
+                <div class="contact-info-icon">
+                    <span class="iconify" data-icon="lucide:mail"></span>
+                </div>
+                <div>
+                    <div class="profile-field-label">Email</div>
+                    <div class="profile-field-value">
+                        @(Model.ContactEmail ?? "Not provided")
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-4">
+            <div class="contact-info-item">
+                <div class="contact-info-icon">
+                    <span class="iconify" data-icon="lucide:phone"></span>
+                </div>
+                <div>
+                    <div class="profile-field-label">Phone</div>
+                    <div class="profile-field-value">
+                        @(Model.ContactPhone ?? "Not provided")
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-4">
+            <div class="contact-info-item">
+                <div class="contact-info-icon">
+                    <span class="iconify" data-icon="lucide:map-pin"></span>
+                </div>
+                <div>
+                    <div class="profile-field-label">Address</div>
+                    <div class="profile-field-value">
+                        @(Model.Address ?? "Not provided")
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ── Professional Links ───────────────────────────────────── *@
+<div class="app-card mb-4">
+    <div class="card-section-header">
+        <div class="card-section-title">Links</div>
+        <a asp-controller="Company" asp-action="EditLinks" class="btn-edit-section">
+            <span class="iconify" data-icon="lucide:settings-2"></span> Manage Links
+        </a>
+    </div>
+
+    @if (Model.ProfessionalLinks.Any())
+    {
+        <div>
+            @foreach (var link in Model.ProfessionalLinks)
+            {
+                string icon = (int)link.LinkName switch
+                {
+                    1 => "simple-icons:linkedin",
+                    2 => "simple-icons:github",
+                    3 => "lucide:globe",
+                    4 => "lucide:building-2",
+                    _ => "lucide:link"
+                };
+                string color = (int)link.LinkName switch
+                {
+                    1 => "#0A66C2",
+                    2 => "#24292E",
+                    3 => "#2563EB",
+                    4 => "#64748B",
+                    _ => "#64748B"
+                };
+                string label = (int)link.LinkName switch
+                {
+                    1 => "LinkedIn",
+                    2 => "GitHub",
+                    3 => "Website",
+                    4 => "Company Website",
+                    _ => "Other"
+                };
+
+                <div class="saved-link-row">
+                    <div class="saved-link-icon-wrap">
+                        <span class="iconify"
+                              data-icon="@icon"
+                              style="color:@color;width:1.1rem;height:1.1rem;"></span>
+                    </div>
+                    <span class="saved-link-name">@label</span>
+                    <a href="@link.Url" target="_blank" class="saved-link-url">@link.Url</a>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-3">
+            <span class="iconify"
+                  data-icon="lucide:link"
+                  style="width:2rem;height:2rem;color:var(--border);display:block;margin:0 auto .5rem;"></span>
+            <p class="text-muted mb-2" style="font-size:.875rem;">No links added yet.</p>
+        </div>
+    }
+</div>

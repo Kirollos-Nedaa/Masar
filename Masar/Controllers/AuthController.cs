@@ -1,11 +1,10 @@
-﻿// Masar/Controllers/AuthController.cs
-
-using Masar.Domain.ViewModels;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Masar.Core.IService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Masar.Domain.Models;
+using Masar.Domain.ViewModels.AuthDtos;
+using Masar.Infrastructure.Context;
 
 namespace Masar.Controllers
 {
@@ -14,11 +13,13 @@ namespace Masar.Controllers
         private readonly IAuthService _authService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly AppDbContext _context;
 
         public AuthController(
             IAuthService authService,
             UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager)
+            SignInManager<ApplicationUser> signInManager,
+            AppDbContext context)
         {
             _authService = authService;
             _userManager = userManager;
@@ -86,29 +87,36 @@ namespace Masar.Controllers
         }
 
 
-        // GOOGLE LOGIN
-        [HttpPost]
-        public async Task<IActionResult> GoogleAuth(string idToken)
+        // Google Login
+        [HttpGet]
+        public IActionResult ExternalLogin(string provider, string? returnUrl = null)
         {
-            if (string.IsNullOrEmpty(idToken))
-                return BadRequest("Token is missing.");
+            var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Auth", new { returnUrl });
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+            return Challenge(properties, provider);
+        }
 
-            var (result, isNewUser) = await _authService.GoogleLoginAsync(idToken);
+        [HttpGet]
+        public async Task<IActionResult> ExternalLoginCallback(string? returnUrl = null, string? remoteError = null)
+        {
+            if (remoteError != null)
+                return RedirectToAction(nameof(Login));
+
+            var info = await _signInManager.GetExternalLoginInfoAsync();
+
+            if (info == null)
+                return RedirectToAction(nameof(Login));
+
+            var (result, isNewUser) = await _authService.ExternalGoogleLoginAsync(info);
 
             if (!result.Success)
-            {
-                // Return JSON so the JS fetch handler can show the error
-                return Json(new { success = false, error = result.Errors.FirstOrDefault() });
-            }
+                return RedirectToAction(nameof(Login));
 
             SetSessionAfterLogin(result.UserId!);
 
-            // Tell the JS where to redirect
-            var redirectUrl = isNewUser
-                ? Url.Action(nameof(SelectRole), "Auth")
-                : GetDashboardUrl();
-
-            return Json(new { success = true, redirectUrl });
+            return isNewUser
+                ? RedirectToAction(nameof(SelectRole))
+                : RedirectToDashboard();
         }
 
 

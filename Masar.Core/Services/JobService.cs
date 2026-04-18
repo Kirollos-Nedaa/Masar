@@ -1,10 +1,12 @@
 ﻿using Masar.Core.IService;
+using Masar.Domain.Enums;
 using Masar.Domain.Models;
-using Masar.Domain.ViewModels;
 using Masar.Domain.ViewModels.CompanyDtos;
 using Masar.Domain.ViewModels.Job;
+using Masar.Domain.ViewModels.JobDtos;
 using Masar.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace Masar.Core.Services
 {
@@ -16,6 +18,10 @@ namespace Masar.Core.Services
         {
             _context = context;
         }
+
+        // ─────────────────────────────────────────────────────
+        //  COMPANY — manage jobs
+        // ─────────────────────────────────────────────────────
 
         public async Task<int> PostJobAsync(string userId, PostJobDto dto)
         {
@@ -143,20 +149,221 @@ namespace Masar.Core.Services
                     ApplicantCount = j.JobApplications.Count,
                     PostedDate = j.PostedDate,
                     ApplicationDeadline = j.ApplicationDeadline,
-                    PostedDateDisplay = j.PostedDate <= DateTime.UtcNow.AddDays(-30)
-                        ? j.PostedDate.ToString("MMM dd, yyyy")
-                        : j.PostedDate > DateTime.UtcNow.AddDays(-1) ? "Today"
-                        : j.PostedDate > DateTime.UtcNow.AddDays(-2) ? "Yesterday"
-                        : (int)(DateTime.UtcNow - j.PostedDate).TotalDays + " days ago"
+                    PostedDateDisplay = GetRelativeDate(j.PostedDate)
                 })
                 .ToListAsync();
         }
+
+        // ─────────────────────────────────────────────────────
+        //  CANDIDATE — browse jobs
+        // ─────────────────────────────────────────────────────
+
+        public async Task<JobBrowseResultDto> BrowseJobsAsync(
+            JobFilterDto filter, string? candidateUserId = null)
+        {
+            var query = _context.Jobs
+                .Include(j => j.Company)
+                .Where(j => j.IsActive)
+                .AsQueryable();
+
+            // Search
+            if (!string.IsNullOrWhiteSpace(filter.Search))
+            {
+                var s = filter.Search.ToLower();
+                query = query.Where(j =>
+                    j.Title.ToLower().Contains(s) ||
+                    j.Company.Name.ToLower().Contains(s) ||
+                    j.Description.ToLower().Contains(s));
+            }
+
+            // Location
+            if (!string.IsNullOrWhiteSpace(filter.Location))
+            {
+                var loc = filter.Location.ToLower();
+                query = query.Where(j => j.Location.ToLower().Contains(loc));
+            }
+
+            // Job Type
+            if (filter.JobTypes.Any())
+            {
+                var types = filter.JobTypes
+                    .Select(t => Enum.TryParse<JobType>(t, true, out var jt) ? (JobType?)jt : null)
+                    .Where(t => t.HasValue)
+                    .Select(t => t!.Value)
+                    .ToList();
+
+                if (types.Any())
+                    query = query.Where(j => types.Contains(j.JobType));
+            }
+
+            // Industry
+            if (filter.Industries.Any())
+            {
+                query = query.Where(j =>
+                    j.Company.Industry != null &&
+                    filter.Industries.Contains(j.Company.Industry));
+            }
+
+            // Salary range
+            if (!string.IsNullOrWhiteSpace(filter.SalaryRange))
+            {
+                switch (filter.SalaryRange)
+                {
+                    case "0-50000":
+                        query = query.Where(j => j.MinSalary <= 50000); break;
+                    case "50000-100000":
+                        query = query.Where(j => j.MinSalary >= 50000 && j.MinSalary <= 100000); break;
+                    case "100000-150000":
+                        query = query.Where(j => j.MinSalary >= 100000 && j.MinSalary <= 150000); break;
+                    case "150000+":
+                        query = query.Where(j => j.MinSalary >= 150000); break;
+                }
+            }
+
+            // Sort
+            query = filter.SortBy switch
+            {
+                "salary_desc" => query.OrderByDescending(j => j.MaxSalary),
+                "salary_asc" => query.OrderBy(j => j.MinSalary),
+                _ => query.OrderByDescending(j => j.PostedDate)
+            };
+
+            var totalCount = await query.CountAsync();
+
+            // Resolve saved jobs
+            HashSet<int> savedJobIds = new();
+            if (!string.IsNullOrEmpty(candidateUserId))
+            {
+                var profile = await _context.CandidateProfiles
+                    .FirstOrDefaultAsync(p => p.UserId == candidateUserId);
+
+                if (profile != null)
+                {
+                    savedJobIds = (await _context.SavedJobs
+                        .Where(s => s.CandidateProfileId == profile.Id)
+                        .Select(s => s.JobId)
+                        .ToListAsync())
+                        .ToHashSet();
+                }
+            }
+
+            var jobs = await query
+                .Skip((filter.Page - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .Select(j => new JobBrowseDto
+                {
+                    Id = j.Id,
+                    Title = j.Title,
+                    CompanyName = j.Company.Name,
+                    CompanyLogo = j.Company.LogoUrl,
+                    Location = j.Location,
+                    JobType = j.JobType.ToString(),
+                    WorkMode = j.WorkMode.ToString(),
+                    Department = j.Department.ToString(),
+                    Industry = j.Company.Industry,
+                    PostedDateDisplay = GetRelativeDate(j.PostedDate),
+                    SalaryDisplay = j.MinSalary != null && j.MaxSalary != null
+                        ? $"${j.MinSalary:N0}–${j.MaxSalary:N0}"
+                        : j.MinSalary != null ? $"From ${j.MinSalary:N0}" : null,
+                    DescriptionSnippet = j.Description.Length > 150
+                        ? j.Description.Substring(0, 150) + "..."
+                        : j.Description
+                })
+                .ToListAsync();
+
+            foreach (var job in jobs)
+                job.IsSaved = savedJobIds.Contains(job.Id);
+
+            return new JobBrowseResultDto
+            {
+                Jobs = jobs,
+                TotalCount = totalCount,
+                Page = filter.Page,
+                PageSize = filter.PageSize,
+                Filter = filter
+            };
+        }
+
+        public async Task<JobDetailDto?> GetJobDetailAsync(
+            int jobId, string? candidateUserId = null)
+        {
+            var job = await _context.Jobs
+                .Include(j => j.Company)
+                    .ThenInclude(c => c.ContactInfo)
+                .Include(j => j.JobApplications)
+                .FirstOrDefaultAsync(j => j.Id == jobId);
+
+            if (job == null) return null;
+
+            bool isSaved = false;
+            bool hasApplied = false;
+
+            if (!string.IsNullOrEmpty(candidateUserId))
+            {
+                var profile = await _context.CandidateProfiles
+                    .FirstOrDefaultAsync(p => p.UserId == candidateUserId);
+
+                if (profile != null)
+                {
+                    isSaved = await _context.SavedJobs
+                        .AnyAsync(s => s.CandidateProfileId == profile.Id && s.JobId == jobId);
+
+                    hasApplied = await _context.JobApplications
+                        .AnyAsync(a => a.CandidateProfileId == profile.Id && a.JobId == jobId);
+                }
+            }
+
+            return new JobDetailDto
+            {
+                Id = job.Id,
+                Title = job.Title,
+                JobType = job.JobType.ToString(),
+                WorkMode = job.WorkMode.ToString(),
+                Department = job.Department.ToString(),
+                Location = job.Location,
+                Description = job.Description,
+                Requirements = job.Requirements,
+                Benefits = job.Benefits,
+                PostedDateDisplay = GetRelativeDate(job.PostedDate),
+                SalaryDisplay = job.MinSalary != null && job.MaxSalary != null
+                    ? $"${job.MinSalary:N0}–${job.MaxSalary:N0}"
+                    : job.MinSalary != null ? $"From ${job.MinSalary:N0}" : null,
+                ApplicantCount = job.JobApplications.Count,
+                NumberOfOpenings = job.NumberOfOpenings,
+                ApplicationDeadline = job.ApplicationDeadline,
+                RequireCv = job.RequireCv,
+                RequireCoverLetter = job.RequireCoverLetter,
+                IsActive = job.IsActive,
+                CompanyProfileId = job.Company.Id,
+                CompanyName = job.Company.Name,
+                CompanyLogo = job.Company.LogoUrl,
+                CompanyDescription = job.Company.Description,
+                CompanyIndustry = job.Company.Industry,
+                CompanySize = job.Company.Size?.ToString(),
+                IsSaved = isSaved,
+                HasApplied = hasApplied
+            };
+        }
+
+        // ─────────────────────────────────────────────────────
+        //  HELPERS
+        // ─────────────────────────────────────────────────────
 
         private async Task<Job?> GetOwnedJobAsync(string userId, int jobId)
         {
             return await _context.Jobs
                 .Include(j => j.Company)
                 .FirstOrDefaultAsync(j => j.Id == jobId && j.Company.UserId == userId);
+        }
+
+        private static string GetRelativeDate(DateTime date)
+        {
+            var diff = DateTime.UtcNow - date;
+            if (diff.TotalDays < 1) return "Today";
+            if (diff.TotalDays < 2) return "Yesterday";
+            if (diff.TotalDays < 7) return $"{(int)diff.TotalDays} days ago";
+            if (diff.TotalDays < 30) return $"{(int)(diff.TotalDays / 7)} week(s) ago";
+            return date.ToString("MMM dd, yyyy");
         }
     }
 }

@@ -1,0 +1,385 @@
+﻿@using Masar.Domain.ViewModels.CompanyDtos
+@using Masar.Domain.Enums
+@using Masar.Domain.ViewModels.Job
+@model PostJobDto
+
+@{
+    bool isEdit = ViewData["IsEdit"] is true;
+    ViewData["Title"] = isEdit ? "Edit Job" : "Post a New Job";
+    ViewData["HasSidebar"] = true;
+}
+
+@section Sidebar {
+    <partial name="_CompanySidebar" />
+}
+
+@* ── Page Header ──────────────────────────────────────────── *@
+<div class="page-header d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="page-title">@(isEdit ? "Edit Job Posting" : "Post a New Job")</h1>
+        <p class="page-subtitle">@(isEdit ? "Update the details below" : "Fill out the details below to create a new job posting")</p>
+    </div>
+    <a asp-controller="Company" asp-action="Jobs" class="btn-outline-app">
+        <span class="iconify" data-icon="lucide:arrow-left"></span> Back to Jobs
+    </a>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="epi-alert-error mb-4">
+        <span class="iconify" data-icon="lucide:circle-alert"></span>
+        @Html.ValidationSummary(false, null, new { @class = "mb-0" })
+    </div>
+}
+
+<form asp-controller="Company"
+      asp-action="@(isEdit ? "EditJob" : "PostJob")"
+      method="post"
+      id="postJobForm">
+    @Html.AntiForgeryToken()
+    @if (isEdit)
+    {
+        <input type="hidden" name="jobId" value="@ViewData["JobId"]" />
+    }
+
+    @* ── Section 1: Basic Information ────────────────────── *@
+    <div class="app-card mb-4">
+        <div class="card-section-header mb-4">
+            <div class="card-section-title">
+                <span class="iconify me-2" data-icon="lucide:briefcase" style="font-size:1.1rem;"></span>
+                Basic Information
+            </div>
+        </div>
+
+        @* Job Title *@
+        <div class="mb-3">
+            <label class="epi-label">Job Title <span style="color:var(--red)">*</span></label>
+            <input asp-for="Title"
+                   class="epi-input"
+                   placeholder="e.g. Frontend Developer Intern" />
+            <span asp-validation-for="Title" class="epi-error"></span>
+        </div>
+
+        @* Job Type + Department *@
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-sm-6">
+                <label class="epi-label">Job Type <span style="color:var(--red)">*</span></label>
+                <select asp-for="JobType" class="epi-input epi-select">
+                    <option value="">Select type</option>
+                    @foreach (JobType jt in Enum.GetValues(typeof(JobType)))
+                    {
+                        if (jt == JobType.None) continue;
+                        var jtLabel = jt switch
+                        {
+                            JobType.FullTime => "Full-Time",
+                            JobType.PartTime => "Part-Time",
+                            JobType.Internship => "Internship",
+                            _ => jt.ToString()
+                        };
+                        <option value="@((int)jt)" selected="@(Model.JobType == jt)">@jtLabel</option>
+                    }
+                </select>
+                <span asp-validation-for="JobType" class="epi-error"></span>
+            </div>
+            <div class="col-12 col-sm-6">
+                <label class="epi-label">Department <span style="color:var(--red)">*</span></label>
+                <select asp-for="Department" class="epi-input epi-select">
+                    <option value="">Select department</option>
+                    @foreach (Department dept in Enum.GetValues(typeof(Department)))
+                    {
+                        if (dept == Department.None) continue;
+                        var deptLabel = dept switch
+                        {
+                            Department.ComputerScience => "Computer Science",
+                            Department.InformationTechnology => "Information Technology",
+                            Department.SoftwareEngineering => "Software Engineering",
+                            Department.ElectricalEngineering => "Electrical Engineering",
+                            Department.MechanicalEngineering => "Mechanical Engineering",
+                            Department.CivilEngineering => "Civil Engineering",
+                            Department.BusinessAdministration => "Business Administration",
+                            Department.HumanResources => "Human Resources",
+                            Department.CustomerService => "Customer Service",
+                            Department.ArtsAndDesign => "Arts & Design",
+                            _ => dept.ToString()
+                        };
+                        <option value="@((int)dept)" selected="@(Model.Department == dept)">@deptLabel</option>
+                    }
+                </select>
+                <span asp-validation-for="Department" class="epi-error"></span>
+            </div>
+        </div>
+
+        @* Location + Work Mode *@
+        <div class="row g-3">
+            <div class="col-12 col-sm-6">
+                <label class="epi-label">Location <span style="color:var(--red)">*</span></label>
+                <div class="position-relative">
+                    <input type="text"
+                           id="locationDisplay"
+                           class="epi-input"
+                           placeholder="e.g. Cairo, EG"
+                           autocomplete="off"
+                           oninput="onLocationInput(this.value)"
+                           value="@Model.Location" />
+                    <input asp-for="Location" type="hidden" id="Location" />
+                    <ul id="locationSuggestions" class="location-suggestions" style="display:none;"></ul>
+                </div>
+                <span asp-validation-for="Location" class="epi-error"></span>
+            </div>
+            <div class="col-12 col-sm-6">
+                <label class="epi-label">Work Mode <span style="color:var(--red)">*</span></label>
+                <select asp-for="WorkMode" class="epi-input epi-select">
+                    <option value="">Select mode</option>
+                    @foreach (WorkMode wm in Enum.GetValues(typeof(WorkMode)))
+                    {
+                        if (wm == WorkMode.None) continue;
+                        <option value="@((int)wm)" selected="@(Model.WorkMode == wm)">@wm</option>
+                    }
+                </select>
+                <span asp-validation-for="WorkMode" class="epi-error"></span>
+            </div>
+        </div>
+    </div>
+
+    @* ── Section 2: Compensation ──────────────────────────── *@
+    <div class="app-card mb-4">
+        <div class="card-section-header mb-4">
+            <div class="card-section-title">
+                <span class="iconify me-2" data-icon="lucide:banknote" style="font-size:1.1rem;"></span>
+                Compensation
+            </div>
+            <span class="job-optional-label">Optional</span>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-12 col-sm-6">
+                <label class="epi-label">Minimum Salary</label>
+                <div class="salary-input-wrap">
+                    <span class="salary-prefix">$</span>
+                    <input asp-for="MinSalary"
+                           type="number"
+                           class="epi-input salary-input"
+                           placeholder="50000"
+                           min="0" />
+                </div>
+                <span asp-validation-for="MinSalary" class="epi-error"></span>
+            </div>
+            <div class="col-12 col-sm-6">
+                <label class="epi-label">Maximum Salary</label>
+                <div class="salary-input-wrap">
+                    <span class="salary-prefix">$</span>
+                    <input asp-for="MaxSalary"
+                           type="number"
+                           class="epi-input salary-input"
+                           placeholder="80000"
+                           min="0" />
+                </div>
+                <span asp-validation-for="MaxSalary" class="epi-error"></span>
+            </div>
+        </div>
+    </div>
+
+    @* ── Section 3: Job Description ───────────────────────── *@
+    <div class="app-card mb-4">
+        <div class="card-section-header mb-4">
+            <div class="card-section-title">
+                <span class="iconify me-2" data-icon="lucide:file-text" style="font-size:1.1rem;"></span>
+                Job Description
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="epi-label">
+                Description 
+                <span class="epi-char-count" id="reqCount" style="margin-left: auto;">0 / 4000</span>
+                <span class="ms-2" style="color:var(--red)">*</span>
+            </label>
+            <textarea asp-for="Description"
+                      rows="5"
+                      class="epi-input epi-textarea"
+                      placeholder="Describe the role, responsibilities, and what the candidate will be working on..."
+                      maxlength="4000"
+                      oninput="updateCount(this, 'descCount')"></textarea>
+            <span asp-validation-for="Description" class="epi-error"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="epi-label">
+                Requirements 
+                <span class="epi-char-count" id="reqCount" style="margin-left: auto;">0 / 4000</span>
+                <span class="ms-2" style="color:var(--red)">*</span>
+            </label>
+            <textarea asp-for="Requirements"
+                      rows="5"
+                      class="epi-input epi-textarea"
+                      placeholder="List the required skills, qualifications, and experience..."
+                      maxlength="4000"
+                      oninput="updateCount(this, 'reqCount')"></textarea>
+            <span asp-validation-for="Requirements" class="epi-error"></span>
+        </div>
+
+        <div>
+            <label class="epi-label">
+                Benefits & Perks
+                <span class="epi-char-count" id="benCount" style="margin-left: auto;">0 / 4000</span>
+                <span class="job-optional-label ms-1">Optional</span>
+            </label>
+            <textarea asp-for="Benefits"
+                      rows="3"
+                      class="epi-input epi-textarea"
+                      placeholder="What benefits and perks do you offer?"
+                      maxlength="4000"
+                      oninput="updateCount(this, 'benCount')"></textarea>
+            <span asp-validation-for="Benefits" class="epi-error"></span>
+        </div>
+    </div>
+
+    @* ── Section 4: Application Details ──────────────────── *@
+    <div class="app-card mb-4">
+        <div class="card-section-header mb-4">
+            <div class="card-section-title">
+                <span class="iconify me-2" data-icon="lucide:calendar-check" style="font-size:1.1rem;"></span>
+                Application Details
+            </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-sm-6">
+                <label class="epi-label">Application Deadline <span style="color:var(--red)">*</span></label>
+                <div class="date-input-wrap">
+                    <input asp-for="ApplicationDeadline"
+                           type="date"
+                           class="epi-input" />
+                </div>
+                <span asp-validation-for="ApplicationDeadline" class="epi-error"></span>
+            </div>
+            <div class="col-12 col-sm-6">
+                <label class="epi-label">Number of Positions <span style="color:var(--red)">*</span></label>
+                <input asp-for="NumberOfOpenings"
+                       type="number"
+                       class="epi-input"
+                       min="1" max="1000"
+                       placeholder="1" />
+                <span asp-validation-for="NumberOfOpenings" class="epi-error"></span>
+            </div>
+        </div>
+
+        <div>
+            <label class="epi-label mb-3">Application Requirements</label>
+            <div class="d-flex flex-column gap-2">
+                <label class="job-checkbox-label">
+                    <input asp-for="RequireCv" type="checkbox" class="job-checkbox" />
+                    <span class="job-checkbox-box"></span>
+                    Require resume/CV
+                </label>
+                <label class="job-checkbox-label">
+                    <input asp-for="RequireCoverLetter" type="checkbox" class="job-checkbox" />
+                    <span class="job-checkbox-box"></span>
+                    Require cover letter
+                </label>
+            </div>
+        </div>
+    </div>
+
+    @* ── Actions ──────────────────────────────────────────── *@
+    <div class="d-flex justify-content-end gap-2 mb-5">
+        <a asp-controller="Company" asp-action="Jobs" class="btn-outline-app">
+            Cancel
+        </a>
+        <button type="submit" class="btn-primary-app">
+            <span class="iconify" data-icon="@(isEdit ? "lucide:save" : "lucide:send")"></span>
+            @(isEdit ? "Save Changes" : "Publish Job")
+        </button>
+    </div>
+</form>
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // ── Char counters ─────────────────────────────────────────
+        function updateCount(el, counterId) {
+            document.getElementById(counterId).textContent =
+                `${el.value.length} / ${el.maxLength}`;
+        }
+
+        // ── Init counts ───────────────────────────────────────────
+        window.addEventListener('DOMContentLoaded', () => {
+            const pairs = [
+                ['Description', 'descCount'],
+                ['Requirements', 'reqCount'],
+                ['Benefits', 'benCount']
+            ];
+            pairs.forEach(([name, countId]) => {
+                const el = document.querySelector(`textarea[name="${name}"]`);
+                if (el) updateCount(el, countId);
+            });
+
+            // Sync location hidden field on load
+            const locDisplay = document.getElementById('locationDisplay');
+            const locHidden  = document.getElementById('Location');
+            if (locDisplay.value) locHidden.value = locDisplay.value;
+        });
+
+        // ── Location autocomplete (Nominatim) ─────────────────────
+        let locationDebounce;
+
+        async function onLocationInput(value) {
+            clearTimeout(locationDebounce);
+            const suggestions = document.getElementById('locationSuggestions');
+            document.getElementById('Location').value = value;
+
+            if (!value.trim() || value.length < 2) {
+                suggestions.style.display = 'none';
+                return;
+            }
+
+            locationDebounce = setTimeout(async () => {
+                try {
+                    const res = await fetch(
+                        `https://nominatim.openstreetmap.org/search?` +
+                        `q=${encodeURIComponent(value)}&format=json&limit=6&addressdetails=1`,
+                        { headers: { 'Accept-Language': 'en' } }
+                    );
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    renderLocationSuggestions(data);
+                } catch {
+                    suggestions.style.display = 'none';
+                }
+            }, 350);
+        }
+
+        function renderLocationSuggestions(results) {
+            const suggestions = document.getElementById('locationSuggestions');
+            if (!results.length) { suggestions.style.display = 'none'; return; }
+
+            suggestions.innerHTML = results.map(r => {
+                const city = r.address?.city ?? r.address?.town
+                          ?? r.address?.village ?? r.address?.county ?? r.name;
+                const cc   = (r.address?.country_code ?? '').toUpperCase();
+                const label = cc ? `${city}, ${cc}` : city;
+                return `<li class="location-item"
+                            onclick="selectLocation('${label.replace(/'/g, "\\'")}')">
+                            <span class="iconify location-item-icon" data-icon="lucide:map-pin"></span>
+                            ${label}
+                        </li>`;
+            }).join('');
+
+            suggestions.style.display = 'block';
+            Iconify.scan(suggestions);
+        }
+
+        function selectLocation(label) {
+            document.getElementById('locationDisplay').value = label;
+            document.getElementById('Location').value        = label;
+            document.getElementById('locationSuggestions').style.display = 'none';
+        }
+
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.position-relative'))
+                document.getElementById('locationSuggestions').style.display = 'none';
+        });
+    </script>
+}

@@ -1,0 +1,186 @@
+﻿@using Masar.Domain.ViewModels.Job
+@model List<JobListItemDto>
+
+@{
+    ViewData["Title"] = "Posted Jobs";
+    ViewData["HasSidebar"] = true;
+}
+
+@section Sidebar {
+    <partial name="_CompanySidebar" />
+}
+
+@* ── Page Header ──────────────────────────────────────────── *@
+<div class="page-header d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="page-title">Posted Jobs</h1>
+        <p class="page-subtitle">Manage all your job and internship postings</p>
+    </div>
+    <a asp-controller="Company" asp-action="PostJob" class="btn-primary-app">
+        <span class="iconify" data-icon="lucide:plus-circle"></span> Post New Job
+    </a>
+</div>
+
+@* ── Stats row ────────────────────────────────────────────── *@
+@{
+    var active = Model.Count(j => j.IsActive);
+    var inactive = Model.Count(j => !j.IsActive);
+    var expired = Model.Count(j => j.IsExpired && j.IsActive);
+    var totalApps = Model.Sum(j => j.ApplicantCount);
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-sm-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-card-label">Active</div>
+                <div class="stat-card-value">@active</div>
+            </div>
+            <div class="stat-card-icon stat-icon-green">
+                <span class="iconify stat-icon" data-icon="lucide:briefcase"></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-card-label">Closed</div>
+                <div class="stat-card-value">@inactive</div>
+            </div>
+            <div class="stat-card-icon stat-icon-orange">
+                <span class="iconify stat-icon" data-icon="lucide:archive"></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-card-label">Expiring Soon</div>
+                <div class="stat-card-value">@expired</div>
+            </div>
+            <div class="stat-card-icon stat-icon-orange">
+                <span class="iconify stat-icon" data-icon="lucide:clock-alert"></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-card-label">Total Applicants</div>
+                <div class="stat-card-value">@totalApps</div>
+            </div>
+            <div class="stat-card-icon stat-icon-blue">
+                <span class="iconify stat-icon" data-icon="lucide:users"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ── Jobs Table ───────────────────────────────────────────── *@
+<div class="app-card">
+    <div class="card-section-header mb-3">
+        <div class="card-section-title">All Postings</div>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="company-table">
+                <thead>
+                    <tr>
+                        <th>Job</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Applicants</th>
+                        <th>Deadline</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var job in Model)
+                    {
+                        var statusClass = job.IsActive ? "badge-accepted" : "badge-rejected";
+                        var statusLabel = job.IsActive ? "Active" : "Closed";
+                        var deadlinePast = job.IsExpired;
+
+                        <tr>
+                            <td>
+                                <div class="job-table-title">@job.Title</div>
+                                <div class="job-table-meta">
+                                    <span class="iconify" data-icon="lucide:map-pin"></span>
+                                    @job.Location
+                                    &bull;
+                                    <span class="iconify" data-icon="lucide:building-2"></span>
+                                    @job.Department
+                                </div>
+                            </td>
+                            <td>
+                                <span class="job-type-tag">@job.JobType</span>
+                                <span class="job-type-tag ms-1">@job.WorkMode</span>
+                            </td>
+                            <td>
+                                <span class="status-badge @statusClass">@statusLabel</span>
+                                @if (deadlinePast && job.IsActive)
+                                {
+                                    <div style="font-size:.7rem;color:var(--red);margin-top:.2rem;">Deadline passed</div>
+                                }
+                            </td>
+                            <td>
+                                <div class="applicant-count">
+                                    <span class="iconify" data-icon="lucide:users"></span>
+                                    @job.ApplicantCount
+                                </div>
+                            </td>
+                            <td class="table-meta-text">
+                                @job.ApplicationDeadline.ToString("MMM dd, yyyy")
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <a asp-controller="Company"
+                                       asp-action="Applicants"
+                                       asp-route-jobId="@job.Id"
+                                       class="btn-table-action">
+                                        <span class="iconify" data-icon="lucide:users"></span>
+                                        Applicants
+                                    </a>
+                                    <a asp-controller="Company"
+                                       asp-action="EditJob"
+                                       asp-route-id="@job.Id"
+                                       class="btn-table-action btn-table-ghost"
+                                       title="Edit">
+                                        <span class="iconify" data-icon="lucide:pencil"></span>
+                                    </a>
+                                    <form asp-controller="Company"
+                                          asp-action="ToggleJobStatus"
+                                          method="post"
+                                          style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="jobId" value="@job.Id" />
+                                        <button type="submit"
+                                                class="btn-table-action btn-table-ghost"
+                                                title="@(job.IsActive ? "Close" : "Reopen")">
+                                            <span class="iconify"
+                                                  data-icon="@(job.IsActive ? "lucide:archive" : "lucide:refresh-cw")"></span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <span class="iconify" style="font-size:3rem;color:var(--border);display:block;margin:0 auto .75rem;"
+                  data-icon="lucide:briefcase"></span>
+            <p class="text-muted mb-3">You haven't posted any jobs yet.</p>
+            <a asp-controller="Company" asp-action="PostJob" class="btn-primary-app">
+                <span class="iconify" data-icon="lucide:plus-circle"></span>
+                Post Your First Job
+            </a>
+        </div>
+    }
+</div>

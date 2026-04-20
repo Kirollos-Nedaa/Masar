@@ -55,6 +55,10 @@ namespace Masar.Core.Services
 
             _context.Jobs.Add(job);
             await _context.SaveChangesAsync();
+
+            // Save questions
+            await SyncQuestionsAsync(job.Id, dto.Questions);
+
             return job.Id;
         }
 
@@ -79,6 +83,10 @@ namespace Masar.Core.Services
             job.RequireCoverLetter = dto.RequireCoverLetter;
 
             await _context.SaveChangesAsync();
+
+            // Sync questions (delete old, insert new)
+            await SyncQuestionsAsync(job.Id, dto.Questions);
+
             return true;
         }
 
@@ -104,7 +112,11 @@ namespace Masar.Core.Services
 
         public async Task<PostJobDto?> GetJobForEditAsync(string userId, int jobId)
         {
-            var job = await GetOwnedJobAsync(userId, jobId);
+            var job = await _context.Jobs
+                .Include(j => j.Company)
+                .Include(j => j.JobQuestions)
+                .FirstOrDefaultAsync(j => j.Id == jobId && j.Company.UserId == userId);
+
             if (job == null) return null;
 
             return new PostJobDto
@@ -122,7 +134,18 @@ namespace Masar.Core.Services
                 ApplicationDeadline = job.ApplicationDeadline,
                 NumberOfOpenings = job.NumberOfOpenings,
                 RequireCv = job.RequireCv,
-                RequireCoverLetter = job.RequireCoverLetter
+                RequireCoverLetter = job.RequireCoverLetter,
+                Questions = job.JobQuestions
+                    .OrderBy(q => q.Order)
+                    .Select(q => new JobQuestionDto
+                    {
+                        Id = q.Id,
+                        QuestionText = q.QuestionText,
+                        Type = q.Type.ToString(),
+                        IsRequired = q.IsRequired,
+                        Order = q.Order
+                    })
+                    .ToList()
             };
         }
 
@@ -166,7 +189,6 @@ namespace Masar.Core.Services
                 .Where(j => j.IsActive)
                 .AsQueryable();
 
-            // Search
             if (!string.IsNullOrWhiteSpace(filter.Search))
             {
                 var s = filter.Search.ToLower();
@@ -176,14 +198,12 @@ namespace Masar.Core.Services
                     j.Description.ToLower().Contains(s));
             }
 
-            // Location
             if (!string.IsNullOrWhiteSpace(filter.Location))
             {
                 var loc = filter.Location.ToLower();
                 query = query.Where(j => j.Location.ToLower().Contains(loc));
             }
 
-            // Job Type
             if (filter.JobTypes.Any())
             {
                 var types = filter.JobTypes
@@ -196,7 +216,6 @@ namespace Masar.Core.Services
                     query = query.Where(j => types.Contains(j.JobType));
             }
 
-            // Industry
             if (filter.Industries.Any())
             {
                 query = query.Where(j =>
@@ -204,23 +223,17 @@ namespace Masar.Core.Services
                     filter.Industries.Contains(j.Company.Industry));
             }
 
-            // Salary range
             if (!string.IsNullOrWhiteSpace(filter.SalaryRange))
             {
                 switch (filter.SalaryRange)
                 {
-                    case "0-50000":
-                        query = query.Where(j => j.MinSalary <= 50000); break;
-                    case "50000-100000":
-                        query = query.Where(j => j.MinSalary >= 50000 && j.MinSalary <= 100000); break;
-                    case "100000-150000":
-                        query = query.Where(j => j.MinSalary >= 100000 && j.MinSalary <= 150000); break;
-                    case "150000+":
-                        query = query.Where(j => j.MinSalary >= 150000); break;
+                    case "0-50000": query = query.Where(j => j.MinSalary <= 50000); break;
+                    case "50000-100000": query = query.Where(j => j.MinSalary >= 50000 && j.MinSalary <= 100000); break;
+                    case "100000-150000": query = query.Where(j => j.MinSalary >= 100000 && j.MinSalary <= 150000); break;
+                    case "150000+": query = query.Where(j => j.MinSalary >= 150000); break;
                 }
             }
 
-            // Sort
             query = filter.SortBy switch
             {
                 "salary_desc" => query.OrderByDescending(j => j.MaxSalary),
@@ -230,7 +243,6 @@ namespace Masar.Core.Services
 
             var totalCount = await query.CountAsync();
 
-            // Resolve saved jobs
             HashSet<int> savedJobIds = new();
             if (!string.IsNullOrEmpty(candidateUserId))
             {
@@ -348,6 +360,35 @@ namespace Masar.Core.Services
         // ─────────────────────────────────────────────────────
         //  HELPERS
         // ─────────────────────────────────────────────────────
+
+        private async Task SyncQuestionsAsync(int jobId, List<JobQuestionDto> questions)
+        {
+            // Remove all existing questions for this job
+            var existing = await _context.JobQuestions
+                .Where(q => q.JobId == jobId)
+                .ToListAsync();
+
+            _context.JobQuestions.RemoveRange(existing);
+
+            // Add the new set
+            for (int i = 0; i < questions.Count; i++)
+            {
+                var q = questions[i];
+                if (string.IsNullOrWhiteSpace(q.QuestionText)) continue;
+
+                _context.JobQuestions.Add(new JobQuestion
+                {
+                    JobId = jobId,
+                    QuestionText = q.QuestionText,
+                    Type = Enum.TryParse<QuestionType>(q.Type, out var qt)
+                                       ? qt : QuestionType.Essay,
+                    IsRequired = q.IsRequired,
+                    Order = i
+                });
+            }
+
+            await _context.SaveChangesAsync();
+        }
 
         private async Task<Job?> GetOwnedJobAsync(string userId, int jobId)
         {

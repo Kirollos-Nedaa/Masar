@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Masar.Domain.ViewModels.Job;
+using Masar.Core.Services;
+using Masar.Domain.Enums;
 
 namespace Masar.Controllers
 {
@@ -15,18 +17,21 @@ namespace Masar.Controllers
         private readonly IDashboardService _dashboardService;
         private readonly IProfileService _profileService;
         private readonly IJobService _jobService;
+        private readonly IApplicationService _applicationService;
         private readonly UserManager<ApplicationUser> _userManager;
 
         public CompanyController(
             IDashboardService dashboardService,
             IProfileService profileService,
             IJobService jobService,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            IApplicationService applicationService)
         {
             _dashboardService = dashboardService;
             _profileService = profileService;
             _jobService = jobService;
             _userManager = userManager;
+            _applicationService = applicationService;
         }
 
         // ── Dashboard ─────────────────────────────────────────
@@ -194,13 +199,30 @@ namespace Masar.Controllers
             return View(jobs);
         }
 
-        // ── Applicants (placeholder — next phase) ─────────────
+        // ── Applicants ────────────────────────────────────────
 
         [HttpGet]
-        public IActionResult Applicants(int jobId)
+        public async Task<IActionResult> Applicants(int jobId, string? status = null)
         {
-            ViewBag.JobId = jobId;
-            return View();
+            var userId = _userManager.GetUserId(User);
+            var vm = await _applicationService.GetApplicantsAsync(userId, jobId, status);
+            if (vm == null) return NotFound();
+            return View(vm);
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateApplicationStatus(
+            int applicationId, int jobId, string newStatus)
+        {
+            if (!Enum.TryParse<ApplicationStatus>(newStatus, out var status))
+                return BadRequest();
+
+            var userId = _userManager.GetUserId(User);
+            var (_, error) = await _applicationService
+                .UpdateApplicationStatusAsync(userId, applicationId, status);
+
+            if (error != null) TempData["Error"] = error;
+            return RedirectToAction(nameof(Applicants), new { jobId });
         }
     }
 }

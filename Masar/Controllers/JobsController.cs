@@ -9,12 +9,19 @@ namespace Masar.Controllers
     public class JobsController : Controller
     {
         private readonly IJobService _jobService;
+        private readonly IApplicationService _applicationService;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public JobsController(IJobService jobService, UserManager<ApplicationUser> userManager)
+        public JobsController
+        (
+            IJobService jobService, 
+            UserManager<ApplicationUser> userManager, 
+            IApplicationService applicationService
+        )
         {
             _jobService = jobService;
             _userManager = userManager;
+            _applicationService = applicationService;
         }
 
         [HttpGet]
@@ -60,6 +67,60 @@ namespace Masar.Controllers
                 return NotFound();
 
             return View(dto);
+        }
+
+        // ─────────────────────────────────────────────────────
+        //  JOB APPLICATION
+        // ─────────────────────────────────────────────────────
+
+        [HttpGet]
+        public async Task<IActionResult> Apply(int jobId)
+        {
+            var userId = _userManager.GetUserId(User);
+            var vm = await _applicationService.GetApplyViewAsync(jobId, userId);
+
+            if (vm == null)
+                return NotFound();
+
+            // Already applied?
+            if (vm.Job.HasApplied)
+                return RedirectToAction("Details", "Jobs", new { id = jobId });
+
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Apply(int jobId, ApplyJobDto dto)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            if (!ModelState.IsValid)
+            {
+                // Rebuild the view model to re-render the form
+                var vm = await _applicationService.GetApplyViewAsync(jobId, userId);
+                if (vm == null) return NotFound();
+                vm.Form = dto;
+                return View(vm);
+            }
+
+            // Handle resume upload (placeholder — wire to S3 when ready)
+            string? uploadedResumeUrl = null;
+            // TODO: if (!dto.UseExistingResume && Request.Form.Files["resumeFile"] != null) { upload }
+
+            var (success, error) = await _applicationService.SubmitApplicationAsync(
+                jobId, userId, dto, uploadedResumeUrl);
+
+            if (!success)
+            {
+                var vm = await _applicationService.GetApplyViewAsync(jobId, userId);
+                if (vm != null) vm.Form = dto;
+                ModelState.AddModelError(string.Empty, error ?? "An error occurred.");
+                return View(vm);
+            }
+
+            TempData["ApplySuccess"] = "Your application has been submitted successfully!";
+            return RedirectToAction("Details", "Jobs", new { id = jobId });
         }
     }
 }

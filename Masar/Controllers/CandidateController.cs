@@ -2,6 +2,7 @@
 using Masar.Domain.Models;
 using Masar.Domain.ViewModels;
 using Masar.Domain.ViewModels.CandidateDtos;
+using Masar.Domain.ViewModels.JobDtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -13,15 +14,18 @@ namespace Masar.Controllers
     {
         private readonly IDashboardService _dashboardService;
         private readonly IProfileService _profileService;
+        private readonly IApplicationService _applicationService;
         private readonly UserManager<ApplicationUser> _userManager;
 
         public CandidateController(
             IDashboardService dashboardService,
             IProfileService profileService,
+            IApplicationService applicationService,
             UserManager<ApplicationUser> userManager)
         {
             _dashboardService = dashboardService;
             _profileService = profileService;
+            _applicationService = applicationService;
             _userManager = userManager;
         }
 
@@ -32,7 +36,6 @@ namespace Masar.Controllers
         {
             var userId = _userManager.GetUserId(User);
             var dto = await _dashboardService.GetCandidateDashboardAsync(userId);
-
             return View(dto);
         }
 
@@ -54,7 +57,6 @@ namespace Masar.Controllers
             var userId = _userManager.GetUserId(User);
             var profile = await _profileService.GetMyCandidateProfileAsync(userId);
 
-            // Map display DTO → edit DTO
             var dto = new PersonalInfoDto
             {
                 FirstName = profile.FirstName,
@@ -88,8 +90,6 @@ namespace Masar.Controllers
         {
             var userId = _userManager.GetUserId(User);
             var profile = await _profileService.GetMyCandidateProfileAsync(userId);
-
-            // Use existing education or empty DTO if none yet
             var dto = profile.Education ?? new EducationDto();
             return View(dto);
         }
@@ -105,7 +105,7 @@ namespace Masar.Controllers
             return RedirectToAction(nameof(Profile));
         }
 
-        // ─── Skill section updates ──────────────────
+        // ── Skills ────────────────────────────────────────────
 
         [HttpGet]
         public async Task<IActionResult> EditSkills()
@@ -131,7 +131,8 @@ namespace Masar.Controllers
             return RedirectToAction(nameof(Profile));
         }
 
-        // ── Edit links ──────────────────
+        // ── Links ─────────────────────────────────────────────
+
         [HttpGet]
         public async Task<IActionResult> EditLinks()
         {
@@ -148,13 +149,45 @@ namespace Masar.Controllers
             return RedirectToAction(nameof(Profile));
         }
 
-        // ── View Company Profile (read-only) ──────────────────
+        // ── View Company (read-only) ──────────────────────────
 
         [HttpGet]
         public async Task<IActionResult> ViewCompany(int id)
         {
             var dto = await _profileService.GetCompanyProfileAsync(id);
             return View(dto);
+        }
+
+        // ── Applications ──────────────────────────────────────
+
+        [HttpGet]
+        public async Task<IActionResult> Applications()
+        {
+            var userId = _userManager.GetUserId(User);
+            var apps = await _applicationService.GetCandidateApplicationsAsync(userId);
+            return View(apps);
+        }
+
+        // ── Saved Jobs ────────────────────────────────────────
+
+        [HttpGet]
+        public async Task<IActionResult> SavedJobs()
+        {
+            var userId = _userManager.GetUserId(User);
+            var saved = await _applicationService.GetSavedJobsAsync(userId);
+            return View(saved);
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleSaveJob(int jobId, string? returnUrl = null)
+        {
+            var userId = _userManager.GetUserId(User);
+            await _applicationService.ToggleSaveJobAsync(jobId, userId);
+
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                return Redirect(returnUrl);
+
+            return RedirectToAction("Details", "Jobs", new { id = jobId });
         }
     }
 }

@@ -312,7 +312,7 @@
         }
         else if (User.Identity?.IsAuthenticated == true && User.IsInRole("Candidate"))
         {
-            <a asp-controller="Candidate" asp-action="Apply" asp-route-jobId="@Model.Id"
+            <a asp-controller="Jobs" asp-action="Apply" asp-route-jobId="@Model.Id"
                class="btn-apply">
                 Apply Now
             </a>

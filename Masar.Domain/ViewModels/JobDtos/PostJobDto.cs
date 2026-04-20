@@ -1,4 +1,5 @@
 ﻿using Masar.Domain.Enums;
+using Masar.Domain.ViewModels.JobDtos;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -49,13 +50,16 @@ namespace Masar.Domain.ViewModels.Job
 
         // ── Application Details ───────────────────────────────
         [Required(ErrorMessage = "Application deadline is required.")]
-        public DateTime ApplicationDeadline { get; set; } = DateTime.UtcNow;
+        public DateTime ApplicationDeadline { get; set; } = DateTime.UtcNow.AddDays(30);
 
         [Required(ErrorMessage = "Number of openings is required.")]
-        [Range(1, 1000, ErrorMessage = "Number of openings must be at least 1.")]
+        [Range(1, 1000, ErrorMessage = "Number of openings must be between 1 and 1000.")]
         public int NumberOfOpenings { get; set; } = 1;
 
         public bool RequireCv { get; set; } = true;
         public bool RequireCoverLetter { get; set; }
+
+        // ── Application Questions ─────────────────────────────
+        public List<JobQuestionDto> Questions { get; set; } = new();
     }
 }

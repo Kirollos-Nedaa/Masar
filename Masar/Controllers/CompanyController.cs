@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Masar.Domain.ViewModels.Job;
 using Masar.Core.Services;
 using Masar.Domain.Enums;
+using Microsoft.AspNetCore.Components.RenderTree;
 
 namespace Masar.Controllers
 {
@@ -178,11 +179,12 @@ namespace Masar.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ToggleJobStatus(int jobId)
+        public async Task<IActionResult> ToggleJobStatus(int jobId, string returnUrl = null)
         {
             var userId = _userManager.GetUserId(User);
             await _jobService.ToggleJobStatusAsync(userId, jobId);
-            return RedirectToAction(nameof(Jobs));
+
+            return LocalRedirect(returnUrl);
         }
 
         // ── Jobs List ─────────────────────────────────────────

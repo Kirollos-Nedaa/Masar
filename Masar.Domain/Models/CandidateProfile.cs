@@ -21,6 +21,7 @@ namespace Masar.Domain.Models
         public string? Location { get; set; }
         public DateOnly? DateOfBirth { get; set; }
         public string? Bio { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public ICollection<Education> Educations { get; set; } = new List<Education>();
 

@@ -91,7 +91,7 @@ namespace Masar.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Apply(int jobId, ApplyJobDto dto)
+        public async Task<IActionResult> Apply(int jobId, ApplyJobDto Form)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -100,7 +100,7 @@ namespace Masar.Controllers
                 // Rebuild the view model to re-render the form
                 var vm = await _applicationService.GetApplyViewAsync(jobId, userId);
                 if (vm == null) return NotFound();
-                vm.Form = dto;
+                vm.Form = Form;
                 return View(vm);
             }
 
@@ -109,12 +109,12 @@ namespace Masar.Controllers
             // TODO: if (!dto.UseExistingResume && Request.Form.Files["resumeFile"] != null) { upload }
 
             var (success, error) = await _applicationService.SubmitApplicationAsync(
-                jobId, userId, dto, uploadedResumeUrl);
+                jobId, userId, Form, uploadedResumeUrl);
 
             if (!success)
             {
                 var vm = await _applicationService.GetApplyViewAsync(jobId, userId);
-                if (vm != null) vm.Form = dto;
+                if (vm != null) vm.Form = Form;
                 ModelState.AddModelError(string.Empty, error ?? "An error occurred.");
                 return View(vm);
             }

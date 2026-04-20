@@ -541,7 +541,7 @@
         @* ── Section 5: Terms ────────────────────────────── *@
         <div class="apply-section">
             <label class="terms-check-label">
-                <input asp-for="Form.AgreeToTerms" type="checkbox" />
+                <input asp-for="Form.AgreeToTerms" type="checkbox" data-val="false" />
                 <div>
                     <div class="terms-check-title">
                         I agree to the terms and conditions
@@ -555,7 +555,7 @@
             <span asp-validation-for="Form.AgreeToTerms" class="epi-error"></span>
 
             <label class="terms-check-label mt-2">
-                <input asp-for="Form.ConsentToDataProcessing" type="checkbox" />
+                <input asp-for="Form.ConsentToDataProcessing" type="checkbox" data-val="false" />
                 <div>
                     <div class="terms-check-title">
                         I consent to data processing

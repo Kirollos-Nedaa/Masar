@@ -352,7 +352,7 @@
         <div class="row g-3" style="font-size:.9rem;">
             <div class="col-6 col-sm-3">
                 <div class="company-meta-item-label">Deadline</div>
-                <div class="company-meta-item-value">@Model.ApplicationDeadline.ToString("MMM dd, yyyy")</div>
+                <div class="company-meta-item-value">@Model.ApplicationDeadline.ToString("dd/MM/yyyy")</div>
             </div>
             <div class="col-6 col-sm-3">
                 <div class="company-meta-item-label">Openings</div>
@@ -403,6 +403,13 @@
                     <div>
                         <div class="company-meta-item-label">Industry</div>
                         <div class="company-meta-item-value">@Model.CompanyIndustry</div>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.CreatedAt))
+                {
+                    <div>
+                        <div class="company-meta-item-label">Founded</div>
+                        <div class="company-meta-item-value">@Model.CreatedAt</div>
                     </div>
                 }
                 @if (!string.IsNullOrEmpty(Model.Location))

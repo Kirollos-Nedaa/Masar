@@ -36,6 +36,7 @@ namespace Masar.Domain.ViewModels.JobDtos
         public string? CompanyIndustry { get; set; }
         public string? CompanySize { get; set; }
         public string? CompanyLocation { get; set; }
+        public string? CreatedAt { get; set; }
 
         // ── Candidate State ───────────────────────────────────
         public bool IsSaved { get; set; }

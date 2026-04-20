@@ -504,18 +504,6 @@
 
                 <div class="job-browse-card"
                      onclick="window.location='@Url.Action("Details", "Jobs", new { id = job.Id })'">
-                    @* Company Logo *@
-                    <div class="job-company-logo">
-                        @if (!string.IsNullOrEmpty(job.CompanyLogo))
-                        {
-                            <img src="@job.CompanyLogo" alt="@job.CompanyName" />
-                        }
-                        else
-                        {
-                            @initials
-                        }
-                    </div>
-
                     @* Body *@
                     <div class="job-card-body">
                         <div class="job-card-title-row">
@@ -556,10 +544,6 @@
 
                         <div class="job-card-tags">
                             <span class="job-tag">@job.JobType</span>
-                            @if (job.WorkMode != "None")
-                            {
-                                <span class="job-tag">@job.WorkMode</span>
-                            }
                         </div>
                     </div>
                 </div>

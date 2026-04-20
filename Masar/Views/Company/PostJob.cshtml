@@ -268,21 +268,13 @@
                                    class="epi-input" placeholder="e.g. When are you available to start?"
                                    value="@q.QuestionText" />
                         </div>
-                        <div class="col-6 col-sm-3">
+                        <div class="col-12 col-sm-3">
                             <select name="Questions[@i].Type" class="epi-input epi-select">
                                 <option value="Essay" selected="@(q.Type == "Essay")">Text answer</option>
                                 <option value="TorF" selected="@(q.Type == "TorF")">Yes / No</option>
                             </select>
                         </div>
-                        <div class="col-4 col-sm-2">
-                            <label class="job-checkbox-label mt-1">
-                                <input type="checkbox" name="Questions[@i].IsRequired"
-                                       class="job-checkbox" @(q.IsRequired ? "checked" : "") />
-                                <span class="job-checkbox-box"></span>
-                                Required
-                            </label>
-                        </div>
-                        <div class="col-2 col-sm-1 d-flex align-items-center">
+                        <div class="col-2 col-sm-1 d-flex align-items-center" style="margin: 11px 0px 0px auto">
                             <button type="button" class="btn-icon-danger" onclick="removeQuestion(this)" title="Remove">
                                 <span class="iconify" data-icon="lucide:x"></span>
                             </button>

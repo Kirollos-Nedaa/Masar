@@ -1,4 +1,5 @@
 ﻿@using Masar.Domain.ViewModels.CompanyDtos
+@using Masar.Domain.ViewModels.Job
 @{
     ViewData["Title"] = "Company Dashboard";
     ViewData["HasSidebar"] = true;
@@ -68,7 +69,7 @@
 @* ── Posted Jobs Table ────────────────────────────────────── *@
 <div class="app-card mb-4">
     <div class="card-section-header">
-        <div class="card-section-title">Posted Jobs</div>
+        <div class="card-section-title">Recent Posted Jobs</div>
         <a asp-controller="Company" asp-action="Jobs" class="card-view-all">
             View All <span class="iconify" data-icon="lucide:arrow-right"></span>
         </a>
@@ -83,25 +84,27 @@
                         <th>Job Title</th>
                         <th>Status</th>
                         <th>Applicants</th>
-                        <th>Posted</th>
+                        <th>Deadline</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var job in Model.PostedJobs)
+                    @foreach (var job in Model.JobItems)
                     {
-                        string jobBadgeClass = job.Status == "Active" ? "badge-accepted" : "badge-rejected";
+                        var statusClass = job.IsActive ? "badge-accepted" : "badge-rejected";
+                        var statusLabel = job.IsActive ? "Active" : "Closed";
+                        var deadlinePast = job.IsExpired;
 
                         <tr>
                             <td>
                                 <div class="job-table-title">@job.Title</div>
-                                <div class="job-table-meta">
-                                    <span class="iconify" data-icon="lucide:map-pin"></span>
-                                    @job.Location &bull; @job.JobType
-                                </div>
                             </td>
                             <td>
-                                <span class="status-badge @jobBadgeClass">@job.Status</span>
+                                <span class="status-badge @statusClass">@statusLabel</span>
+                                @if (deadlinePast && job.IsActive)
+                                {
+                                    <div style="font-size:.7rem;color:var(--red);margin-top:.2rem;">Deadline passed</div>
+                                }
                             </td>
                             <td>
                                 <div class="applicant-count">
@@ -109,9 +112,11 @@
                                     @job.ApplicantCount
                                 </div>
                             </td>
-                            <td class="table-meta-text">@job.PostedDate</td>
+                            <td class="table-meta-text">
+                                @job.ApplicationDeadline.ToString("MMM dd, yyyy")
+                            </td>
                             <td>
-                                <div class="d-flex gap-2">
+                                <div class="d-flex gap-2 align-items-center">
                                     <a asp-controller="Company"
                                        asp-action="Applicants"
                                        asp-route-jobId="@job.Id"
@@ -122,9 +127,24 @@
                                     <a asp-controller="Company"
                                        asp-action="EditJob"
                                        asp-route-id="@job.Id"
-                                       class="btn-table-action btn-table-ghost">
+                                       class="btn-table-action btn-table-ghost"
+                                       title="Edit">
                                         <span class="iconify" data-icon="lucide:pencil"></span>
                                     </a>
+                                    <form asp-controller="Company"
+                                          asp-action="ToggleJobStatus"
+                                          method="post"
+                                          style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="jobId" value="@job.Id" />
+                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                                        <button type="submit"
+                                                class="btn-table-action btn-table-ghost"
+                                                title="@(job.IsActive ? "Close" : "Reopen")">
+                                            <span class="iconify"
+                                                  data-icon="@(job.IsActive ? "lucide:archive" : "lucide:refresh-cw")"></span>
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>

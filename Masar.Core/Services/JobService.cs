@@ -352,6 +352,7 @@ namespace Masar.Core.Services
                 CompanyDescription = job.Company.Description,
                 CompanyIndustry = job.Company.Industry,
                 CompanySize = job.Company.Size?.ToString(),
+                CreatedAt = job.Company.CreatedAt.ToString("yyyy"),
                 IsSaved = isSaved,
                 HasApplied = hasApplied
             };

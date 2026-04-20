@@ -31,6 +31,10 @@ namespace Masar.Infrastructure.Config
                 .IsRequired(true)
                 .HasMaxLength(2000);
 
+            builder.Property(cp => cp.CreatedAt)
+                .HasDefaultValueSql("GETUTCDATE()")
+                .ValueGeneratedOnAdd();
+
             // One-to-One: ApplicationUser -> CompanyProfile
             builder.HasOne(cp => cp.User)
                 .WithOne()

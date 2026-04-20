@@ -7,8 +7,10 @@ using Masar.Domain.Models;
 using Masar.Domain.ViewModels;
 using Masar.Domain.ViewModels.CandidateDtos;
 using Masar.Domain.ViewModels.CompanyDtos;
+using Masar.Domain.ViewModels.Job;
 using Masar.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Masar.Core.Services
 {
@@ -162,6 +164,26 @@ namespace Masar.Core.Services
                 })
                 .ToListAsync();
 
+            var jobList = await _context.Jobs
+                .Where(j => j.CompanyProfileId == companyId)
+                .OrderByDescending(j => j.PostedDate)
+                .Select(j => new JobListItemDto
+                {
+                    Id = j.Id,
+                    Title = j.Title,
+                    Location = j.Location,
+                    JobType = j.JobType.ToString(),
+                    Department = j.Department.ToString(),
+                    WorkMode = j.WorkMode.ToString(),
+                    IsActive = j.IsActive,
+                    IsFeatured = j.IsFeatured,
+                    ApplicantCount = j.JobApplications.Count,
+                    PostedDate = j.PostedDate,
+                    ApplicationDeadline = j.ApplicationDeadline,
+                    PostedDateDisplay = GetRelativeDate(j.PostedDate)
+                })
+                .ToListAsync();
+
             return new CompanyDashboardDto
             {
                 ActiveJobs = activeJobs,
@@ -169,7 +191,8 @@ namespace Masar.Core.Services
                 NewApplicants = newApplicants,
                 PendingReviews = pendingReviews,
                 PostedJobs = postedJobs,
-                RecentApplicants = recentApplicants
+                RecentApplicants = recentApplicants,
+                JobItems = jobList
             };
         }
 

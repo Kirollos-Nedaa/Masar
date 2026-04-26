@@ -69,10 +69,6 @@ namespace Masar.Controllers
             return View(dto);
         }
 
-        // ─────────────────────────────────────────────────────
-        //  JOB APPLICATION
-        // ─────────────────────────────────────────────────────
-
         [HttpGet]
         public async Task<IActionResult> Apply(int jobId)
         {
@@ -95,26 +91,32 @@ namespace Masar.Controllers
         {
             var userId = _userManager.GetUserId(User);
 
+            // Rebuild vm first (needed for both validation failure and cover letter check)
+            var vm = await _applicationService.GetApplyViewAsync(jobId, userId);
+            if (vm == null) return NotFound();
+
+            // Conditional cover letter validation
+            if (vm.Job.RequireCoverLetter && string.IsNullOrWhiteSpace(Form.CoverLetter))
+                ModelState.AddModelError("Form.CoverLetter", "Cover letter is required for this position.");
+
+            if (vm.Job.RequireCoverLetter && Form.CoverLetter?.Length < 100)
+                ModelState.AddModelError("Form.CoverLetter", "Cover letter must be at least 100 characters.");
+
             if (!ModelState.IsValid)
             {
-                // Rebuild the view model to re-render the form
-                var vm = await _applicationService.GetApplyViewAsync(jobId, userId);
-                if (vm == null) return NotFound();
                 vm.Form = Form;
                 return View(vm);
             }
 
-            // Handle resume upload (placeholder — wire to S3 when ready)
             string? uploadedResumeUrl = null;
-            // TODO: if (!dto.UseExistingResume && Request.Form.Files["resumeFile"] != null) { upload }
+            // TODO: S3 upload
 
             var (success, error) = await _applicationService.SubmitApplicationAsync(
                 jobId, userId, Form, uploadedResumeUrl);
 
             if (!success)
             {
-                var vm = await _applicationService.GetApplyViewAsync(jobId, userId);
-                if (vm != null) vm.Form = Form;
+                vm.Form = Form;
                 ModelState.AddModelError(string.Empty, error ?? "An error occurred.");
                 return View(vm);
             }

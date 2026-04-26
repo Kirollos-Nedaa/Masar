@@ -12,26 +12,26 @@ namespace Masar.Domain.ViewModels.JobDtos
         public int JobId { get; set; }
 
         // ── Personal Info (pre-filled, editable) ──────────────
-        [Required]
+        [Required(ErrorMessage = "First Name is required.")]
         public string FirstName { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "Last Name is required.")]
         public string LastName { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "Email is required.")]
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Phone number is required.")]
         public string? PhoneNumber { get; set; }
         public string? Location { get; set; }
 
         // ── Resume ────────────────────────────────────────────
         public bool UseExistingResume { get; set; } = true;
         public string? ExistingResumeUrl { get; set; }
-        // File upload handled separately in controller via IFormFile
 
         // ── Cover Letter ──────────────────────────────────────
-        public string? CoverLetter { get; set; }
+        public string CoverLetter { get; set; } = string.Empty;
 
         // ── Terms ─────────────────────────────────────────────
         [Range(typeof(bool), "true", "true", ErrorMessage = "You must agree to the terms and conditions.")]
@@ -39,5 +39,7 @@ namespace Masar.Domain.ViewModels.JobDtos
 
         [Range(typeof(bool), "true", "true", ErrorMessage = "You must consent to data processing.")]
         public bool ConsentToDataProcessing { get; set; }
+
+        public List<JobAnswerDto> Answers { get; set; } = [];
     }
 }

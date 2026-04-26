@@ -4,6 +4,7 @@ using Masar.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Masar.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260424234445_AddApplicationAnswers")]
+    partial class AddApplicationAnswers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -427,7 +430,7 @@ namespace Masar.Infrastructure.Migrations
                     b.Property<int>("CandidateProfileId")
                         .HasColumnType("int");
 
-                    b.Property<string>("CoverLetter")
+                    b.Property<string>("CoverLetterUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("JobId")
@@ -702,7 +705,7 @@ namespace Masar.Infrastructure.Migrations
             modelBuilder.Entity("Masar.Domain.Models.ApplicationAnswer", b =>
                 {
                     b.HasOne("Masar.Domain.Models.JobApplication", "JobApplication")
-                        .WithMany("Answers")
+                        .WithMany()
                         .HasForeignKey("JobApplicationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -952,11 +955,6 @@ namespace Masar.Infrastructure.Migrations
                     b.Navigation("JobQuestions");
 
                     b.Navigation("SavedJobs");
-                });
-
-            modelBuilder.Entity("Masar.Domain.Models.JobApplication", b =>
-                {
-                    b.Navigation("Answers");
                 });
 
             modelBuilder.Entity("Masar.Domain.Models.Skill", b =>

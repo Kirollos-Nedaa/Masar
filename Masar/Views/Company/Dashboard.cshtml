@@ -188,16 +188,14 @@
                     @(applicant.Name.Length > 0 ? applicant.Name[0].ToString().ToUpper() : "?")
                 </div>
                 <div class="applicant-info">
-                    <div class="applicant-name">@applicant.Name</div>
+                    <a asp-action="ViewCandidate" asp-controller="Company" asp-route-id="@applicant.CandidateProfileId" class="applicant-name">@applicant.Name</a>
                     <div class="applicant-meta">
                         Applied for <strong>@applicant.JobTitle</strong> &bull; @applicant.AppliedDate
                     </div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <span class="status-badge @appBadgeClass">@applicant.Status</span>
-                    <a asp-controller="Company"
-                       asp-action="Applicants"
-                       asp-route-jobId="@applicant.JobId"
+                    <a asp-action="ReviewApplication" asp-route-applicationId="@applicant.ApplicationId"
                        class="btn-table-action">
                         Review
                     </a>

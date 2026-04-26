@@ -14,8 +14,7 @@ namespace Masar.Core.IService
     {
         // ── Candidate: apply ──────────────────────────────────
         Task<ApplyJobViewDto?> GetApplyViewAsync(int jobId, string userId);
-        Task<(bool Success, string? Error)> SubmitApplicationAsync(
-            int jobId, string userId, ApplyJobDto dto, string? resumeUrl);
+        Task<(bool Success, string? Error)> SubmitApplicationAsync(int jobId, string userId, ApplyJobDto dto, string? resumeUrl);
 
         // ── Candidate: track applications ─────────────────────
         Task<List<CandidateApplicationDto>> GetCandidateApplicationsAsync(string userId);
@@ -25,9 +24,10 @@ namespace Masar.Core.IService
         Task<(bool Success, string? Error)> ToggleSaveJobAsync(int jobId, string userId);
 
         // ── Company: review applicants ────────────────────────
-        Task<ApplicantsViewDto?> GetApplicantsAsync(
-            string userId, int jobId, string? statusFilter = null);
-        Task<(bool Success, string? Error)> UpdateApplicationStatusAsync(
-            string userId, int applicationId, ApplicationStatus newStatus);
+        Task<ApplicantsViewDto?> GetApplicantsAsync( int jobId, string companyUserId, string? searchQuery = null, string? statusFilter = null, string? sortFilter = null);
+        Task<ReviewApplicationViewDto?> StartReviewAsync(int applicationId, string companyUserId);
+        Task<bool> AcceptApplicationAsync(int applicationId, string companyUserId);
+        Task<bool> RejectApplicationAsync(int applicationId, string companyUserId);
+        Task<(bool Success, string? Error)> UpdateApplicationStatusAsync(string userId, int applicationId, ApplicationStatus newStatus);
     }
 }

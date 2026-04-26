@@ -1,0 +1,273 @@
+@model Masar.Domain.ViewModels.CompanyDtos.ReviewApplicationViewDto
+@using Masar.Domain.Enums
+@{
+    ViewData["Title"] = $"Review — {Model.FullName}";
+    ViewData["HasSidebar"] = true;
+
+    var badgeCls = Model.Status switch
+    {
+        "Applied"      => "badge-applied",
+        "Under Review" => "badge-review",
+        "Accepted"     => "badge-accepted",
+        "Rejected"     => "badge-rejected",
+        _              => "badge-applied"
+    };
+
+    bool isFinalised = Model.Status is "Accepted" or "Rejected";
+}
+@section Sidebar { <partial name="_CompanySidebar" /> }
+
+
+<div class="page-header d-flex align-items-start justify-content-between gap-3 flex-wrap">
+    <div>
+        <div class="page-title">Review Application&nbsp;&middot;&nbsp;@Model.JobTitle </div>
+        <div class="page-subtitle">
+            Here you can review the applicant submission and Accept/Reject the applicant.
+        </div>
+    </div>
+    <a asp-action="Applicants" asp-route-jobId="@Model.JobId" class="btn-outline-app">
+        <span class="iconify" data-icon="lucide:arrow-left"></span>
+        Back to Applicants
+    </a>
+</div>
+
+<div class="review-grid">
+
+    @* ════════════════════════════════════════════════════
+       LEFT — main content
+       ════════════════════════════════════════════════════ *@
+    <div>
+
+        @* ── Bio ── *@
+        @if (!string.IsNullOrWhiteSpace(Model.Bio))
+        {
+            <div class="review-section">
+                <div class="review-section-title">
+                    <span class="iconify" data-icon="lucide:user"></span>
+                    About
+                </div>
+                <p class="review-bio">@Model.Bio</p>
+            </div>
+        }
+
+        @* ── Skills ── *@
+        @if (Model.Skills.Any())
+        {
+            <div class="review-section">
+                <div class="review-section-title">
+                    <span class="iconify" data-icon="lucide:zap"></span>
+                    Skills
+                </div>
+                <div class="review-skills">
+                    @foreach (var skill in Model.Skills)
+                    {
+                        <span class="skill-badge available-skill">@skill</span>
+                    }
+                </div>
+            </div>
+        }
+
+        @* ── Education ── *@
+        @if (Model.Educations.Any())
+        {
+            <div class="review-section">
+                <div class="review-section-title">
+                    <span class="iconify" data-icon="lucide:graduation-cap"></span>
+                    Education
+                </div>
+                @foreach (var edu in Model.Educations)
+                {
+                    <div class="review-edu-item">
+                        <div class="review-edu-icon">
+                            <span class="iconify" data-icon="lucide:school"></span>
+                        </div>
+                        <div>
+                            <div style="font-weight:700;font-size:.9rem;color:var(--dark);">@edu.University</div>
+                            <div style="font-size:.825rem;color:var(--muted);margin-top:.15rem;">
+                                @edu.Degree in @edu.Major
+                            </div>
+                            <div style="font-size:.775rem;color:var(--muted);margin-top:.1rem;">
+                                @edu.Years
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        @* ── Links row (CV + professional links + email) ── *@
+        @{
+            var hasResume = !string.IsNullOrWhiteSpace(Model.ResumeUrl);
+            var hasLinks = Model.professionalLinks.Any();
+        }
+        @if (hasResume || hasLinks)
+        {
+            <div class="ac-links">
+                @if (hasResume)
+                {
+                    <a href="@Model.ResumeUrl" target="_blank" class="ac-link-btn">
+                        <span class="iconify" data-icon="lucide:download"></span>
+                        Download Resume
+                    </a>
+                }
+
+                @foreach (var link in Model.professionalLinks)
+                {
+                    var (icon, label) = link.LinkName switch
+                    {
+                        LinksNames.LinkedIn => ("lucide:linkedin", "LinkedIn"),
+                        LinksNames.GitHub => ("lucide:github", "GitHub"),
+                        LinksNames.Portfolio => ("lucide:globe", "Portfolio"),
+                        LinksNames.CompanyWebsite => ("lucide:building", "Website"),
+                        _ => ("lucide:link", "Link")
+                    };
+                    <a href="@link.Url" target="_blank" class="ac-link-btn">
+                        <span class="iconify" data-icon="@icon"></span>
+                        @label
+                    </a>
+                }
+
+                <a href="mailto:@Model.Email" class="ac-link-btn">
+                    <span class="iconify" data-icon="lucide:mail"></span>
+                    Send Email
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="ac-links">
+                <a href="mailto:@Model.Email" class="ac-link-btn">
+                    <span class="iconify" data-icon="lucide:mail"></span>
+                    Send Email
+                </a>
+            </div>
+        }
+
+        @* ── Application Answers ── *@
+        @if (Model.Answers.Any())
+        {
+            <div class="review-section">
+                <div class="review-section-title">
+                    <span class="iconify" data-icon="lucide:message-square"></span>
+                    Application Answers
+                </div>
+
+                @foreach (var ans in Model.Answers)
+                {
+                    <div class="answer-block">
+                        <div class="answer-question">@ans.QuestionText</div>
+                        <div class="answer-text">@ans.Answer</div>
+                    </div>
+                }
+            </div>
+        }
+
+    </div>
+
+    @* ════════════════════════════════════════════════════
+       RIGHT — candidate snapshot + action buttons
+       ════════════════════════════════════════════════════ *@
+    <div>
+        <div class="review-sidebar-card">
+
+            @* Header / avatar *@
+            <div class="review-sidebar-header">
+                @{
+                    var initials = string.Concat(Model.FullName.Split(' ')
+                        .Where(w => w.Length > 0)
+                        .Take(2)
+                        .Select(w => w[0].ToString().ToUpper()));
+                }
+                <div class="review-avatar">@initials</div>
+                <div class="review-candidate-name">@Model.FullName</div>
+            </div>
+
+            @* Contact details *@
+            <div class="review-sidebar-body">
+                <div class="review-info-row">
+                    <div class="review-info-icon">
+                        <span class="iconify" data-icon="lucide:mail"></span>
+                    </div>
+                    <div>
+                        <div class="review-info-label">Email</div>
+                        <div class="review-info-value">@Model.Email</div>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Model.PhoneNumber))
+                {
+                    <div class="review-info-row">
+                        <div class="review-info-icon">
+                            <span class="iconify" data-icon="lucide:phone"></span>
+                        </div>
+                        <div>
+                            <div class="review-info-label">Phone</div>
+                            <div class="review-info-value">@Model.PhoneNumber</div>
+                        </div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(Model.Location))
+                {
+                    <div class="review-info-row">
+                        <div class="review-info-icon">
+                            <span class="iconify" data-icon="lucide:map-pin"></span>
+                        </div>
+                        <div>
+                            <div class="review-info-label">Location</div>
+                            <div class="review-info-value">@Model.Location</div>
+                        </div>
+                    </div>
+                }
+
+                <div class="review-info-row">
+                    <div class="review-info-icon">
+                        <span class="iconify" data-icon="lucide:calendar"></span>
+                    </div>
+                    <div>
+                        <div class="review-info-label">Applied</div>
+                        <div class="review-info-value">@Model.AppliedDate.ToString("MMM d, yyyy")</div>
+                    </div>
+                </div>
+            </div>
+
+            @* ── Action buttons ── *@
+            @if (isFinalised)
+            {
+                <div class="finalised-banner @(Model.Status == "Accepted" ? "accepted" : "rejected")">
+                    <span class="iconify"
+                          data-icon="@(Model.Status == "Accepted" ? "lucide:check-circle" : "lucide:x-circle")"></span>
+                    This application has been @Model.Status.ToLower().
+                </div>
+            }
+            else
+            {
+                <div class="review-action-block">
+                    <form asp-action="AcceptApplication" asp-controller="Company" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="applicationId" value="@Model.ApplicationId" />
+                        <input type="hidden" name="jobId" value="@Model.JobId" />
+                        <button type="submit" class="btn-accept w-100"
+                                onclick="return confirm('Accept this applicant? This cannot be undone.')">
+                            <span class="iconify" data-icon="lucide:check-circle"></span>
+                            Accept Applicant
+                        </button>
+                    </form>
+
+                    <form asp-action="RejectApplication" asp-controller="Company" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="applicationId" value="@Model.ApplicationId" />
+                        <input type="hidden" name="jobId" value="@Model.JobId" />
+                        <button type="submit" class="btn-reject w-100"
+                                onclick="return confirm('Reject this applicant?')">
+                            <span class="iconify" data-icon="lucide:x-circle"></span>
+                            Reject Applicant
+                        </button>
+                    </form>
+                </div>
+            }
+
+        </div>
+    </div>
+
+</div>

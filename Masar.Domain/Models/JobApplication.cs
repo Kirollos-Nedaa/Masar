@@ -19,9 +19,11 @@ namespace Masar.Domain.Models
         public CandidateProfile Candidate { get; set; }
 
         public string? ResumeUrl { get; set; }
-        public string? CoverLetterUrl { get; set; }
+        public string? CoverLetter { get; set; }
 
         public ApplicationStatus Status { get; set; } = ApplicationStatus.Applied;
         public DateTime AppliedDate { get; set; } = DateTime.UtcNow;
+
+        public ICollection<ApplicationAnswer> Answers { get; set; } = new List<ApplicationAnswer>();
     }
 }

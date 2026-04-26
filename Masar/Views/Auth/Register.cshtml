@@ -22,7 +22,12 @@
     @Html.AntiForgeryToken()
 
     @* Validation Summary *@
-    <div asp-validation-summary="ModelOnly" class="validation-box" style="display:none;"></div>
+    <div class="validation-wrapper" id="validationBox" style="display:none;">
+        <span class="iconify" data-icon="lucide:circle-x"></span>
+        <div class="validation-content">
+            <div asp-validation-summary="ModelOnly"></div>
+        </div>
+    </div>
 
     @* First + Last Name *@
     <div class="row g-3 mb-3">
@@ -96,23 +101,26 @@
     <script>
         // Show validation box only when it has errors
         (function () {
-            const box = document.querySelector('[data-valmsg-summary="true"], .validation-box');
-            if (box && box.querySelectorAll('li').length > 0) {
-                box.style.display = 'block';
+            const summary = document.querySelector('[data-valmsg-summary]');
+            if (summary) {
+                const observer = new MutationObserver(() => {
+                    const hasErrors = summary.querySelectorAll('li').length > 0;
+                    summary.style.display = hasErrors ? 'block' : 'none';
+                });
+                observer.observe(summary, { childList: true, subtree: true });
+                // Also check immediately on load (server-side errors)
+                summary.style.display = summary.querySelectorAll('li').length > 0 ? 'block' : 'none';
             }
         })();
 
-        function togglePw(inputId, iconId) {
-            const input = document.getElementById(inputId);
-            const icon  = document.getElementById(iconId);
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.setAttribute('data-icon', 'lucide:eye-off');
-            } else {
-                input.type = 'password';
-                icon.setAttribute('data-icon', 'lucide:eye');
+		// Fallback for initial load if MutationObserver doesn't catch server-side errors
+        (function () {
+            const box = document.getElementById('validationBox');
+            if (box) {
+                const hasErrors = box.querySelectorAll('li').length > 0;
+                box.style.display = hasErrors ? 'flex' : 'none';
             }
-        }
+        })();
     </script>
 
     <script src="https://accounts.google.com/gsi/client" onload="initGoogleSignIn()"></script>

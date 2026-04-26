@@ -1,6 +1,7 @@
 ﻿using Masar.Core.IService;
 using Masar.Domain.Enums;
 using Masar.Domain.Models;
+using Masar.Domain.ViewModels;
 using Masar.Domain.ViewModels.CandidateDtos;
 using Masar.Domain.ViewModels.CompanyDtos;
 using Masar.Domain.ViewModels.JobDtos;
@@ -98,8 +99,7 @@ namespace Masar.Core.Services
             };
         }
 
-        public async Task<(bool Success, string? Error)> SubmitApplicationAsync(
-            int jobId, string userId, ApplyJobDto dto, string? resumeUrl)
+        public async Task<(bool Success, string? Error)> SubmitApplicationAsync(int jobId, string userId, ApplyJobDto dto, string? resumeUrl)
         {
             var profile = await _context.CandidateProfiles
                 .FirstOrDefaultAsync(p => p.UserId == userId);
@@ -117,17 +117,32 @@ namespace Masar.Core.Services
             if (job == null)
                 return (false, "This job is no longer accepting applications.");
 
-            _context.JobApplications.Add(new JobApplication
+            var application = new JobApplication
             {
                 JobId = jobId,
                 CandidateProfileId = profile.Id,
                 Status = ApplicationStatus.Applied,
                 AppliedDate = DateTime.UtcNow,
                 ResumeUrl = resumeUrl ?? dto.ExistingResumeUrl,
-                CoverLetterUrl = null
-            });
+                CoverLetter = dto.CoverLetter
+            };
 
+            _context.JobApplications.Add(application);
             await _context.SaveChangesAsync();
+
+            if (dto.Answers is { Count: > 0 })
+            {
+                var answers = dto.Answers.Select(a => new ApplicationAnswer
+                {
+                    JobApplicationId = application.Id,
+                    JobQuestionId = a.QuestionId,
+                    AnswerText = a.AnswerText ?? string.Empty
+                });
+
+                _context.ApplicationAnswers.AddRange(answers);
+                await _context.SaveChangesAsync();
+            }
+
             return (true, null);
         }
 
@@ -232,88 +247,108 @@ namespace Masar.Core.Services
         //  COMPANY — review applicants
         // ─────────────────────────────────────────────────────
 
-        public async Task<ApplicantsViewDto?> GetApplicantsAsync(
-            string userId, int jobId, string? statusFilter = null)
+        public async Task<ApplicantsViewDto?> GetApplicantsAsync(int jobId, string companyUserId, string? searchQuery = null, string? statusFilter = null, string? sortFilter = null)
         {
-            // Verify the job belongs to this company
+            // 1. Verify ownership
             var job = await _context.Jobs
                 .Include(j => j.Company)
-                .FirstOrDefaultAsync(j => j.Id == jobId && j.Company.UserId == userId);
+                .FirstOrDefaultAsync(j => j.Id == jobId && j.Company.UserId == companyUserId);
 
             if (job == null) return null;
 
-            // Base query for this job's applications
-            var appsQuery = _context.JobApplications
+            // 2. Stat counts — always over ALL applicants, ignoring any active filter
+            var allStatuses = await _context.JobApplications
                 .Where(a => a.JobId == jobId)
-                .Include(a => a.Candidate)
-                    .ThenInclude(c => c.User)
-                .Include(a => a.Candidate)
-                    .ThenInclude(c => c.CandidateSkills)
-                        .ThenInclude(cs => cs.Skill)
+                .Select(a => a.Status)
+                .ToListAsync();
+
+            int total = allStatuses.Count;
+            int accepted = allStatuses.Count(s => s == ApplicationStatus.Accepted);
+            int underReview = allStatuses.Count(s => s == ApplicationStatus.UnderReview);
+            int rejected = allStatuses.Count(s => s == ApplicationStatus.Rejected);
+
+            // 3. Filtered query for the card list
+            var query = _context.JobApplications
+                .Where(a => a.JobId == jobId)
                 .AsQueryable();
 
-            // Apply status filter if provided
-            if (!string.IsNullOrEmpty(statusFilter) &&
-                Enum.TryParse<ApplicationStatus>(statusFilter, out var filterStatus))
+            if (!string.IsNullOrWhiteSpace(searchQuery))
             {
-                appsQuery = appsQuery.Where(a => a.Status == filterStatus);
+                var q = searchQuery.Trim().ToLower();
+                query = query.Where(a =>
+                    (a.Candidate.User.FirstName + " " + a.Candidate.User.LastName).ToLower().Contains(q) ||
+                    a.Candidate.User.Email.ToLower().Contains(q));
             }
 
-            var applications = await appsQuery
-                .OrderByDescending(a => a.AppliedDate)
-                .ToListAsync();
-
-            // Count all (unfiltered) for stats
-            var allApps = await _context.JobApplications
-                .Where(a => a.JobId == jobId)
-                .ToListAsync();
-
-            var applicants = applications.Select(a => new ApplicantListDto
+            if (!string.IsNullOrWhiteSpace(statusFilter) &&
+                Enum.TryParse<ApplicationStatus>(statusFilter, out var parsedStatus) &&
+                parsedStatus != ApplicationStatus.None)
             {
-                ApplicationId = a.Id,
-                CandidateProfileId = a.CandidateProfileId,
-                FullName = $"{a.Candidate.User.FirstName} {a.Candidate.User.LastName}",
-                Email = a.Candidate.User.Email ?? string.Empty,
-                PhoneNumber = a.Candidate.PhoneNumber,
-                Location = a.Candidate.Location,
-                ResumeUrl = a.ResumeUrl,
-                CoverLetterUrl = a.CoverLetterUrl,
-                Status = a.Status,
-                StatusDisplay = GetStatusDisplay(a.Status),
-                AppliedDate = a.AppliedDate,
-                AppliedDateDisplay = GetRelativeDate(a.AppliedDate),
-                Skills = a.Candidate.CandidateSkills
-                    .Select(cs => cs.Skill.Name)
-                    .Take(5)
-                    .ToList()
-            }).ToList();
+                query = query.Where(a => a.Status == parsedStatus);
+            }
+
+            // 4. Sort
+            query = sortFilter switch
+            {
+                "oldest" => query.OrderBy(a => a.AppliedDate),
+                _ => query.OrderByDescending(a => a.AppliedDate)   // default: most recent
+            };
+
+            // 5. Project to DTO
+            var cards = await query
+                .Select(a => new ApplicantCardDto
+                {
+                    ApplicationId = a.Id,
+                    CandidateProfileId = a.CandidateProfileId,
+                    FullName = a.Candidate.User.FirstName + " " + a.Candidate.User.LastName,
+                    Email = a.Candidate.User.Email ?? string.Empty,
+                    PhoneNumber = a.Candidate.PhoneNumber,
+                    Location = a.Candidate.Location,
+                    Status = a.Status.ToString(),
+                    AppliedDate = a.AppliedDate,
+                    Skills = a.Candidate.CandidateSkills
+                                            .Select(cs => cs.Skill.Name)
+                                            .Take(6)
+                                            .ToList(),
+                    LatestEducation = a.Candidate.Educations
+                                            .OrderByDescending(e => e.ExpectedGraduation)
+                                            .Select(e => e.University + " - " + e.Degree + " " + e.Major)
+                                            .FirstOrDefault(),
+                    ResumeUrl = a.ResumeUrl ?? a.Candidate.ResumeUrl,
+                    professionalLinks = a.Candidate.ProfessionalLinks
+                                            .Select(pl => new ProfessionalLinkDto
+                                            {
+                                                Id = pl.Id,
+                                                Url = pl.Url,
+                                                LinkName = pl.LinksNames
+                                            })
+                                            .ToList()
+                })
+                .ToListAsync();
 
             return new ApplicantsViewDto
             {
                 JobId = job.Id,
                 JobTitle = job.Title,
-                JobLocation = job.Location,
-                JobType = job.JobType.ToString(),
-                IsActive = job.IsActive,
-                TotalApplicants = allApps.Count,
-                UnderReview = allApps.Count(a => a.Status == ApplicationStatus.UnderReview),
-                Accepted = allApps.Count(a => a.Status == ApplicationStatus.Accepted),
-                Rejected = allApps.Count(a => a.Status == ApplicationStatus.Rejected),
-                Applicants = applicants,
-                StatusFilter = statusFilter
+                NumberOfOpenings = job.NumberOfOpenings,
+                Applicants = cards,
+                TotalApplicants = total,
+                AcceptedCount = accepted,
+                UnderReviewCount = underReview,
+                RejectedCount = rejected,
+                SearchQuery = searchQuery,
+                StatusFilter = statusFilter,
+                SortFilter = sortFilter
             };
         }
 
-        public async Task<(bool Success, string? Error)> UpdateApplicationStatusAsync(
-            string userId, int applicationId, ApplicationStatus newStatus)
+        public async Task<(bool Success, string? Error)> UpdateApplicationStatusAsync(string userId, int applicationId, ApplicationStatus newStatus)
         {
             // Load via company ownership check
             var application = await _context.JobApplications
                 .Include(a => a.Job)
-                    .ThenInclude(j => j.Company)
-                .FirstOrDefaultAsync(a =>
-                    a.Id == applicationId &&
-                    a.Job.Company.UserId == userId);
+                .ThenInclude(j => j.Company)
+                .FirstOrDefaultAsync(a => a.Id == applicationId && a.Job.Company.UserId == userId);
 
             if (application == null)
                 return (false, "Application not found or access denied.");
@@ -321,6 +356,139 @@ namespace Masar.Core.Services
             application.Status = newStatus;
             await _context.SaveChangesAsync();
             return (true, null);
+        }
+
+        public async Task<ReviewApplicationViewDto?> StartReviewAsync(int applicationId, string companyUserId)
+        {
+            var application = await _context.JobApplications
+                .Include(a => a.Job)
+                    .ThenInclude(j => j.Company)
+                .Include(a => a.Job)
+                    .ThenInclude(j => j.JobQuestions.OrderBy(q => q.Order))
+                .Include(a => a.Candidate)
+                    .ThenInclude(c => c.User)
+                .Include(a => a.Candidate)
+                    .ThenInclude(c => c.CandidateSkills)
+                    .ThenInclude(cs => cs.Skill)
+                .Include(a => a.Candidate)
+                    .ThenInclude(c => c.Educations)
+                .Include(a => a.Candidate)
+                    .ThenInclude(c => c.ProfessionalLinks)
+                .Include(a => a.Answers)
+                .FirstOrDefaultAsync(a => a.Id == applicationId && a.Job.Company.UserId == companyUserId);
+
+            if (application is null) return null;
+
+            // Advance status: Applied → UnderReview (never go backwards)
+            if (application.Status == ApplicationStatus.Applied)
+            {
+                application.Status = ApplicationStatus.UnderReview;
+                await _context.SaveChangesAsync();
+            }
+
+            var links = application.Candidate.ProfessionalLinks;
+
+            // Build answer list matched to question text
+            var answers = application.Job.JobQuestions
+                .Select(q =>
+                {
+                    var answer = application.Answers.FirstOrDefault(a => a.JobQuestionId == q.Id);
+                    return new ReviewAnswerDto
+                    {
+                        QuestionText = q.QuestionText,
+                        QuestionType = q.Type.ToString(),
+                        Answer = answer?.AnswerText ?? "(no answer)",
+                        Order = q.Order
+                    };
+                })
+                .OrderBy(a => a.Order)
+                .ToList();
+
+            return new ReviewApplicationViewDto
+            {
+                ApplicationId = application.Id,
+                JobId = application.JobId,
+                JobTitle = application.Job.Title,
+                NumberOfOpenings = application.Job.NumberOfOpenings,
+                CandidateProfileId = application.CandidateProfileId,
+                FullName = $"{application.Candidate.User.FirstName} {application.Candidate.User.LastName}",
+                Email = application.Candidate.User.Email ?? string.Empty,
+                PhoneNumber = application.Candidate.PhoneNumber,
+                Location = application.Candidate.Location,
+                Bio = application.Candidate.Bio,
+                Status = application.Status.ToString(),
+                AppliedDate = application.AppliedDate,
+                Skills = application.Candidate.CandidateSkills
+                    .Select(cs => cs.Skill.Name)
+                    .ToList(),
+                Educations = application.Candidate.Educations
+                    .OrderByDescending(e => e.ExpectedGraduation)
+                    .Select(e => new ReviewEducationDto
+                    {
+                        University = e.University,
+                        Degree = e.Degree,
+                        Major = e.Major,
+                        Years = $"{e.StartYear.Year} – {e.ExpectedGraduation.Year}"
+                    })
+                    .ToList(),
+                ResumeUrl = application.ResumeUrl ?? application.Candidate.ResumeUrl,
+                professionalLinks = application.Candidate.ProfessionalLinks
+                    .Select(pl => new ProfessionalLinkDto
+                    {
+                        Id = pl.Id,
+                        Url = pl.Url,
+                        LinkName = pl.LinksNames
+                    })
+                    .ToList()
+            };
+        }
+
+        public async Task<bool> AcceptApplicationAsync(int applicationId, string companyUserId)
+        {
+            var application = await _context.JobApplications
+                .Include(a => a.Job)
+                .ThenInclude(j => j.Company)
+                .FirstOrDefaultAsync(a => a.Id == applicationId && a.Job.Company.UserId == companyUserId);
+
+            if (application is null) return false;
+
+            if (application.Status == ApplicationStatus.Accepted) return true;
+
+            application.Status = ApplicationStatus.Accepted;
+
+            var job = application.Job;
+
+            if (job.NumberOfOpenings > 0)
+                job.NumberOfOpenings--;
+
+            // If openings hit 0 → reject every other pending applicant for this job
+            if (job.NumberOfOpenings == 0)
+            {
+                var pendingOthers = await _context.JobApplications
+                    .Where(a => a.JobId == job.Id && a.Id != applicationId && 
+                        (a.Status == ApplicationStatus.Applied || a.Status == ApplicationStatus.UnderReview))
+                    .ToListAsync();
+
+                foreach (var other in pendingOthers)
+                    other.Status = ApplicationStatus.Rejected;
+            }
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> RejectApplicationAsync(int applicationId, string companyUserId)
+        {
+            var application = await _context.JobApplications
+                .Include(a => a.Job)
+                .ThenInclude(j => j.Company)
+                .FirstOrDefaultAsync(a => a.Id == applicationId && a.Job.Company.UserId == companyUserId);
+
+            if (application is null) return false;
+
+            application.Status = ApplicationStatus.Rejected;
+            await _context.SaveChangesAsync();
+            return true;
         }
 
         // ─────────────────────────────────────────────────────

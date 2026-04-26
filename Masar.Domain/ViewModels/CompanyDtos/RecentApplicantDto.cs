@@ -9,6 +9,8 @@ namespace Masar.Domain.ViewModels.CompanyDtos
     public class RecentApplicantDto
     {
         public int JobId { get; set; }
+        public int ApplicationId { get; set; }
+        public int CandidateProfileId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string JobTitle { get; set; } = string.Empty;
         public string AppliedDate { get; set; } = string.Empty;

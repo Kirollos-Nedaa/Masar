@@ -8,23 +8,20 @@ namespace Masar.Domain.ViewModels.CompanyDtos
 {
     public class ApplicantsViewDto
     {
-        // ── Job context ───────────────────────────────────────
         public int JobId { get; set; }
         public string JobTitle { get; set; } = string.Empty;
-        public string JobLocation { get; set; } = string.Empty;
-        public string JobType { get; set; } = string.Empty;
-        public bool IsActive { get; set; }
+        public int NumberOfOpenings { get; set; }
+        public List<ApplicantCardDto> Applicants { get; set; } = [];
 
-        // ── Stats ─────────────────────────────────────────────
+        // Status counts (for the stat cards at the top)
         public int TotalApplicants { get; set; }
-        public int UnderReview { get; set; }
-        public int Accepted { get; set; }
-        public int Rejected { get; set; }
+        public int AcceptedCount { get; set; }
+        public int UnderReviewCount { get; set; }
+        public int RejectedCount { get; set; }
 
-        // ── Applicants list ───────────────────────────────────
-        public List<ApplicantListDto> Applicants { get; set; } = new();
-
-        // ── Active filter ─────────────────────────────────────
+        // Filter state
+        public string? SearchQuery { get; set; }
         public string? StatusFilter { get; set; }
+        public string? SortFilter { get; set; }
     }
 }

@@ -204,12 +204,63 @@ namespace Masar.Controllers
         // ── Applicants ────────────────────────────────────────
 
         [HttpGet]
-        public async Task<IActionResult> Applicants(int jobId, string? status = null)
+        public async Task<IActionResult> Applicants(int jobId, string? search = null, string? status = null)
         {
-            var userId = _userManager.GetUserId(User);
-            var vm = await _applicationService.GetApplicantsAsync(userId, jobId, status);
-            if (vm == null) return NotFound();
+            var userId = HttpContext.Session.GetString("UserId");
+            if (userId is null) return RedirectToAction("Login", "Auth");
+
+            var vm = await _applicationService.GetApplicantsAsync(jobId, userId, search, status);
+            if (vm is null) return NotFound();
+
+            ViewData["HasSidebar"] = true;
             return View(vm);
+        }
+
+        // ── Review application (GET — transitions Applied → UnderReview) ──────────────
+
+        [HttpGet]
+        public async Task<IActionResult> ReviewApplication(int applicationId)
+        {
+            var userId = HttpContext.Session.GetString("UserId");
+            if (userId is null) return RedirectToAction("Login", "Auth");
+
+            var vm = await _applicationService.StartReviewAsync(applicationId, userId);
+            if (vm is null) return NotFound();
+
+            ViewData["HasSidebar"] = true;
+            return View(vm);
+        }
+
+        // ── Accept (POST) ─────────────────────────────────────────────────────────────
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AcceptApplication(int applicationId, int jobId)
+        {
+            var userId = HttpContext.Session.GetString("UserId");
+            if (userId is null) return RedirectToAction("Login", "Auth");
+
+            var ok = await _applicationService.AcceptApplicationAsync(applicationId, userId);
+            if (!ok) return NotFound();
+
+            TempData["Success"] = "Applicant accepted successfully.";
+            return RedirectToAction(nameof(Applicants), new { jobId });
+        }
+
+        // ── Reject (POST) ─────────────────────────────────────────────────────────────
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectApplication(int applicationId, int jobId)
+        {
+            var userId = HttpContext.Session.GetString("UserId");
+            if (userId is null) return RedirectToAction("Login", "Auth");
+
+            var ok = await _applicationService.RejectApplicationAsync(applicationId, userId);
+            if (!ok) return NotFound();
+
+            TempData["Success"] = "Applicant rejected.";
+            return RedirectToAction(nameof(Applicants), new { jobId });
         }
 
         [HttpPost, ValidateAntiForgeryToken]

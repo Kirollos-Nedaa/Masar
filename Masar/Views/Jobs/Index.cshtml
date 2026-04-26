@@ -508,13 +508,12 @@
                     <div class="job-card-body">
                         <div class="job-card-title-row">
                             <span class="job-card-title">@job.Title</span>
-                            <a href="@Url.Action("Details", "Jobs", new { id = job.Id })"
-                               class="btn-save-job @(job.IsSaved ? "saved" : "")"
-                               onclick="event.stopPropagation()"
-                               title="@(job.IsSaved ? "Saved" : "Save job")">
-                                <span class="iconify"
-                                      data-icon="@(job.IsSaved ? "lucide:bookmark-check" : "lucide:bookmark")"></span>
-                            </a>
+                                <a asp-controller="Jobs" asp-action="Details" asp-route-id="@job.Id"
+                                    class="btn-save-job @(job.IsSaved ? "saved" : "")"
+                                    onclick="event.stopPropagation()"
+                                    title="@(job.IsSaved ? "Saved" : "Save job")">
+                                    <span class="iconify" data-icon="@(job.IsSaved ? "lucide:bookmark-check" : "lucide:bookmark")"></span>
+                                </a>
                         </div>
 
                         <div class="job-card-company">

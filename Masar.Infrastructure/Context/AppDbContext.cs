@@ -36,6 +36,7 @@ namespace Masar.Infrastructure.Context
         public DbSet<JobApplication> JobApplications { get; set; }
         public DbSet<JobQuestion> JobQuestions { get; set; }
         public DbSet<SavedJob> SavedJobs { get; set; }
+        public DbSet<ApplicationAnswer> ApplicationAnswers { get; set; }
 
         // 3. Candidate & Company Details
         public DbSet<Education> Educations { get; set; }

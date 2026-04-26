@@ -157,6 +157,8 @@ namespace Masar.Core.Services
                 .Select(a => new RecentApplicantDto
                 {
                     JobId = a.JobId,
+                    ApplicationId = a.Id,
+                    CandidateProfileId = a.CandidateProfileId,
                     Name = a.Candidate.User.FirstName + " " + a.Candidate.User.LastName,
                     JobTitle = a.Job.Title,
                     AppliedDate = GetRelativeDate(a.AppliedDate),

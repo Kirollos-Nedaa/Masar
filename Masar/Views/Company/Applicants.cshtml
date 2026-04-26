@@ -1,40 +1,29 @@
-@using Masar.Domain.ViewModels.CompanyDtos
+@model Masar.Domain.ViewModels.CompanyDtos.ApplicantsViewDto
 @using Masar.Domain.Enums
-@model ApplicantsViewDto
-
 @{
-    ViewData["Title"] = "Applicants — " + Model.JobTitle;
+    ViewData["Title"] = $"{Model.JobTitle}";
     ViewData["HasSidebar"] = true;
 }
+@section Sidebar { <partial name="_CompanySidebar" /> }
 
-@section Sidebar {
-    <partial name="_CompanySidebar" />
-}
-
-@* ── Page Header ──────────────────────────────────────────── *@
-<div class="page-header d-flex align-items-start justify-content-between mb-4">
+@* ── Page header ──────────────────────────────────────────────────────────── *@
+<div class="d-flex align-items-start justify-content-between gap-3 flex-wrap" style="margin-bottom:1.5rem;">
     <div>
-        <a asp-controller="Company" asp-action="Jobs"
-           class="btn-back-link mb-2">
-            <span class="iconify" data-icon="lucide:arrow-left"></span> Back to Jobs
-        </a>
-        <h1 class="page-title">@Model.JobTitle</h1>
-        <p class="page-subtitle">
-            <span class="iconify" data-icon="lucide:map-pin" style="font-size:.85rem;"></span>
-            @Model.JobLocation &bull;
-            <span class="job-type-tag ms-1">@Model.JobType</span>
-        </p>
+        <div class="page-title">Applicants - @Model.JobTitle</div>
+        <div class="page-subtitle">Review and manage candidates who applied for this position</div>
     </div>
-    <a asp-controller="Company" asp-action="EditJob" asp-route-id="@Model.JobId"
-       class="btn-outline-app">
-        <span class="iconify" data-icon="lucide:pencil"></span> Edit Job
+
+    <a asp-action="Dashboard" asp-contorller="Company" class="btn-outline-app">
+        <span class="iconify" data-icon="lucide:arrow-left"></span>
+        Back to Dashboard
     </a>
 </div>
 
-@if (TempData["Error"] is string err)
+@if (TempData["Success"] is string msg)
 {
-    <div class="epi-alert-error mb-4">
-        <span class="iconify" data-icon="lucide:circle-alert"></span> @err
+    <div class="success-banner">
+        <span class="iconify" data-icon="lucide:check-circle"></span>
+        @msg
     </div>
 }
 
@@ -55,7 +44,7 @@
         <div class="stat-card">
             <div>
                 <div class="stat-card-label">Under Review</div>
-                <div class="stat-card-value">@Model.UnderReview</div>
+                <div class="stat-card-value">@Model.UnderReviewCount</div>
             </div>
             <div class="stat-card-icon stat-icon-orange">
                 <span class="iconify stat-icon" data-icon="lucide:clock-alert"></span>
@@ -66,7 +55,7 @@
         <div class="stat-card">
             <div>
                 <div class="stat-card-label">Accepted</div>
-                <div class="stat-card-value">@Model.Accepted</div>
+                <div class="stat-card-value">@Model.AcceptedCount</div>
             </div>
             <div class="stat-card-icon stat-icon-green">
                 <span class="iconify stat-icon" data-icon="lucide:check-circle"></span>
@@ -77,7 +66,7 @@
         <div class="stat-card">
             <div>
                 <div class="stat-card-label">Rejected</div>
-                <div class="stat-card-value">@Model.Rejected</div>
+                <div class="stat-card-value">@Model.RejectedCount</div>
             </div>
             <div class="stat-card-icon" style="background:var(--red-50);color:var(--red);">
                 <span class="iconify stat-icon" data-icon="lucide:x-circle"></span>
@@ -86,221 +75,208 @@
     </div>
 </div>
 
-@* ── Filter tabs ──────────────────────────────────────────── *@
-<div class="app-card mb-4">
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <div class="card-section-title">
-            Applicants
-            @if (!string.IsNullOrEmpty(Model.StatusFilter))
+@* ── Filter bar ───────────────────────────────────────────────────────────── *@
+<form method="get" asp-action="Applicants" asp-route-jobId="@Model.JobId"
+      class="applicants-filter-bar">
+
+    <select name="status" class="epi-input epi-select" style="max-width:200px;">
+        <option value="">All Applicants</option>
+        <option value="Applied"     selected="@(Model.StatusFilter == "Applied"     ? "selected" : "")">Applied</option>
+        <option value="UnderReview" selected="@(Model.StatusFilter == "UnderReview" ? "selected" : "")">Under Review</option>
+        <option value="Accepted"    selected="@(Model.StatusFilter == "Accepted"    ? "selected" : "")">Accepted</option>
+        <option value="Rejected"    selected="@(Model.StatusFilter == "Rejected"    ? "selected" : "")">Rejected</option>
+    </select>
+
+    <select name="sort" class="epi-input epi-select" style="max-width:180px;">
+        <option value="oldest"  selected="@(Model.SortFilter == "oldest" ? "selected" : "")">Oldest First</option>
+        <option value="recent"  selected="@(Model.SortFilter != "oldest" ? "selected" : "")">Most Recent</option>
+    </select>
+
+    <button type="submit" class="btn-outline-app">
+        <span class="iconify" data-icon="lucide:filter"></span>
+        Filter
+    </button>
+
+    @if (!string.IsNullOrWhiteSpace(Model.StatusFilter) || Model.SortFilter == "oldest")
+    {
+        <a asp-action="Applicants" asp-route-jobId="@Model.JobId" class="btn-outline-app">
+            <span class="iconify" data-icon="lucide:x"></span>
+            Clear
+        </a>
+    }
+</form>
+
+@* ── Cards ────────────────────────────────────────────────────────────────── *@
+@if (!Model.Applicants.Any())
+{
+    <div class="applicants-empty">
+        <span class="iconify applicants-empty-icon" data-icon="lucide:users"></span>
+        <div style="font-weight:600;font-size:1rem;color:var(--dark);margin-bottom:.35rem;">No applicants found</div>
+        <div style="font-size:.875rem;">
+            @if (!string.IsNullOrWhiteSpace(Model.StatusFilter))
             {
-                <span class="ms-2" style="font-size:.8rem;font-weight:500;color:var(--muted);">
-                    — filtered by @Model.StatusFilter
-                </span>
+                <text>Try adjusting your filters.</text>
             }
-        </div>
-        <div class="filter-tabs">
-            @{
-                string TabUrl(string? s) => Url.Action("Applicants", "Company",
-                    new { jobId = Model.JobId, status = s })!;
+            else
+            {
+                <text>No one has applied to this position yet.</text>
             }
-            <a href="@TabUrl(null)"
-               class="filter-tab @(Model.StatusFilter == null ? "active" : "")">
-                All (@Model.TotalApplicants)
-            </a>
-            <a href="@TabUrl("Applied")"
-               class="filter-tab @(Model.StatusFilter == "Applied" ? "active" : "")">
-                Applied
-            </a>
-            <a href="@TabUrl("UnderReview")"
-               class="filter-tab @(Model.StatusFilter == "UnderReview" ? "active" : "")">
-                Under Review
-            </a>
-            <a href="@TabUrl("Accepted")"
-               class="filter-tab @(Model.StatusFilter == "Accepted" ? "active" : "")">
-                Accepted
-            </a>
-            <a href="@TabUrl("Rejected")"
-               class="filter-tab @(Model.StatusFilter == "Rejected" ? "active" : "")">
-                Rejected
-            </a>
         </div>
     </div>
-
-    @if (Model.Applicants.Any())
+}
+else
+{
+    foreach (var a in Model.Applicants)
     {
-        foreach (var a in Model.Applicants)
+        var initials = string.Concat(
+            a.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                      .Take(2)
+                      .Select(w => char.ToUpper(w[0])));
+
+        var statusEnum = Enum.TryParse<ApplicationStatus>(a.Status, out var parsed)
+            ? parsed : ApplicationStatus.None;
+
+        var badgeCls = statusEnum switch
         {
-            var initials = a.FullName.Length > 0
-                ? string.Concat(a.FullName.Split(' ')
-                    .Where(w => w.Length > 0)
-                    .Take(2)
-                    .Select(w => w[0].ToString().ToUpper()))
-                : "?";
+            ApplicationStatus.Applied      => "badge-applied",
+            ApplicationStatus.UnderReview  => "badge-review",
+            ApplicationStatus.Accepted     => "badge-accepted",
+            ApplicationStatus.Rejected     => "badge-rejected",
+            _                              => "badge-applied"
+        };
 
-            string badgeClass = a.Status switch
-            {
-                ApplicationStatus.UnderReview => "badge-review",
-                ApplicationStatus.Accepted    => "badge-accepted",
-                ApplicationStatus.Rejected    => "badge-rejected",
-                _                             => "badge-applied"
-            };
+        bool isFinalised = statusEnum is ApplicationStatus.Accepted or ApplicationStatus.Rejected;
 
-            <div class="applicant-card">
-                <div class="applicant-card-left">
-                    <div class="applicant-avatar">@initials</div>
-                    <div class="applicant-details">
-                        <div class="applicant-name">@a.FullName</div>
-                        <div class="applicant-meta-row">
-                            <span><span class="iconify" data-icon="lucide:mail"></span> @a.Email</span>
-                            @if (!string.IsNullOrEmpty(a.PhoneNumber))
-                            {
-                                <span><span class="iconify" data-icon="lucide:phone"></span> @a.PhoneNumber</span>
-                            }
-                            @if (!string.IsNullOrEmpty(a.Location))
-                            {
-                                <span><span class="iconify" data-icon="lucide:map-pin"></span> @a.Location</span>
-                            }
-                            <span><span class="iconify" data-icon="lucide:clock"></span> @a.AppliedDateDisplay</span>
-                        </div>
-                        @if (a.Skills.Any())
+        <div class="applicant-card">
+
+            @* ── Top: avatar · identity · status badge · review button ── *@
+            <div class="ac-top">
+                <div class="ac-avatar">@initials</div>
+
+                <div class="ac-identity">
+                    <a asp-action="ViewCandidate" asp-controller="Company" asp-route-id="@a.CandidateProfileId" class="ac-name">@a.FullName</a>
+                    <div class="ac-meta">
+                        @if (!string.IsNullOrWhiteSpace(a.Email))
                         {
-                            <div class="d-flex flex-wrap gap-1 mt-2">
-                                @foreach (var skill in a.Skills)
-                                {
-                                    <span class="skill-badge">@skill</span>
-                                }
-                            </div>
+                            <span>
+                                <span class="iconify" data-icon="lucide:mail"></span>
+                                @a.Email
+                            </span>
                         }
+                        @if (!string.IsNullOrWhiteSpace(a.PhoneNumber))
+                        {
+                            <span>
+                                <span class="iconify" data-icon="lucide:phone"></span>
+                                @a.PhoneNumber
+                            </span>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(a.Location))
+                        {
+                            <span>
+                                <span class="iconify" data-icon="lucide:map-pin"></span>
+                                @a.Location
+                            </span>
+                        }
+                    </div>
+                    <div class="ac-date">
+                        <span class="iconify" data-icon="lucide:calendar"></span>
+                        Applied @a.AppliedDate.ToString("MMM d, yyyy")
                     </div>
                 </div>
 
-                <div class="applicant-card-right">
-                    <span class="status-badge @badgeClass mb-2">@a.StatusDisplay</span>
+                <div class="ac-right">
+                    <span class="status-badge @badgeCls">
+                        @(statusEnum == ApplicationStatus.UnderReview ? "Under Review" : a.Status)
+                    </span>
 
-                    <div class="d-flex gap-2 flex-wrap justify-content-end">
-                        @if (!string.IsNullOrEmpty(a.ResumeUrl))
-                        {
-                            <a href="@a.ResumeUrl" target="_blank" class="btn-table-action">
-                                <span class="iconify" data-icon="lucide:file-text"></span> Resume
-                            </a>
-                        }
-
-                        <a asp-controller="Company" asp-action="ViewCandidate"
-                           asp-route-id="@a.CandidateProfileId"
-                           class="btn-table-action">
-                            <span class="iconify" data-icon="lucide:user"></span> Profile
+                    @if (!isFinalised)
+                    {
+                        <a asp-action="ReviewApplication" asp-route-applicationId="@a.ApplicationId" class="btn-primary-app btn-sm-app">
+                            <span class="iconify" data-icon="lucide:eye"></span>
+                            Review
                         </a>
-
-                        @* Status update dropdown *@
-                        <div class="dropdown">
-                            <button class="btn-table-action dropdown-toggle"
-                                    type="button" data-bs-toggle="dropdown">
-                                <span class="iconify" data-icon="lucide:settings-2"></span> Status
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end app-dropdown">
-                                @foreach (var (status, label, icon) in new (ApplicationStatus, string, string)[]
-                                {
-                                    (ApplicationStatus.Applied,     "Applied",      "lucide:send"),
-                                    (ApplicationStatus.UnderReview, "Under Review", "lucide:clock-alert"),
-                                    (ApplicationStatus.Accepted,    "Accept",       "lucide:check-circle"),
-                                    (ApplicationStatus.Rejected,    "Reject",       "lucide:x-circle")
-                                })
-                                {
-                                    if (status == a.Status) continue;
-                                    <li>
-                                        <form asp-controller="Company"
-                                              asp-action="UpdateApplicationStatus"
-                                              method="post" style="display:inline;">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="applicationId" value="@a.ApplicationId" />
-                                            <input type="hidden" name="jobId" value="@Model.JobId" />
-                                            <input type="hidden" name="newStatus" value="@status" />
-                                            <button type="submit" class="dropdown-item app-dropdown-item">
-                                                <span class="iconify me-1" data-icon="@icon"></span> @label
-                                            </button>
-                                        </form>
-                                    </li>
-                                }
-                            </ul>
-                        </div>
-                    </div>
+                    }
+                    else
+                    {
+                        <a asp-action="ReviewApplication" asp-route-applicationId="@a.ApplicationId" class="btn-outline-app btn-sm-app">
+                            <span class="iconify" data-icon="lucide:eye"></span>
+                            View
+                        </a>
+                    }
                 </div>
             </div>
-        }
-    }
-    else
-    {
-        <div class="text-center py-5">
-            <span class="iconify" style="font-size:3rem;color:var(--border);display:block;margin:0 auto .75rem;"
-                  data-icon="lucide:users"></span>
-            <p class="text-muted mb-0">
-                @(string.IsNullOrEmpty(Model.StatusFilter)
-                    ? "No applicants yet for this job."
-                    : $"No applicants with status: {Model.StatusFilter}.")
-            </p>
+
+            @* ── Education ── *@
+            @if (!string.IsNullOrWhiteSpace(a.LatestEducation))
+            {
+                <div class="ac-info-block">
+                    <div class="ac-section-label">Education:</div>
+                    <div class="ac-education">@a.LatestEducation</div>
+                </div>
+            }
+
+            @* ── Skills ── *@
+            @if (a.Skills.Any())
+            {
+                <div class="ac-info-block">
+                    <div class="ac-section-label">Skills:</div>
+                    <div class="ac-skills gap-2">
+                        @foreach (var skill in a.Skills)
+                        {
+                            <span class="skill-badge available-skill">@skill</span>
+                        }
+                    </div>
+                </div>
+            }
+
+            @* ── Links row (CV + professional links + email) ── *@
+            @{
+                var hasResume = !string.IsNullOrWhiteSpace(a.ResumeUrl);
+                var hasLinks  = a.professionalLinks.Any();
+            }
+            @if (hasResume || hasLinks)
+            {
+                <div class="ac-links">
+                    @if (hasResume)
+                    {
+                        <a href="@a.ResumeUrl" target="_blank" class="ac-link-btn">
+                            <span class="iconify" data-icon="lucide:download"></span>
+                            Download Resume
+                        </a>
+                    }
+
+                    @foreach (var link in a.professionalLinks)
+                    {
+                        var (icon, label) = link.LinkName switch
+                        {
+                            LinksNames.LinkedIn        => ("lucide:linkedin",  "LinkedIn"),
+                            LinksNames.GitHub          => ("lucide:github",    "GitHub"),
+                            LinksNames.Portfolio       => ("lucide:globe",     "Portfolio"),
+                            LinksNames.CompanyWebsite  => ("lucide:building",  "Website"),
+                            _                          => ("lucide:link",      "Link")
+                        };
+                        <a href="@link.Url" target="_blank" class="ac-link-btn">
+                            <span class="iconify" data-icon="@icon"></span>
+                            @label
+                        </a>
+                    }
+
+                    <a href="mailto:@a.Email" class="ac-link-btn">
+                        <span class="iconify" data-icon="lucide:mail"></span>
+                        Send Email
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="ac-links">
+                    <a href="mailto:@a.Email" class="ac-link-btn">
+                        <span class="iconify" data-icon="lucide:mail"></span>
+                        Send Email
+                    </a>
+                </div>
+            }
+
         </div>
     }
-</div>
-
-@section Styles {
-<style>
-.btn-back-link {
-    display: inline-flex; align-items: center; gap: .4rem;
-    font-size: .875rem; font-weight: 600; color: var(--blue);
-    text-decoration: none; margin-bottom: .5rem;
-}
-.btn-back-link:hover { text-decoration: underline; }
-
-.filter-tabs {
-    display: flex; gap: .25rem; flex-wrap: wrap;
-}
-
-.filter-tab {
-    display: inline-flex; align-items: center;
-    padding: .35rem .875rem;
-    border-radius: var(--radius-sm);
-    font-size: .8rem; font-weight: 600;
-    color: var(--muted); text-decoration: none;
-    border: 1.5px solid transparent;
-    transition: all .15s;
-}
-
-.filter-tab:hover { background: var(--bg); color: var(--dark); }
-
-.filter-tab.active {
-    background: var(--blue-50); color: var(--blue);
-    border-color: var(--blue-100);
-}
-
-.applicant-card {
-    display: flex; align-items: flex-start;
-    justify-content: space-between; gap: 1.25rem;
-    padding: 1.25rem 0;
-    border-bottom: 1px solid var(--border);
-}
-.applicant-card:last-child { border-bottom: none; }
-
-.applicant-card-left {
-    display: flex; align-items: flex-start; gap: .875rem; flex: 1; min-width: 0;
-}
-
-.applicant-card-right {
-    display: flex; flex-direction: column; align-items: flex-end;
-    gap: .5rem; flex-shrink: 0;
-}
-
-.applicant-details { flex: 1; min-width: 0; }
-
-.applicant-name {
-    font-size: .9375rem; font-weight: 700; color: var(--dark); margin-bottom: .3rem;
-}
-
-.applicant-meta-row {
-    display: flex; flex-wrap: wrap; gap: .25rem .875rem;
-    font-size: .8rem; color: var(--muted);
-}
-.applicant-meta-row span {
-    display: inline-flex; align-items: center; gap: .3rem;
-}
-</style>
 }

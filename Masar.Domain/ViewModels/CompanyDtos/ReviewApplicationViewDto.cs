@@ -31,6 +31,7 @@ namespace Masar.Domain.ViewModels.CompanyDtos
 
         // Links / files
         public string? ResumeUrl { get; set; }
+        public string? CoverLetter { get; set; }
         public List<ProfessionalLinkDto> professionalLinks { get; set; } = [];
 
         // Form answers (only present when the job had questions)

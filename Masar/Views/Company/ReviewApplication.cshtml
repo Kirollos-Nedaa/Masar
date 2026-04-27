@@ -38,6 +38,37 @@
        ════════════════════════════════════════════════════ *@
     <div>
 
+        @* ── Cover Letter ── *@
+        @if (!string.IsNullOrWhiteSpace(Model.CoverLetter))
+        {
+            <div class="review-section">
+                <div class="review-section-title">
+                    <span class="iconify" data-icon="lucide:file-badge"></span>
+                    Cover Letter
+                </div>
+                <p class="review-bio">@Model.CoverLetter</p>
+            </div>
+        }
+
+        @* ── Application Answers ── *@
+        @if (Model.Answers.Any())
+        {
+            <div class="review-section">
+                <div class="review-section-title">
+                    <span class="iconify" data-icon="lucide:message-square"></span>
+                    Application Answers
+                </div>
+
+                @foreach (var ans in Model.Answers)
+                {
+                    <div class="answer-block">
+                        <div class="answer-question">@ans.QuestionText</div>
+                        <div class="answer-text">@ans.Answer</div>
+                    </div>
+                }
+            </div>
+        }
+
         @* ── Bio ── *@
         @if (!string.IsNullOrWhiteSpace(Model.Bio))
         {
@@ -47,23 +78,6 @@
                     About
                 </div>
                 <p class="review-bio">@Model.Bio</p>
-            </div>
-        }
-
-        @* ── Skills ── *@
-        @if (Model.Skills.Any())
-        {
-            <div class="review-section">
-                <div class="review-section-title">
-                    <span class="iconify" data-icon="lucide:zap"></span>
-                    Skills
-                </div>
-                <div class="review-skills">
-                    @foreach (var skill in Model.Skills)
-                    {
-                        <span class="skill-badge available-skill">@skill</span>
-                    }
-                </div>
             </div>
         }
 
@@ -95,73 +109,22 @@
             </div>
         }
 
-        @* ── Links row (CV + professional links + email) ── *@
-        @{
-            var hasResume = !string.IsNullOrWhiteSpace(Model.ResumeUrl);
-            var hasLinks = Model.professionalLinks.Any();
-        }
-        @if (hasResume || hasLinks)
-        {
-            <div class="ac-links">
-                @if (hasResume)
-                {
-                    <a href="@Model.ResumeUrl" target="_blank" class="ac-link-btn">
-                        <span class="iconify" data-icon="lucide:download"></span>
-                        Download Resume
-                    </a>
-                }
-
-                @foreach (var link in Model.professionalLinks)
-                {
-                    var (icon, label) = link.LinkName switch
-                    {
-                        LinksNames.LinkedIn => ("lucide:linkedin", "LinkedIn"),
-                        LinksNames.GitHub => ("lucide:github", "GitHub"),
-                        LinksNames.Portfolio => ("lucide:globe", "Portfolio"),
-                        LinksNames.CompanyWebsite => ("lucide:building", "Website"),
-                        _ => ("lucide:link", "Link")
-                    };
-                    <a href="@link.Url" target="_blank" class="ac-link-btn">
-                        <span class="iconify" data-icon="@icon"></span>
-                        @label
-                    </a>
-                }
-
-                <a href="mailto:@Model.Email" class="ac-link-btn">
-                    <span class="iconify" data-icon="lucide:mail"></span>
-                    Send Email
-                </a>
-            </div>
-        }
-        else
-        {
-            <div class="ac-links">
-                <a href="mailto:@Model.Email" class="ac-link-btn">
-                    <span class="iconify" data-icon="lucide:mail"></span>
-                    Send Email
-                </a>
-            </div>
-        }
-
-        @* ── Application Answers ── *@
-        @if (Model.Answers.Any())
+        @* ── Skills ── *@
+        @if (Model.Skills.Any())
         {
             <div class="review-section">
                 <div class="review-section-title">
-                    <span class="iconify" data-icon="lucide:message-square"></span>
-                    Application Answers
+                    <span class="iconify" data-icon="lucide:zap"></span>
+                    Skills
                 </div>
-
-                @foreach (var ans in Model.Answers)
-                {
-                    <div class="answer-block">
-                        <div class="answer-question">@ans.QuestionText</div>
-                        <div class="answer-text">@ans.Answer</div>
-                    </div>
-                }
+                <div class="review-skills">
+                    @foreach (var skill in Model.Skills)
+                    {
+                        <span class="skill-badge available-skill">@skill</span>
+                    }
+                </div>
             </div>
         }
-
     </div>
 
     @* ════════════════════════════════════════════════════
@@ -180,6 +143,56 @@
                 }
                 <div class="review-avatar">@initials</div>
                 <div class="review-candidate-name">@Model.FullName</div>
+
+                @* ── Links row (CV + professional links + Cover Letter) ── *@
+                @{
+                    var hasResume = !string.IsNullOrWhiteSpace(Model.ResumeUrl);
+                    var hasLinks = Model.professionalLinks.Any();
+                }
+                @if (hasResume || hasLinks)
+                {
+                    <div class="ac-links">
+                        @if (hasResume)
+                        {
+                            <a href="@Model.ResumeUrl" target="_blank" class="ac-link-btn justify-content-center full">
+                                <span class="iconify" data-icon="lucide:download"></span>
+                                Download Resume
+                            </a>
+                        }
+
+                        <div class="ac-links-grid">
+                            @foreach (var link in Model.professionalLinks)
+                            {
+                                var (icon, label) = link.LinkName switch
+                                {
+                                    LinksNames.LinkedIn => ("lucide:linkedin", "LinkedIn"),
+                                    LinksNames.GitHub => ("lucide:github", "GitHub"),
+                                    LinksNames.Portfolio => ("lucide:globe", "Portfolio"),
+                                    LinksNames.CompanyWebsite => ("lucide:building", "Website"),
+                                    _ => ("lucide:link", "Link")
+                                };
+                                <a href="@link.Url" target="_blank" class="ac-link-btn justify-content-center">
+                                    <span class="iconify" data-icon="@icon"></span>
+                                    @label
+                                </a>
+                            }
+                        </div>
+
+                        <a href="mailto:@Model.Email" class="ac-link-btn full">
+                            <span class="iconify" data-icon="lucide:mail"></span>
+                            Send Email
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="ac-links">
+                        <a href="mailto:@Model.Email" class="ac-link-btn full">
+                            <span class="iconify" data-icon="lucide:mail"></span>
+                            Send Email
+                        </a>
+                    </div>
+                }
             </div>
 
             @* Contact details *@

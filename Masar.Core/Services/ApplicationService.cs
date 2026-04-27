@@ -409,14 +409,12 @@ namespace Masar.Core.Services
                 ApplicationId = application.Id,
                 JobId = application.JobId,
                 JobTitle = application.Job.Title,
-                NumberOfOpenings = application.Job.NumberOfOpenings,
                 CandidateProfileId = application.CandidateProfileId,
                 FullName = $"{application.Candidate.User.FirstName} {application.Candidate.User.LastName}",
                 Email = application.Candidate.User.Email ?? string.Empty,
                 PhoneNumber = application.Candidate.PhoneNumber,
                 Location = application.Candidate.Location,
                 Bio = application.Candidate.Bio,
-                Status = application.Status.ToString(),
                 AppliedDate = application.AppliedDate,
                 Skills = application.Candidate.CandidateSkills
                     .Select(cs => cs.Skill.Name)
@@ -431,7 +429,9 @@ namespace Masar.Core.Services
                         Years = $"{e.StartYear.Year} – {e.ExpectedGraduation.Year}"
                     })
                     .ToList(),
+                Answers = answers,
                 ResumeUrl = application.ResumeUrl ?? application.Candidate.ResumeUrl,
+                CoverLetter = application.CoverLetter.ToString(),
                 professionalLinks = application.Candidate.ProfessionalLinks
                     .Select(pl => new ProfessionalLinkDto
                     {

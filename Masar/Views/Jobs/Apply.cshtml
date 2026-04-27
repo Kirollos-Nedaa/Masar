@@ -8,309 +8,6 @@
     var f = Model.Form;
 }
 
-@section Styles {
-    <style>
-        .apply-wrap {
-            max-width: 760px;
-            margin: 0 auto;
-            padding: 2rem 1.5rem 4rem;
-        }
-
-        .apply-back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: .4rem;
-            font-size: .875rem;
-            font-weight: 600;
-            color: var(--blue);
-            text-decoration: none;
-            margin-bottom: 1.5rem;
-        }
-
-            .apply-back-link:hover {
-                text-decoration: underline;
-            }
-
-        .apply-page-title {
-            font-family: 'Sora', sans-serif;
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--dark);
-            letter-spacing: -.02em;
-            margin-bottom: .35rem;
-        }
-
-        .apply-page-sub {
-            color: var(--muted);
-            font-size: .9rem;
-            margin-bottom: 1.75rem;
-        }
-
-        /* ── Job summary card ────────────────────────────────────── */
-        .apply-job-summary {
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 1.25rem 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .apply-job-logo {
-            width: 48px;
-            height: 48px;
-            border-radius: var(--radius-md);
-            background: var(--blue-50);
-            border: 1px solid var(--blue-100);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Sora', sans-serif;
-            font-size: .9rem;
-            font-weight: 700;
-            color: var(--blue);
-            flex-shrink: 0;
-            overflow: hidden;
-        }
-
-            .apply-job-logo img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-
-        .apply-job-title {
-            font-family: 'Sora', sans-serif;
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--dark);
-            margin-bottom: .2rem;
-        }
-
-        .apply-job-company {
-            font-size: .875rem;
-            color: var(--muted);
-            font-weight: 500;
-            margin-bottom: .4rem;
-        }
-
-        .apply-job-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: .3rem .875rem;
-            font-size: .8rem;
-            color: var(--muted);
-        }
-
-            .apply-job-meta span {
-                display: inline-flex;
-                align-items: center;
-                gap: .3rem;
-            }
-
-        /* ── Section cards ───────────────────────────────────────── */
-        .apply-section {
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 1.5rem;
-            margin-bottom: 1.25rem;
-        }
-
-        .apply-section-title {
-            font-family: 'Sora', sans-serif;
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--dark);
-            margin-bottom: 1.25rem;
-            padding-bottom: .75rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        /* ── Resume options ──────────────────────────────────────── */
-        .resume-option {
-            display: flex;
-            align-items: center;
-            gap: .625rem;
-            font-size: .9rem;
-            font-weight: 500;
-            color: var(--dark);
-            cursor: pointer;
-            margin-bottom: .625rem;
-            user-select: none;
-        }
-
-            .resume-option input[type="radio"] {
-                width: 16px;
-                height: 16px;
-                accent-color: var(--blue);
-                cursor: pointer;
-                flex-shrink: 0;
-            }
-
-        .resume-existing-file {
-            display: flex;
-            align-items: center;
-            gap: .875rem;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: .875rem 1rem;
-            margin-top: .625rem;
-        }
-
-        .resume-file-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: var(--radius-sm);
-            background: var(--blue-50);
-            border: 1px solid var(--blue-100);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            color: var(--blue);
-            flex-shrink: 0;
-        }
-
-        .resume-file-name {
-            font-size: .875rem;
-            font-weight: 600;
-            color: var(--dark);
-            margin-bottom: .15rem;
-        }
-
-        .resume-file-sub {
-            font-size: .78rem;
-            color: var(--muted);
-        }
-
-        .resume-replace-btn {
-            margin-left: auto;
-            display: inline-flex;
-            align-items: center;
-            gap: .35rem;
-            background: var(--white);
-            border: 1.5px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: .35rem .75rem;
-            font-size: .8rem;
-            font-weight: 600;
-            color: var(--dark);
-            cursor: pointer;
-            text-decoration: none;
-            transition: border-color .15s;
-            flex-shrink: 0;
-        }
-
-            .resume-replace-btn:hover {
-                border-color: var(--blue);
-                color: var(--blue);
-            }
-
-        .resume-upload-zone {
-            border: 2px dashed var(--border);
-            border-radius: var(--radius-md);
-            padding: 2rem;
-            text-align: center;
-            color: var(--muted);
-            margin-top: .625rem;
-            cursor: pointer;
-            transition: border-color .15s, background .15s;
-        }
-
-            .resume-upload-zone:hover {
-                border-color: var(--blue);
-                background: var(--blue-50);
-            }
-
-        .resume-hint {
-            font-size: .78rem;
-            color: var(--muted);
-            margin-top: .625rem;
-        }
-
-        /* ── Radio group (TorF) ──────────────────────────────────── */
-        .apply-radio-group {
-            display: flex;
-            flex-direction: column;
-            gap: .375rem;
-            margin-top: .4rem;
-        }
-
-        .apply-radio-label {
-            display: flex;
-            align-items: center;
-            gap: .5rem;
-            font-size: .9rem;
-            color: var(--dark);
-            cursor: pointer;
-        }
-
-            .apply-radio-label input[type="radio"] {
-                width: 15px;
-                height: 15px;
-                accent-color: var(--blue);
-                cursor: pointer;
-            }
-
-        /* ── Terms ───────────────────────────────────────────────── */
-        .terms-check-label {
-            display: flex;
-            align-items: flex-start;
-            gap: .75rem;
-            cursor: pointer;
-            margin-bottom: 1rem;
-        }
-
-            .terms-check-label:last-child {
-                margin-bottom: 0;
-            }
-
-            .terms-check-label input[type="checkbox"] {
-                width: 16px;
-                height: 16px;
-                accent-color: var(--blue);
-                cursor: pointer;
-                flex-shrink: 0;
-                margin-top: 2px;
-            }
-
-        .terms-check-title {
-            font-size: .875rem;
-            font-weight: 600;
-            color: var(--dark);
-            margin-bottom: .15rem;
-        }
-
-        .terms-check-sub {
-            font-size: .8rem;
-            color: var(--muted);
-            line-height: 1.5;
-        }
-
-        /* ── Actions ─────────────────────────────────────────────── */
-        .apply-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: .75rem;
-            margin-top: 1.5rem;
-        }
-
-        @@media (max-width: 600px) {
-            .apply-wrap {
-                padding: 1rem 1rem 3rem;
-            }
-
-            .apply-page-title {
-                font-size: 1.375rem;
-            }
-        }
-    </style>
-}
-
 <div class="apply-wrap">
 
     <a asp-controller="Jobs" asp-action="Details" asp-route-id="@job.Id" class="apply-back-link">
@@ -510,14 +207,14 @@
                             <div class="apply-radio-group">
                                 <label class="apply-radio-label">
                                     <input type="radio"
-                                           name="Answers[@i].Answer"
+                                           name="Form.Answers[@i].AnswerText"
                                            value="Yes"
                                     @(q.IsRequired ? "required" : "") />
                                     Yes
                                 </label>
                                 <label class="apply-radio-label">
                                     <input type="radio"
-                                           name="Answers[@i].Answer"
+                                           name="Form.Answers[@i].AnswerText"
                                            value="No" />
                                     No
                                 </label>
@@ -526,13 +223,13 @@
                         else
                         {
                             <input type="text"
-                                   name="Answers[@i].Answer"
+                                   name="Form.Answers[@i].AnswerText"
                                    class="epi-input"
                                    placeholder="Your answer..."
                             @(q.IsRequired ? "required" : "") />
                         }
 
-                        <input type="hidden" name="Answers[@i].QuestionId" value="@q.Id" />
+                        <input type="hidden" name="Form.Answers[@i].QuestionId" value="@q.Id" />
                     </div>
                 }
             </div>

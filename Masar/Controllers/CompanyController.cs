@@ -190,10 +190,10 @@ namespace Masar.Controllers
         // ── Jobs List ─────────────────────────────────────────
 
         [HttpGet]
-        public async Task<IActionResult> Jobs()
+        public async Task<IActionResult> Jobs(int page = 1)
         {
             var userId = _userManager.GetUserId(User);
-            var jobs = await _jobService.GetCompanyJobsAsync(userId);
+            var jobs = await _jobService.GetCompanyJobsAsync(userId, page);
 
             if (TempData["Success"] is string msg)
                 ViewBag.SuccessMessage = msg;
@@ -204,12 +204,12 @@ namespace Masar.Controllers
         // ── Applicants ────────────────────────────────────────
 
         [HttpGet]
-        public async Task<IActionResult> Applicants(int jobId, string? search = null, string? status = null)
+        public async Task<IActionResult> Applicants(int jobId, string? search = null, string? status = null, string? sort = null, int page = 1)
         {
             var userId = HttpContext.Session.GetString("UserId");
             if (userId is null) return RedirectToAction("Login", "Auth");
 
-            var vm = await _applicationService.GetApplicantsAsync(jobId, userId, search, status);
+            var vm = await _applicationService.GetApplicantsAsync(jobId, userId, search, status, sort, page);
             if (vm is null) return NotFound();
 
             ViewData["HasSidebar"] = true;

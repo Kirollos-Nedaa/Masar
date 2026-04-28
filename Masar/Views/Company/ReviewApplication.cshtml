@@ -22,7 +22,14 @@
     <div>
         <div class="page-title">Review Application&nbsp;&middot;&nbsp;@Model.JobTitle </div>
         <div class="page-subtitle">
-            Here you can review the applicant submission and Accept/Reject the applicant.
+            @if (isFinalised)
+            {
+                <text>This application has already been @Model.Status.ToLower(). You can review the submission details below.</text>
+            }
+            else
+            {
+                <text>Here you can review the applicant submission and accept or reject the applicant.</text>
+            }
         </div>
     </div>
     <a asp-action="Applicants" asp-route-jobId="@Model.JobId" class="btn-outline-app">
@@ -151,16 +158,16 @@
                 }
                 @if (hasResume || hasLinks)
                 {
-                    <div class="ac-links">
+                    <div class="rv-links">
                         @if (hasResume)
                         {
-                            <a href="@Model.ResumeUrl" target="_blank" class="ac-link-btn justify-content-center full">
+                            <a href="@Model.ResumeUrl" target="_blank" class="rv-link-btn justify-content-center full">
                                 <span class="iconify" data-icon="lucide:download"></span>
                                 Download Resume
                             </a>
                         }
 
-                        <div class="ac-links-grid">
+                        <div class="rv-links-grid">
                             @foreach (var link in Model.professionalLinks)
                             {
                                 var (icon, label) = link.LinkName switch
@@ -171,14 +178,14 @@
                                     LinksNames.CompanyWebsite => ("lucide:building", "Website"),
                                     _ => ("lucide:link", "Link")
                                 };
-                                <a href="@link.Url" target="_blank" class="ac-link-btn justify-content-center">
+                                <a href="@link.Url" target="_blank" class="rv-link-btn justify-content-center">
                                     <span class="iconify" data-icon="@icon"></span>
                                     @label
                                 </a>
                             }
                         </div>
 
-                        <a href="mailto:@Model.Email" class="ac-link-btn full">
+                        <a href="mailto:@Model.Email" class="rv-link-btn full">
                             <span class="iconify" data-icon="lucide:mail"></span>
                             Send Email
                         </a>
@@ -187,7 +194,7 @@
                 else
                 {
                     <div class="ac-links">
-                        <a href="mailto:@Model.Email" class="ac-link-btn full">
+                        <a href="mailto:@Model.Email" class="rv-link-btn full">
                             <span class="iconify" data-icon="lucide:mail"></span>
                             Send Email
                         </a>
@@ -256,27 +263,21 @@
             else
             {
                 <div class="review-action-block">
-                    <form asp-action="AcceptApplication" asp-controller="Company" method="post">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="applicationId" value="@Model.ApplicationId" />
-                        <input type="hidden" name="jobId" value="@Model.JobId" />
-                        <button type="submit" class="btn-accept w-100"
-                                onclick="return confirm('Accept this applicant? This cannot be undone.')">
-                            <span class="iconify" data-icon="lucide:check-circle"></span>
-                            Accept Applicant
-                        </button>
-                    </form>
+                    <button type="button"
+                            class="btn-accept w-100"
+                            data-bs-toggle="modal"
+                            data-bs-target="#acceptApplicantModal">
+                        <span class="iconify" data-icon="lucide:check-circle"></span>
+                        Accept Applicant
+                    </button>
 
-                    <form asp-action="RejectApplication" asp-controller="Company" method="post">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="applicationId" value="@Model.ApplicationId" />
-                        <input type="hidden" name="jobId" value="@Model.JobId" />
-                        <button type="submit" class="btn-reject w-100"
-                                onclick="return confirm('Reject this applicant?')">
-                            <span class="iconify" data-icon="lucide:x-circle"></span>
-                            Reject Applicant
-                        </button>
-                    </form>
+                    <button type="button"
+                            class="btn-reject w-100"
+                            data-bs-toggle="modal"
+                            data-bs-target="#rejectApplicantModal">
+                        <span class="iconify" data-icon="lucide:x-circle"></span>
+                        Reject Applicant
+                    </button>
                 </div>
             }
 
@@ -284,3 +285,68 @@
     </div>
 
 </div>
+
+@if (!isFinalised)
+{
+    <div class="modal fade review-confirm-modal" id="acceptApplicantModal" tabindex="-1" aria-labelledby="acceptApplicantModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="acceptApplicantModalLabel">Accept applicant?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="review-modal-copy">
+                        You are about to accept <strong>@Model.FullName</strong> for <strong>@Model.JobTitle</strong>.
+                    </p>
+                    <p class="review-modal-note mb-0">
+                        This finalizes the application. If this fills the last opening, the remaining pending applicants will be rejected automatically.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-outline-app" data-bs-dismiss="modal">Cancel</button>
+                    <form asp-action="AcceptApplication" asp-controller="Company" method="post" class="m-0">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="applicationId" value="@Model.ApplicationId" />
+                        <input type="hidden" name="jobId" value="@Model.JobId" />
+                        <button type="submit" class="btn-accept">
+                            <span class="iconify" data-icon="lucide:check-circle"></span>
+                            Confirm Accept
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade review-confirm-modal" id="rejectApplicantModal" tabindex="-1" aria-labelledby="rejectApplicantModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rejectApplicantModalLabel">Reject applicant?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="review-modal-copy">
+                        You are about to reject <strong>@Model.FullName</strong> for <strong>@Model.JobTitle</strong>.
+                    </p>
+                    <p class="review-modal-note mb-0">
+                        This finalizes the application and removes it from the pending review flow.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-outline-app" data-bs-dismiss="modal">Cancel</button>
+                    <form asp-action="RejectApplication" asp-controller="Company" method="post" class="m-0">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="applicationId" value="@Model.ApplicationId" />
+                        <input type="hidden" name="jobId" value="@Model.JobId" />
+                        <button type="submit" class="btn-reject">
+                            <span class="iconify" data-icon="lucide:x-circle"></span>
+                            Confirm Reject
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+}

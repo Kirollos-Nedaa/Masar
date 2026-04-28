@@ -132,11 +132,11 @@ namespace Masar.Core.Services
                              && (a.Status == ApplicationStatus.Applied
                               || a.Status == ApplicationStatus.UnderReview));
 
-            // ── Posted Jobs (last 5, newest first) ────────────
+            // ── Posted Jobs (latest 6, newest first) ──────────
             var postedJobs = await _context.Jobs
                 .Where(j => j.CompanyProfileId == companyId)
                 .OrderByDescending(j => j.PostedDate)
-                .Take(5)
+                .Take(6)
                 .Select(j => new PostedJobDto
                 {
                     Id = j.Id,
@@ -149,11 +149,11 @@ namespace Masar.Core.Services
                 })
                 .ToListAsync();
 
-            // ── Recent Applicants (last 5 across all jobs) ─────
+            // ── Recent Applicants (latest 6 across all jobs) ───
             var recentApplicants = await _context.JobApplications
                 .Where(a => a.Job.CompanyProfileId == companyId)
                 .OrderByDescending(a => a.AppliedDate)
-                .Take(5)
+                .Take(6)
                 .Select(a => new RecentApplicantDto
                 {
                     JobId = a.JobId,
@@ -169,6 +169,7 @@ namespace Masar.Core.Services
             var jobList = await _context.Jobs
                 .Where(j => j.CompanyProfileId == companyId)
                 .OrderByDescending(j => j.PostedDate)
+                .Take(6)
                 .Select(j => new JobListItemDto
                 {
                     Id = j.Id,

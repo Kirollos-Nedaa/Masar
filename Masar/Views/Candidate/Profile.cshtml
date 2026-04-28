@@ -26,7 +26,10 @@
 
 <div class="app-card mb-4">
     <div class="card-section-header">
-        <div class="card-section-title">Personal Information</div>
+        <div class="card-section-title">
+            <span class="iconify" data-icon="lucide:user"></span>
+            Personal Information
+        </div>
         <a asp-controller="Candidate" asp-action="EditPersonalInfo" class="btn-edit-section">
             <span class="iconify" data-icon="lucide:square-pen"></span> Edit
         </a>
@@ -124,7 +127,10 @@
 @* ── Education ────────────────────────────────────────────── *@
 <div class="app-card mb-4">
     <div class="card-section-header">
-        <div class="card-section-title">Education</div>
+        <div class="card-section-title">
+            <span class="iconify" data-icon="lucide:graduation-cap"></span>
+            Education
+        </div>
         <a asp-controller="Candidate" asp-action="EditEducation" class="btn-edit-section">
             <span class="iconify" data-icon="lucide:square-pen"></span> Edit
         </a>
@@ -134,7 +140,7 @@
     {
         <div class="education-block">
             <div class="education-icon">
-                <span class="iconify" data-icon="lucide:graduation-cap"></span>
+                <span class="iconify" data-icon="lucide:school"></span>
             </div>
             <div class="education-details">
                 <div class="education-university">@Model.Education.University</div>
@@ -167,7 +173,10 @@
 @* ── Skills ───────────────────────────────────────────────── *@
 <div class="app-card mb-4">
     <div class="card-section-header">
-        <div class="card-section-title">Skills</div>
+        <div class="card-section-title">
+            <span class="iconify" data-icon="lucide:zap"></span>
+            Skills
+        </div>
         <a asp-controller="Candidate" asp-action="EditSkills" class="btn-edit-section">
             <span class="iconify" data-icon="lucide:settings-2"></span> Manage Skills
         </a>
@@ -193,7 +202,10 @@
 @* ── Resume ───────────────────────────────────────────────── *@
 <div class="app-card mb-4">
     <div class="card-section-header">
-        <div class="card-section-title">Resume</div>
+        <div class="card-section-title">
+            <span class="iconify" data-icon="lucide:file-user"></span>
+            Resume
+        </div>
     </div>
 
     @if (!string.IsNullOrEmpty(Model.ResumeUrl))

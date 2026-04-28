@@ -247,7 +247,7 @@ namespace Masar.Core.Services
         //  COMPANY — review applicants
         // ─────────────────────────────────────────────────────
 
-        public async Task<ApplicantsViewDto?> GetApplicantsAsync(int jobId, string companyUserId, string? searchQuery = null, string? statusFilter = null, string? sortFilter = null)
+        public async Task<ApplicantsViewDto?> GetApplicantsAsync(int jobId, string companyUserId, string? searchQuery = null, string? statusFilter = null, string? sortFilter = null, int page = 1, int pageSize = 6)
         {
             // 1. Verify ownership
             var job = await _context.Jobs
@@ -294,8 +294,18 @@ namespace Masar.Core.Services
                 _ => query.OrderByDescending(a => a.AppliedDate)   // default: most recent
             };
 
+            pageSize = pageSize <= 0 ? 6 : pageSize;
+
+            var totalCount = await query.CountAsync();
+            var totalPages = totalCount == 0 ? 0 : (int)Math.Ceiling((double)totalCount / pageSize);
+            page = totalPages > 0
+                ? Math.Min(Math.Max(page, 1), totalPages)
+                : 1;
+
             // 5. Project to DTO
             var cards = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(a => new ApplicantCardDto
                 {
                     ApplicationId = a.Id,
@@ -338,7 +348,10 @@ namespace Masar.Core.Services
                 RejectedCount = rejected,
                 SearchQuery = searchQuery,
                 StatusFilter = statusFilter,
-                SortFilter = sortFilter
+                SortFilter = sortFilter,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCount
             };
         }
 
@@ -415,6 +428,7 @@ namespace Masar.Core.Services
                 PhoneNumber = application.Candidate.PhoneNumber,
                 Location = application.Candidate.Location,
                 Bio = application.Candidate.Bio,
+                Status = GetStatusDisplay(application.Status),
                 AppliedDate = application.AppliedDate,
                 Skills = application.Candidate.CandidateSkills
                     .Select(cs => cs.Skill.Name)

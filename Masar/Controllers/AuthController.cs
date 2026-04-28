@@ -10,6 +10,9 @@ namespace Masar.Controllers
 {
     public class AuthController : Controller
     {
+        private const string ResetUserIdSessionKey = "PasswordResetUserId";
+        private const string ResetTokenSessionKey = "PasswordResetToken";
+
         private readonly IAuthService _authService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
@@ -24,6 +27,7 @@ namespace Masar.Controllers
             _authService = authService;
             _userManager = userManager;
             _signInManager = signInManager;
+            _context = context;
         }
 
 
@@ -169,6 +173,85 @@ namespace Masar.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+        // ──────────────── Password Reset ───────────────────────────────────────────────────
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            HttpContext.Session.Remove(ResetUserIdSessionKey);
+            HttpContext.Session.Remove(ResetTokenSessionKey);
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordDto model)
+        {
+            HttpContext.Session.Remove(ResetUserIdSessionKey);
+            HttpContext.Session.Remove(ResetTokenSessionKey);
+
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var (found, userId, token) = await _authService.GeneratePasswordResetTokenAsync(model.Email);
+
+            if (!found)
+            {
+                ModelState.AddModelError(string.Empty, "No account found with that email address.");
+                return View(model);
+            }
+
+            // Keep the reset token pair on the server between steps.
+            HttpContext.Session.SetString(ResetUserIdSessionKey, userId);
+            HttpContext.Session.SetString(ResetTokenSessionKey, token);
+
+            return RedirectToAction(nameof(ResetPassword));
+        }
+
+        // ── Forgot Password — Step 2: enter new password ──────────
+
+        [HttpGet]
+        public IActionResult ResetPassword()
+        {
+            var userId = HttpContext.Session.GetString(ResetUserIdSessionKey);
+            var token = HttpContext.Session.GetString(ResetTokenSessionKey);
+
+            // Guard: only reachable after a valid forgot-password lookup.
+            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(token))
+            {
+                return RedirectToAction(nameof(ForgotPassword));
+            }
+
+            var model = new ResetPasswordDto
+            {
+                UserId = userId,
+                Token = token
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(ResetPasswordDto model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var (success, errors) = await _authService.ResetPasswordAsync(model);
+
+            if (!success)
+            {
+                foreach (var error in errors)
+                    ModelState.AddModelError(string.Empty, error);
+                return View(model);
+            }
+
+            HttpContext.Session.Remove(ResetUserIdSessionKey);
+            HttpContext.Session.Remove(ResetTokenSessionKey);
+
+            // User is now signed in (AuthService calls SignInAsync on success).
+            // Store session and bounce to the dashboard.
+            SetSessionAfterLogin(model.UserId);
+            return RedirectToDashboard();
+        }
 
         // PRIVATE HELPERS
         private void SetSessionAfterLogin(string userId)

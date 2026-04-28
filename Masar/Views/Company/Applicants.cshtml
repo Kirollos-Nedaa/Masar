@@ -13,7 +13,7 @@
         <div class="page-subtitle">Review and manage candidates who applied for this position</div>
     </div>
 
-    <a asp-action="Dashboard" asp-contorller="Company" class="btn-outline-app">
+    <a asp-action="Dashboard" asp-controller="Company" class="btn-outline-app">
         <span class="iconify" data-icon="lucide:arrow-left"></span>
         Back to Dashboard
     </a>
@@ -76,20 +76,21 @@
 </div>
 
 @* ── Filter bar ───────────────────────────────────────────────────────────── *@
-<form method="get" asp-action="Applicants" asp-route-jobId="@Model.JobId"
+<form method="get" asp-action="Applicants" asp-controller="Company"
       class="applicants-filter-bar">
+    <input type="hidden" name="jobId" value="@Model.JobId" />
 
     <select name="status" class="epi-input epi-select" style="max-width:200px;">
-        <option value="">All Applicants</option>
-        <option value="Applied"     selected="@(Model.StatusFilter == "Applied"     ? "selected" : "")">Applied</option>
-        <option value="UnderReview" selected="@(Model.StatusFilter == "UnderReview" ? "selected" : "")">Under Review</option>
-        <option value="Accepted"    selected="@(Model.StatusFilter == "Accepted"    ? "selected" : "")">Accepted</option>
-        <option value="Rejected"    selected="@(Model.StatusFilter == "Rejected"    ? "selected" : "")">Rejected</option>
+        <option value="" selected="@(string.IsNullOrWhiteSpace(Model.StatusFilter) ? "selected" : null)">All Applicants</option>
+        <option value="Applied" selected="@(Model.StatusFilter == "Applied" ? "selected" : null)">Applied</option>
+        <option value="UnderReview" selected="@(Model.StatusFilter == "UnderReview" ? "selected" : null)">Under Review</option>
+        <option value="Accepted" selected="@(Model.StatusFilter == "Accepted" ? "selected" : null)">Accepted</option>
+        <option value="Rejected" selected="@(Model.StatusFilter == "Rejected" ? "selected" : null)">Rejected</option>
     </select>
 
     <select name="sort" class="epi-input epi-select" style="max-width:180px;">
-        <option value="oldest"  selected="@(Model.SortFilter == "oldest" ? "selected" : "")">Oldest First</option>
-        <option value="recent"  selected="@(Model.SortFilter != "oldest" ? "selected" : "")">Most Recent</option>
+        <option value="oldest" selected="@(Model.SortFilter == "oldest" ? "selected" : null)">Oldest First</option>
+        <option value="recent" selected="@(Model.SortFilter != "oldest" ? "selected" : null)">Most Recent</option>
     </select>
 
     <button type="submit" class="btn-outline-app">
@@ -99,7 +100,7 @@
 
     @if (!string.IsNullOrWhiteSpace(Model.StatusFilter) || Model.SortFilter == "oldest")
     {
-        <a asp-action="Applicants" asp-route-jobId="@Model.JobId" class="btn-outline-app">
+        <a asp-action="Applicants" asp-controller="Company" asp-route-jobId="@Model.JobId" class="btn-outline-app">
             <span class="iconify" data-icon="lucide:x"></span>
             Clear
         </a>
@@ -277,6 +278,46 @@ else
                 </div>
             }
 
+        </div>
+    }
+
+    @if (Model.TotalPages > 1)
+    {
+        var startItem = ((Model.Page - 1) * Model.PageSize) + 1;
+        var endItem = Math.Min(Model.Page * Model.PageSize, Model.TotalCount);
+        string ApplicantsPageUrl(int p) => Url.Action("Applicants", "Company", new
+        {
+            jobId = Model.JobId,
+            search = Model.SearchQuery,
+            status = Model.StatusFilter,
+            sort = Model.SortFilter,
+            page = p
+        })!;
+
+        <div class="app-pagination-bar">
+            <div class="app-pagination-summary">
+                Showing @startItem-@endItem of @Model.TotalCount applicants
+            </div>
+
+            <div class="app-pagination">
+                <a href="@(Model.HasPreviousPage ? ApplicantsPageUrl(Model.Page - 1) : "#")"
+                   class="app-page-btn @(Model.HasPreviousPage ? string.Empty : "disabled")">
+                    Previous
+                </a>
+
+                @for (var p = 1; p <= Model.TotalPages; p++)
+                {
+                    <a href="@ApplicantsPageUrl(p)"
+                       class="app-page-btn @(p == Model.Page ? "active" : string.Empty)">
+                        @p
+                    </a>
+                }
+
+                <a href="@(Model.HasNextPage ? ApplicantsPageUrl(Model.Page + 1) : "#")"
+                   class="app-page-btn @(Model.HasNextPage ? string.Empty : "disabled")">
+                    Next
+                </a>
+            </div>
         </div>
     }
 }

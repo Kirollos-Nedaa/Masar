@@ -1,4 +1,5 @@
 ﻿using Masar.Domain.ViewModels;
+using Masar.Domain.ViewModels.CompanyDtos;
 using Masar.Domain.ViewModels.Job;
 using Masar.Domain.ViewModels.JobDtos;
 using System;
@@ -17,7 +18,7 @@ namespace Masar.Core.IService
         Task<bool> DeleteJobAsync(string userId, int jobId);
         Task<bool> ToggleJobStatusAsync(string userId, int jobId);
         Task<PostJobDto?> GetJobForEditAsync(string userId, int jobId);
-        Task<List<JobListItemDto>> GetCompanyJobsAsync(string userId);
+        Task<CompanyJobsViewDto> GetCompanyJobsAsync(string userId, int page = 1, int pageSize = 10);
 
         // ── Candidate: browse jobs ────────────────────────────
         Task<JobBrowseResultDto> BrowseJobsAsync(JobFilterDto filter, string? candidateUserId = null);

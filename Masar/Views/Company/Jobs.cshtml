@@ -1,5 +1,4 @@
-﻿@using Masar.Domain.ViewModels.Job
-@model List<JobListItemDto>
+@model Masar.Domain.ViewModels.CompanyDtos.CompanyJobsViewDto
 
 @{
     ViewData["Title"] = "All Postings";
@@ -10,7 +9,7 @@
     <partial name="_CompanySidebar" />
 }
 
-@* ── Page Header ──────────────────────────────────────────── *@
+@* Page Header *@
 <div class="page-header d-flex align-items-center justify-content-between mb-4">
     <div>
         <h1 class="page-title">All Postings</h1>
@@ -21,9 +20,9 @@
     </a>
 </div>
 
-@* ── Jobs Table ───────────────────────────────────────────── *@
+@* Jobs Table *@
 <div class="app-card">
-    @if (Model.Any())
+    @if (Model.Jobs.Any())
     {
         <div class="table-responsive">
             <table class="company-table">
@@ -37,7 +36,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var job in Model)
+                    @foreach (var job in Model.Jobs)
                     {
                         var statusClass = job.IsActive ? "badge-accepted" : "badge-rejected";
                         var statusLabel = job.IsActive ? "Active" : "Closed";
@@ -100,6 +99,44 @@
                 </tbody>
             </table>
         </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            var startItem = ((Model.Page - 1) * Model.PageSize) + 1;
+            var endItem = Math.Min(Model.Page * Model.PageSize, Model.TotalCount);
+
+            <div class="app-pagination-bar">
+                <div class="app-pagination-summary">
+                    Showing @startItem-@endItem of @Model.TotalCount postings
+                </div>
+
+                <div class="app-pagination">
+                    <a asp-action="Jobs"
+                       asp-controller="Company"
+                       asp-route-page="@(Model.Page - 1)"
+                       class="app-page-btn @(Model.HasPreviousPage ? string.Empty : "disabled")">
+                        Previous
+                    </a>
+
+                    @for (var p = 1; p <= Model.TotalPages; p++)
+                    {
+                        <a asp-action="Jobs"
+                           asp-controller="Company"
+                           asp-route-page="@p"
+                           class="app-page-btn @(p == Model.Page ? "active" : string.Empty)">
+                            @p
+                        </a>
+                    }
+
+                    <a asp-action="Jobs"
+                       asp-controller="Company"
+                       asp-route-page="@(Model.Page + 1)"
+                       class="app-page-btn @(Model.HasNextPage ? string.Empty : "disabled")">
+                        Next
+                    </a>
+                </div>
+            </div>
+        }
     }
     else
     {

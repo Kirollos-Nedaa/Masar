@@ -149,16 +149,29 @@ namespace Masar.Core.Services
             };
         }
 
-        public async Task<List<JobListItemDto>> GetCompanyJobsAsync(string userId)
+        public async Task<CompanyJobsViewDto> GetCompanyJobsAsync(string userId, int page = 1, int pageSize = 10)
         {
+            pageSize = pageSize <= 0 ? 10 : pageSize;
+
             var company = await _context.CompanyProfiles
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
-            if (company == null) return new List<JobListItemDto>();
+            if (company == null)
+                return new CompanyJobsViewDto { Page = 1, PageSize = pageSize };
 
-            return await _context.Jobs
+            var query = _context.Jobs
                 .Where(j => j.CompanyProfileId == company.Id)
-                .OrderByDescending(j => j.PostedDate)
+                .OrderByDescending(j => j.PostedDate);
+
+            var totalCount = await query.CountAsync();
+            var totalPages = totalCount == 0 ? 0 : (int)Math.Ceiling((double)totalCount / pageSize);
+            page = totalPages > 0
+                ? Math.Min(Math.Max(page, 1), totalPages)
+                : 1;
+
+            var jobs = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(j => new JobListItemDto
                 {
                     Id = j.Id,
@@ -175,6 +188,14 @@ namespace Masar.Core.Services
                     PostedDateDisplay = GetRelativeDate(j.PostedDate)
                 })
                 .ToListAsync();
+
+            return new CompanyJobsViewDto
+            {
+                Jobs = jobs,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            };
         }
 
         // ─────────────────────────────────────────────────────

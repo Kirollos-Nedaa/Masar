@@ -540,9 +540,17 @@ body.app-body {
 
 .card-section-title {
     font-family: 'Sora', sans-serif;
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: 700;
     color: var(--dark);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+.card-section-title .iconify {
+    color: var(--blue);
+    font-size: 1.4rem;
 }
 
 .card-view-all {
@@ -756,6 +764,63 @@ body.app-body {
 .table-meta-text {
     font-size: .8rem;
     color: var(--muted);
+}
+
+/* ── App pagination ─────────────────────────────────────── */
+.app-pagination-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 1rem 1.25rem 0;
+}
+
+.app-pagination-summary {
+    font-size: .875rem;
+    color: var(--muted);
+    font-weight: 500;
+}
+
+.app-pagination {
+    display: flex;
+    align-items: center;
+    gap: .375rem;
+    flex-wrap: wrap;
+}
+
+.app-page-btn {
+    min-width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 .75rem;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    color: var(--dark);
+    font-size: .875rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: border-color .15s, background .15s, color .15s;
+}
+
+.app-page-btn:hover {
+    border-color: var(--blue);
+    color: var(--blue);
+    background: var(--blue-50);
+}
+
+.app-page-btn.active {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: var(--white);
+}
+
+.app-page-btn.disabled {
+    opacity: .4;
+    pointer-events: none;
 }
 
 /* ── Table action buttons ────────────────────────────────── */
@@ -1885,23 +1950,13 @@ body.app-body {
 .ac-links {
     display: flex;
     flex-wrap: wrap;
-    flex-direction: column;
+    flex-direction: row;
     gap: .5rem;
     margin-top: .875rem;
     padding-top: .875rem;
     border-top: 1px solid var(--border);
 }
-.ac-link-btn.full {
-    width: 100%;
-    justify-content: center;
-}
 
-/* Grid for other links */
-.ac-links-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-}
 
 .ac-link-btn {
     display: inline-flex;
@@ -1974,6 +2029,44 @@ body.app-body {
     grid-template-columns: 1fr 340px;
     gap: 1.5rem;
     align-items: start;
+}
+
+.rv-links {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    gap: .5rem;
+    margin-top: .875rem;
+    padding-top: .875rem;
+    border-top: 1px solid var(--border);
+}
+.rv-links-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+.rv-link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .35rem .875rem;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: .8125rem;
+    font-weight: 600;
+    color: var(--dark);
+    text-decoration: none;
+    background: var(--white);
+    transition: border-color .15s, color .15s, background .15s;
+}
+.rv-link-btn:hover {
+    border-color: var(--blue);
+    color: var(--blue);
+    background: var(--blue-50);
+}
+.rv-link-btn.full {
+    width: 100%;
+    justify-content: center;
 }
 
 /* ── Sidebar card ──────────────────────────────────── */
@@ -2134,6 +2227,55 @@ body.app-body {
         color: var(--red);
     }
 
+/* ── Review confirmation modals ───────────────────── */
+.review-confirm-modal .modal-content {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 24px 64px rgba(15, 23, 42, 0.16);
+}
+
+.review-confirm-modal .modal-header,
+.review-confirm-modal .modal-footer {
+    border-color: var(--border);
+    padding: 1rem 1.25rem;
+}
+
+.review-confirm-modal .modal-body {
+    padding: 1rem 1.25rem;
+}
+
+.review-confirm-modal .modal-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--dark);
+}
+
+.review-modal-copy {
+    margin: 0;
+    font-size: .95rem;
+    color: var(--dark);
+}
+
+.review-modal-note {
+    margin-top: .55rem;
+    font-size: .875rem;
+    color: var(--muted);
+    line-height: 1.55;
+}
+
+.review-confirm-modal .modal-footer {
+    gap: .75rem;
+}
+
+.review-confirm-modal .modal-footer form {
+    margin: 0;
+}
+
+.review-confirm-modal .btn-close:focus {
+    box-shadow: none;
+}
+
 /* ── Main content sections ─────────────────────────── */
 .review-section {
     background: var(--white);
@@ -2158,10 +2300,10 @@ body.app-body {
     gap: .5rem;
 }
 
-    .review-section-title .iconify {
-        color: var(--blue);
-        font-size: 1.4rem;
-    }
+.review-section-title .iconify {
+    color: var(--blue);
+    font-size: 1.4rem;
+}
 
 /* Skills */
 .review-skills {

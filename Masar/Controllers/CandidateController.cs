@@ -1,6 +1,8 @@
 ﻿using Masar.Core.IService;
+using Masar.Core.Services;
 using Masar.Domain.Models;
 using Masar.Domain.ViewModels;
+using Masar.Domain.ViewModels.AuthDtos;
 using Masar.Domain.ViewModels.CandidateDtos;
 using Masar.Domain.ViewModels.JobDtos;
 using Microsoft.AspNetCore.Authorization;
@@ -15,18 +17,21 @@ namespace Masar.Controllers
         private readonly IDashboardService _dashboardService;
         private readonly IProfileService _profileService;
         private readonly IApplicationService _applicationService;
+        private readonly IAuthService _authService;
         private readonly UserManager<ApplicationUser> _userManager;
 
         public CandidateController(
             IDashboardService dashboardService,
             IProfileService profileService,
             IApplicationService applicationService,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            IAuthService authService)
         {
             _dashboardService = dashboardService;
             _profileService = profileService;
             _applicationService = applicationService;
             _userManager = userManager;
+            _authService = authService;
         }
 
         // ── Dashboard ─────────────────────────────────────────
@@ -80,6 +85,40 @@ namespace Masar.Controllers
 
             var userId = _userManager.GetUserId(User);
             await _profileService.UpdatePersonalInfoAsync(userId, dto);
+            return RedirectToAction(nameof(Profile));
+        }
+
+        // ── Education ─────────────────────────────────────────
+        [HttpGet]
+        public IActionResult ChangePassword()
+        {
+            ViewData["ReturnController"] = "Candidate";
+            return View(new ChangePasswordDto());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(ChangePasswordDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewData["ReturnController"] = "Candidate";
+                return View(dto);
+            }
+
+            var userId = _userManager.GetUserId(User);
+            var (success, errors) = await _authService.ChangePasswordAsync(userId!, dto);
+
+            if (!success)
+            {
+                foreach (var error in errors)
+                    ModelState.AddModelError(string.Empty, error);
+
+                ViewData["ReturnController"] = "Candidate";
+                return View(dto);
+            }
+
+            TempData["ProfileSuccess"] = "Password changed successfully.";
             return RedirectToAction(nameof(Profile));
         }
 

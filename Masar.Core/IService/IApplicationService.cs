@@ -24,7 +24,7 @@ namespace Masar.Core.IService
         Task<(bool Success, string? Error)> ToggleSaveJobAsync(int jobId, string userId);
 
         // ── Company: review applicants ────────────────────────
-        Task<ApplicantsViewDto?> GetApplicantsAsync( int jobId, string companyUserId, string? searchQuery = null, string? statusFilter = null, string? sortFilter = null);
+        Task<ApplicantsViewDto?> GetApplicantsAsync(int jobId, string companyUserId, string? searchQuery = null, string? statusFilter = null, string? sortFilter = null, int page = 1, int pageSize = 6);
         Task<ReviewApplicationViewDto?> StartReviewAsync(int applicationId, string companyUserId);
         Task<bool> AcceptApplicationAsync(int applicationId, string companyUserId);
         Task<bool> RejectApplicationAsync(int applicationId, string companyUserId);

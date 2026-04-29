@@ -428,6 +428,7 @@ namespace Masar.Core.Services
                 PhoneNumber = application.Candidate.PhoneNumber,
                 Location = application.Candidate.Location,
                 Bio = application.Candidate.Bio,
+                Gender = application.Candidate.Gender.ToString(),
                 Status = GetStatusDisplay(application.Status),
                 AppliedDate = application.AppliedDate,
                 Skills = application.Candidate.CandidateSkills

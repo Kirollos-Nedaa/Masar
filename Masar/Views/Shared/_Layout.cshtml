@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -10,7 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
     <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
 
-
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body class="app-body">
@@ -19,11 +18,19 @@
     <nav class="app-navbar">
         <div class="app-navbar-inner">
 
-            <!-- Brand -->
-            <a asp-controller="Home" asp-action="Index" class="app-brand">
-                MASAR<span>.</span>
-            </a>
-            
+            <!-- Left: hamburger (mobile only) + Brand -->
+            <div class="app-navbar-left">
+                @if (ViewData["HasSidebar"] is true)
+                {
+                    <button class="sidebar-toggle-btn" id="sidebarToggle" aria-label="Toggle menu">
+                        <span class="iconify" data-icon="lucide:menu"></span>
+                    </button>
+                }
+                <a asp-controller="Home" asp-action="Index" class="app-brand">
+                    MASAR<span>.</span>
+                </a>
+            </div>
+
             <!-- Right side -->
             <div class="app-nav-right">
                 @if (User.Identity?.IsAuthenticated == true)
@@ -67,12 +74,12 @@
                                     </a>
                                 </li>
                             }
-                            <li><hr class="dropdown-divider" /></li>
+                            <li><hr class="dropdown-divider app-dropdown-divider" /></li>
                             <li>
                                 <form asp-controller="Auth" asp-action="Logout" method="post" class="d-inline">
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="dropdown-item app-dropdown-item text-danger">
-                                        <span class="iconify me-1" data-icon="lucide:arrow-right"></span> Sign Out
+                                        <span class="iconify me-1" data-icon="lucide:log-out"></span> Sign Out
                                     </button>
                                 </form>
                             </li>
@@ -88,12 +95,23 @@
         </div>
     </nav>
 
+    <!-- ── Sidebar Overlay (mobile) ────────────────────────── -->
+    @if (ViewData["HasSidebar"] is true)
+    {
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    }
+
     <!-- ── Page Body ───────────────────────────────────────── -->
     @if (ViewData["HasSidebar"] is true)
     {
         <!-- Sidebar layout -->
         <div class="app-shell">
             <aside class="app-sidebar" id="appSidebar">
+                <!-- Close button (mobile only) -->
+                <button class="sidebar-close-btn" id="sidebarClose" aria-label="Close menu">
+                    <span class="iconify" data-icon="lucide:x"></span>
+                </button>
+
                 @await RenderSectionAsync("Sidebar", required: false)
             </aside>
             <main class="app-main">
@@ -111,6 +129,42 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        // ── Mobile sidebar toggle ─────────────────────────────────
+        (function () {
+            const toggle   = document.getElementById('sidebarToggle');
+            const close    = document.getElementById('sidebarClose');
+            const sidebar  = document.getElementById('appSidebar');
+            const overlay  = document.getElementById('sidebarOverlay');
+
+            if (!toggle || !sidebar) return;
+
+            function openSidebar() {
+                sidebar.classList.add('sidebar-open');
+                overlay.classList.add('overlay-visible');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSidebar() {
+                sidebar.classList.remove('sidebar-open');
+                overlay.classList.remove('overlay-visible');
+                document.body.style.overflow = '';
+            }
+
+            toggle.addEventListener('click', openSidebar);
+            if (close)   close.addEventListener('click', closeSidebar);
+            if (overlay) overlay.addEventListener('click', closeSidebar);
+
+            // Close on nav link click (mobile UX)
+            sidebar.querySelectorAll('.sidebar-link').forEach(function(link) {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth < 769) closeSidebar();
+                });
+            });
+        })();
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 
 </body>

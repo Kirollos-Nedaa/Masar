@@ -13,6 +13,13 @@
         _              => "badge-applied"
     };
 
+    var genderCls = Model.Gender switch
+    {
+        "Male"      => "mars",
+        "Female"    => "venus",
+        _           => "venus-and-mars"
+    };
+
     bool isFinalised = Model.Status is "Accepted" or "Rejected";
 }
 @section Sidebar { <partial name="_CompanySidebar" /> }
@@ -236,6 +243,19 @@
                         <div>
                             <div class="review-info-label">Location</div>
                             <div class="review-info-value">@Model.Location</div>
+                        </div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(Model.Gender))
+                {
+                    <div class="review-info-row">
+                        <div class="review-info-icon">
+                            <span class="iconify" data-icon="lucide:@genderCls"></span>
+                        </div>
+                        <div>
+                            <div class="review-info-label">Gender</div>
+                            <div class="review-info-value">@Model.Gender</div>
                         </div>
                     </div>
                 }

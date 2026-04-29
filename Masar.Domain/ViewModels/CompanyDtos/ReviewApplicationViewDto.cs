@@ -20,6 +20,7 @@ namespace Masar.Domain.ViewModels.CompanyDtos
         public string? PhoneNumber { get; set; }
         public string? Location { get; set; }
         public string? Bio { get; set; }
+        public string? Gender { get; set; }
 
         // Application meta
         public string Status { get; set; } = string.Empty;

@@ -15,6 +15,11 @@
     <span class="iconify stat-icon" data-icon="lucide:user"></span> My Profile
 </a>
 
+<a asp-controller="Jobs" asp-action="Index"
+   class="sidebar-link @(ctrl == "Jobs" ? "active" : "")">
+    <span class="iconify stat-icon" data-icon="lucide:search"></span> Browse Jobs
+</a>
+
 <a asp-controller="Candidate" asp-action="Applications"
    class="sidebar-link @(ctrl == "Candidate" && action == "Applications" ? "active" : "")">
     <span class="iconify stat-icon" data-icon="lucide:file"></span> Applications

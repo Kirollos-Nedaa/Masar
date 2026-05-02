@@ -471,23 +471,6 @@ namespace Masar.Core.Services
 
             application.Status = ApplicationStatus.Accepted;
 
-            var job = application.Job;
-
-            if (job.NumberOfOpenings > 0)
-                job.NumberOfOpenings--;
-
-            // If openings hit 0 → reject every other pending applicant for this job
-            if (job.NumberOfOpenings == 0)
-            {
-                var pendingOthers = await _context.JobApplications
-                    .Where(a => a.JobId == job.Id && a.Id != applicationId && 
-                        (a.Status == ApplicationStatus.Applied || a.Status == ApplicationStatus.UnderReview))
-                    .ToListAsync();
-
-                foreach (var other in pendingOthers)
-                    other.Status = ApplicationStatus.Rejected;
-            }
-
             await _context.SaveChangesAsync();
             return true;
         }

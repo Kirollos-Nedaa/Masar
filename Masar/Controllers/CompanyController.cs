@@ -9,6 +9,7 @@ using Masar.Domain.ViewModels.Job;
 using Masar.Core.Services;
 using Masar.Domain.Enums;
 using Microsoft.AspNetCore.Components.RenderTree;
+using System.ComponentModel.DataAnnotations;
 
 namespace Masar.Controllers
 {
@@ -131,6 +132,11 @@ namespace Masar.Controllers
                 TempData["Success"] = "Job posted successfully!";
                 return RedirectToAction(nameof(Jobs));
             }
+            catch (ValidationException ex)
+            {
+                ModelState.AddModelError(nameof(dto.ApplicationDeadline), ex.Message);
+                return View(dto);
+            }
             catch (InvalidOperationException ex)
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
@@ -166,7 +172,19 @@ namespace Masar.Controllers
             }
 
             var userId = _userManager.GetUserId(User);
-            var success = await _jobService.UpdateJobAsync(userId, jobId, dto);
+            bool success;
+
+            try
+            {
+                success = await _jobService.UpdateJobAsync(userId, jobId, dto);
+            }
+            catch (ValidationException ex)
+            {
+                ModelState.AddModelError(nameof(dto.ApplicationDeadline), ex.Message);
+                ViewData["IsEdit"] = true;
+                ViewData["JobId"] = jobId;
+                return View("PostJob", dto);
+            }
 
             if (!success)
                 return NotFound();

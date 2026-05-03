@@ -84,8 +84,36 @@
             </div>
 
             <div class="mb-3">
-                <label class="epi-label">Phone Number</label>
-                <input asp-for="Form.PhoneNumber" class="epi-input" placeholder="+1 (555) 123-4567" />
+                <label class="epi-label">Phone Number <span style="color:var(--red)">*</span></label>
+                <input type="hidden" asp-for="Form.PhoneNumber" id="ApplicationPhoneNumber" />
+                <div class="phone-input-wrap" id="applicationPhoneWrap">
+                    <div class="phone-country-btn" id="applicationCountryBtn">
+                        <span id="applicationSelectedFlag">
+                            <span class="iconify" data-icon="circle-flags:eg"
+                                  style="font-size:1.25rem;"></span>
+                        </span>
+                        <span id="applicationSelectedCode">+20</span>
+                        <span class="iconify phone-chevron" data-icon="lucide:chevron-down"></span>
+                    </div>
+                    <div class="phone-country-dropdown" id="applicationCountryDropdown" style="display:none;">
+                        <div class="phone-search-wrap">
+                            <span class="iconify phone-search-icon" data-icon="lucide:search"></span>
+                            <input type="text"
+                                   id="applicationCountrySearch"
+                                   class="phone-search-input"
+                                   placeholder="Search country..."
+                                   onclick="event.stopPropagation()" />
+                        </div>
+                        <ul id="applicationCountryList" class="phone-country-list"></ul>
+                    </div>
+                    <input type="text"
+                           id="applicationPhoneLocal"
+                           class="epi-input phone-local-input"
+                           placeholder="010XXXXXXXX"
+                           inputmode="numeric" />
+                </div>
+                <span class="epi-hint">Include at least 11 digits. Leading zero is removed automatically.</span>
+                <span asp-validation-for="Form.PhoneNumber" class="epi-error"></span>
             </div>
 
             <div>
@@ -307,6 +335,23 @@
         window.addEventListener('DOMContentLoaded', () => {
             const cl = document.querySelector('textarea[name="Form.CoverLetter"]');
             if (cl) updateCount(cl, 'clCount');
+
+            MasarPhoneInput.init({
+                formId: 'applyForm',
+                hiddenInputId: 'ApplicationPhoneNumber',
+                localInputId: 'applicationPhoneLocal',
+                wrapperId: 'applicationPhoneWrap',
+                countryButtonId: 'applicationCountryBtn',
+                dropdownId: 'applicationCountryDropdown',
+                countryListId: 'applicationCountryList',
+                countrySearchId: 'applicationCountrySearch',
+                selectedFlagId: 'applicationSelectedFlag',
+                selectedCodeId: 'applicationSelectedCode',
+                defaultCountryIso: 'eg',
+                minDigits: 11,
+                requiredMessage: 'Phone number is required.',
+                minDigitsMessage: 'Phone number must contain at least 11 digits.'
+            });
         });
     </script>
 }

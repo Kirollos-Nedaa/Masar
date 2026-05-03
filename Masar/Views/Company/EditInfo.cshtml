@@ -28,7 +28,7 @@
     </div>
 }
 
-<form asp-controller="Company" asp-action="EditInfo" method="post">
+<form asp-controller="Company" asp-action="EditInfo" method="post" id="companyInfoForm">
     @Html.AntiForgeryToken()
 
     @* ── Basic Information ────────────────────────────────── *@
@@ -138,10 +138,35 @@
                 <span asp-validation-for="ContactEmail" class="epi-error"></span>
             </div>
             <div class="col-12 col-sm-6">
-                <label class="epi-label">Contact Phone</label>
-                <input asp-for="ContactPhone"
-                       class="epi-input"
-                       placeholder="+1 234 567 8900" />
+                <label class="epi-label">Contact Phone <span style="color:var(--red)">*</span></label>
+                <input type="hidden" asp-for="ContactPhone" id="CompanyContactPhone" />
+                <div class="phone-input-wrap" id="companyPhoneWrap">
+                    <div class="phone-country-btn" id="companyCountryBtn">
+                        <span id="companySelectedFlag">
+                            <span class="iconify" data-icon="circle-flags:eg"
+                                  style="font-size:1.25rem;"></span>
+                        </span>
+                        <span id="companySelectedCode">+20</span>
+                        <span class="iconify phone-chevron" data-icon="lucide:chevron-down"></span>
+                    </div>
+                    <div class="phone-country-dropdown" id="companyCountryDropdown" style="display:none;">
+                        <div class="phone-search-wrap">
+                            <span class="iconify phone-search-icon" data-icon="lucide:search"></span>
+                            <input type="text"
+                                   id="companyCountrySearch"
+                                   class="phone-search-input"
+                                   placeholder="Search country..."
+                                   onclick="event.stopPropagation()" />
+                        </div>
+                        <ul id="companyCountryList" class="phone-country-list"></ul>
+                    </div>
+                    <input type="text"
+                           id="companyPhoneLocal"
+                           class="epi-input phone-local-input"
+                           placeholder="010XXXXXXXX"
+                           inputmode="numeric" />
+                </div>
+                <span class="epi-hint">Include at least 11 digits. Leading zero is removed automatically.</span>
                 <span asp-validation-for="ContactPhone" class="epi-error"></span>
             </div>
         </div>
@@ -179,6 +204,23 @@
         window.addEventListener('DOMContentLoaded', () => {
             const desc = document.querySelector('textarea[name="Description"]');
             if (desc) updateDescCount(desc);
+
+            MasarPhoneInput.init({
+                formId: 'companyInfoForm',
+                hiddenInputId: 'CompanyContactPhone',
+                localInputId: 'companyPhoneLocal',
+                wrapperId: 'companyPhoneWrap',
+                countryButtonId: 'companyCountryBtn',
+                dropdownId: 'companyCountryDropdown',
+                countryListId: 'companyCountryList',
+                countrySearchId: 'companyCountrySearch',
+                selectedFlagId: 'companySelectedFlag',
+                selectedCodeId: 'companySelectedCode',
+                defaultCountryIso: 'eg',
+                minDigits: 11,
+                requiredMessage: 'Contact phone is required.',
+                minDigitsMessage: 'Contact phone must contain at least 11 digits.'
+            });
         });
     </script>
     <partial name="_ValidationScriptsPartial" />

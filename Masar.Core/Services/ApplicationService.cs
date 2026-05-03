@@ -20,11 +20,16 @@ namespace Masar.Core.Services
     {
         private readonly AppDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IJobLifecycleService _jobLifecycleService;
 
-        public ApplicationService(AppDbContext context, UserManager<ApplicationUser> userManager)
+        public ApplicationService(
+            AppDbContext context,
+            UserManager<ApplicationUser> userManager,
+            IJobLifecycleService jobLifecycleService)
         {
             _context = context;
             _userManager = userManager;
+            _jobLifecycleService = jobLifecycleService;
         }
 
         // ─────────────────────────────────────────────────────
@@ -33,6 +38,8 @@ namespace Masar.Core.Services
 
         public async Task<ApplyJobViewDto?> GetApplyViewAsync(int jobId, string userId)
         {
+            await _jobLifecycleService.CloseExpiredJobsAsync();
+
             var job = await _context.Jobs
                 .Include(j => j.Company)
                 .Include(j => j.JobApplications)
@@ -82,14 +89,18 @@ namespace Masar.Core.Services
                 HasApplied = hasApplied
             };
 
-            var questions = job.JobQuestions.Select(q => new JobQuestionViewDto
-            {
-                Id = q.Id,
-                QuestionText = q.QuestionText,
-                Type = q.Type.ToString(),
-                IsRequired = q.IsRequired,
-                Order = q.Order
-            }).ToList();
+            var questions = job.JobQuestions
+                .Where(q => q.IsActive)
+                .OrderBy(q => q.Order)
+                .Select(q => new JobQuestionViewDto
+                {
+                    Id = q.Id,
+                    QuestionText = q.QuestionText,
+                    Type = q.Type.ToString(),
+                    IsRequired = q.IsRequired,
+                    Order = q.Order
+                })
+                .ToList();
 
             return new ApplyJobViewDto
             {
@@ -101,6 +112,8 @@ namespace Masar.Core.Services
 
         public async Task<(bool Success, string? Error)> SubmitApplicationAsync(int jobId, string userId, ApplyJobDto dto, string? resumeUrl)
         {
+            await _jobLifecycleService.CloseExpiredJobsAsync();
+
             var profile = await _context.CandidateProfiles
                 .FirstOrDefaultAsync(p => p.UserId == userId);
 
@@ -187,6 +200,8 @@ namespace Masar.Core.Services
 
         public async Task<List<SavedJobDto>> GetSavedJobsAsync(string userId)
         {
+            await _jobLifecycleService.CloseExpiredJobsAsync();
+
             var profile = await _context.CandidateProfiles
                 .FirstOrDefaultAsync(p => p.UserId == userId);
 

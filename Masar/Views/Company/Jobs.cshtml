@@ -40,7 +40,6 @@
                     {
                         var statusClass = job.IsActive ? "badge-accepted" : "badge-rejected";
                         var statusLabel = job.IsActive ? "Active" : "Closed";
-                        var deadlinePast = job.IsExpired;
 
                         <tr>
                             <td>
@@ -48,10 +47,6 @@
                             </td>
                             <td>
                                 <span class="status-badge @statusClass">@statusLabel</span>
-                                @if (deadlinePast && job.IsActive)
-                                {
-                                    <div style="font-size:.7rem;color:var(--red);margin-top:.2rem;">Deadline passed</div>
-                                }
                             </td>
                             <td>
                                 <div class="applicant-count">

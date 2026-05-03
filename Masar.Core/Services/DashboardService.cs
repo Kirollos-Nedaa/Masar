@@ -18,17 +18,24 @@ namespace Masar.Core.Services
     {
         private readonly AppDbContext _context;
         private readonly IProfileService _profileService;
+        private readonly IJobLifecycleService _jobLifecycleService;
 
-        public DashboardService(AppDbContext context, IProfileService profileService)
+        public DashboardService(
+            AppDbContext context,
+            IProfileService profileService,
+            IJobLifecycleService jobLifecycleService)
         {
             _context = context;
             _profileService = profileService;
+            _jobLifecycleService = jobLifecycleService;
         }
 
 
         //-───────────── CANDIDATE DASHBOARD -────────────────────────────────────────────
         public async Task<CandidateDashboardDto> GetCandidateDashboardAsync(string userId)
         {
+            await _jobLifecycleService.CloseExpiredJobsAsync();
+
             var user = await _context.Users.FindAsync(userId);
 
             var profile = await _context.CandidateProfiles
@@ -106,6 +113,8 @@ namespace Masar.Core.Services
         //-─────────── COMPANY DASHBOARD -────────────────────────────────────────────
         public async Task<CompanyDashboardDto> GetCompanyDashboardAsync(string userId)
         {
+            await _jobLifecycleService.CloseExpiredJobsAsync();
+
             // Resolve the company profile that belongs to this user
             var companyProfile = await _context.CompanyProfiles
                 .FirstOrDefaultAsync(c => c.UserId == userId);

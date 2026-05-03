@@ -1,10 +1,6 @@
-﻿using Masar.Domain.Enums;
-using System;
-using System.Collections.Generic;
+using Masar.Domain.Enums;
+using Masar.Domain.Validation;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Masar.Domain.ViewModels.CompanyDtos
 {
@@ -21,7 +17,11 @@ namespace Masar.Domain.ViewModels.CompanyDtos
         public string? Description { get; set; }
 
         public string? ContactEmail { get; set; }
+
+        [Required(ErrorMessage = "Contact phone is required.")]
+        [MinimumPhoneDigits(11, ErrorMessage = "Contact phone must contain at least 11 digits.")]
         public string? ContactPhone { get; set; }
+
         public string? Address { get; set; }
         public string? LogoUrl { get; set; }
     }

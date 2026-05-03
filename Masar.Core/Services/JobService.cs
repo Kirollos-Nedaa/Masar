@@ -6,6 +6,7 @@ using Masar.Domain.ViewModels.Job;
 using Masar.Domain.ViewModels.JobDtos;
 using Masar.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
 namespace Masar.Core.Services
@@ -13,10 +14,12 @@ namespace Masar.Core.Services
     public class JobService : IJobService
     {
         private readonly AppDbContext _context;
+        private readonly IJobLifecycleService _jobLifecycleService;
 
-        public JobService(AppDbContext context)
+        public JobService(AppDbContext context, IJobLifecycleService jobLifecycleService)
         {
             _context = context;
+            _jobLifecycleService = jobLifecycleService;
         }
 
         // ─────────────────────────────────────────────────────
@@ -25,6 +28,8 @@ namespace Masar.Core.Services
 
         public async Task<int> PostJobAsync(string userId, PostJobDto dto)
         {
+            EnsureDeadlineIsInFuture(dto.ApplicationDeadline);
+
             var company = await _context.CompanyProfiles
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
@@ -64,6 +69,8 @@ namespace Masar.Core.Services
 
         public async Task<bool> UpdateJobAsync(string userId, int jobId, PostJobDto dto)
         {
+            EnsureDeadlineIsInFuture(dto.ApplicationDeadline);
+
             var job = await GetOwnedJobAsync(userId, jobId);
             if (job == null) return false;
 
@@ -112,6 +119,8 @@ namespace Masar.Core.Services
 
         public async Task<PostJobDto?> GetJobForEditAsync(string userId, int jobId)
         {
+            await _jobLifecycleService.CloseExpiredJobsAsync();
+
             var job = await _context.Jobs
                 .Include(j => j.Company)
                 .Include(j => j.JobQuestions)
@@ -136,6 +145,7 @@ namespace Masar.Core.Services
                 RequireCv = job.RequireCv,
                 RequireCoverLetter = job.RequireCoverLetter,
                 Questions = job.JobQuestions
+                    .Where(q => q.IsActive)
                     .OrderBy(q => q.Order)
                     .Select(q => new JobQuestionDto
                     {
@@ -151,6 +161,8 @@ namespace Masar.Core.Services
 
         public async Task<CompanyJobsViewDto> GetCompanyJobsAsync(string userId, int page = 1, int pageSize = 10)
         {
+            await _jobLifecycleService.CloseExpiredJobsAsync();
+
             pageSize = pageSize <= 0 ? 10 : pageSize;
 
             var company = await _context.CompanyProfiles
@@ -205,6 +217,8 @@ namespace Masar.Core.Services
         public async Task<JobBrowseResultDto> BrowseJobsAsync(
             JobFilterDto filter, string? candidateUserId = null)
         {
+            await _jobLifecycleService.CloseExpiredJobsAsync();
+
             var query = _context.Jobs
                 .Include(j => j.Company)
                 .Where(j => j.IsActive)
@@ -320,6 +334,8 @@ namespace Masar.Core.Services
         public async Task<JobDetailDto?> GetJobDetailAsync(
             int jobId, string? candidateUserId = null)
         {
+            await _jobLifecycleService.CloseExpiredJobsAsync();
+
             var job = await _context.Jobs
                 .Include(j => j.Company)
                     .ThenInclude(c => c.ContactInfo)
@@ -385,31 +401,110 @@ namespace Masar.Core.Services
 
         private async Task SyncQuestionsAsync(int jobId, List<JobQuestionDto> questions)
         {
-            // Remove all existing questions for this job
+            questions ??= new List<JobQuestionDto>();
+
+            var normalizedQuestions = questions
+                .Where(q => !string.IsNullOrWhiteSpace(q.QuestionText))
+                .Select((q, index) => new
+                {
+                    Question = q,
+                    Order = index,
+                    Type = Enum.TryParse<QuestionType>(q.Type, out var parsedType)
+                        ? parsedType
+                        : QuestionType.Essay
+                })
+                .ToList();
+
             var existing = await _context.JobQuestions
                 .Where(q => q.JobId == jobId)
                 .ToListAsync();
 
-            _context.JobQuestions.RemoveRange(existing);
+            var existingById = existing.ToDictionary(q => q.Id);
+            var existingIds = existingById.Keys.ToList();
 
-            // Add the new set
-            for (int i = 0; i < questions.Count; i++)
+            var answeredQuestionIds = existingIds.Count == 0
+                ? new HashSet<int>()
+                : (await _context.ApplicationAnswers
+                    .Where(a => existingIds.Contains(a.JobQuestionId))
+                    .Select(a => a.JobQuestionId)
+                    .Distinct()
+                    .ToListAsync())
+                    .ToHashSet();
+
+            foreach (var item in normalizedQuestions)
             {
-                var q = questions[i];
-                if (string.IsNullOrWhiteSpace(q.QuestionText)) continue;
+                var incoming = item.Question;
+
+                if (incoming.Id.HasValue &&
+                    existingById.TryGetValue(incoming.Id.Value, out var existingQuestion))
+                {
+                    if (answeredQuestionIds.Contains(existingQuestion.Id) &&
+                        HasHistoricalQuestionChange(existingQuestion, incoming.QuestionText, item.Type))
+                    {
+                        existingQuestion.IsActive = false;
+
+                        _context.JobQuestions.Add(new JobQuestion
+                        {
+                            JobId = jobId,
+                            QuestionText = incoming.QuestionText.Trim(),
+                            Type = item.Type,
+                            IsActive = true,
+                            IsRequired = incoming.IsRequired,
+                            Order = item.Order
+                        });
+
+                        continue;
+                    }
+
+                    existingQuestion.QuestionText = incoming.QuestionText.Trim();
+                    existingQuestion.Type = item.Type;
+                    existingQuestion.IsActive = true;
+                    existingQuestion.IsRequired = incoming.IsRequired;
+                    existingQuestion.Order = item.Order;
+                    continue;
+                }
 
                 _context.JobQuestions.Add(new JobQuestion
                 {
                     JobId = jobId,
-                    QuestionText = q.QuestionText,
-                    Type = Enum.TryParse<QuestionType>(q.Type, out var qt)
-                                       ? qt : QuestionType.Essay,
-                    IsRequired = q.IsRequired,
-                    Order = i
+                    QuestionText = incoming.QuestionText.Trim(),
+                    Type = item.Type,
+                    IsActive = true,
+                    IsRequired = incoming.IsRequired,
+                    Order = item.Order
                 });
             }
 
+            var keptExistingIds = normalizedQuestions
+                .Where(q => q.Question.Id.HasValue)
+                .Select(q => q.Question.Id!.Value)
+                .ToHashSet();
+
+            foreach (var existingQuestion in existing.Where(q => q.IsActive && !keptExistingIds.Contains(q.Id)))
+            {
+                if (answeredQuestionIds.Contains(existingQuestion.Id))
+                {
+                    existingQuestion.IsActive = false;
+                }
+                else
+                {
+                    _context.JobQuestions.Remove(existingQuestion);
+                }
+            }
+
             await _context.SaveChangesAsync();
+        }
+
+        private static bool HasHistoricalQuestionChange(
+            JobQuestion existingQuestion,
+            string incomingQuestionText,
+            QuestionType incomingType)
+        {
+            return !string.Equals(
+                       existingQuestion.QuestionText.Trim(),
+                       incomingQuestionText.Trim(),
+                       StringComparison.Ordinal) ||
+                   existingQuestion.Type != incomingType;
         }
 
         private async Task<Job?> GetOwnedJobAsync(string userId, int jobId)
@@ -417,6 +512,12 @@ namespace Masar.Core.Services
             return await _context.Jobs
                 .Include(j => j.Company)
                 .FirstOrDefaultAsync(j => j.Id == jobId && j.Company.UserId == userId);
+        }
+
+        private static void EnsureDeadlineIsInFuture(DateTime applicationDeadline)
+        {
+            if (applicationDeadline <= DateTime.UtcNow)
+                throw new ValidationException("Application deadline must be later than the current time.");
         }
 
         private static string GetRelativeDate(DateTime date)

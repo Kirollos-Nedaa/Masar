@@ -1,11 +1,7 @@
-﻿using Masar.Domain.Enums;
+using Masar.Domain.Enums;
+using Masar.Domain.Validation;
 using Masar.Domain.ViewModels.JobDtos;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Masar.Domain.ViewModels.Job
 {
@@ -50,6 +46,7 @@ namespace Masar.Domain.ViewModels.Job
 
         // ── Application Details ───────────────────────────────
         [Required(ErrorMessage = "Application deadline is required.")]
+        [FutureDateTime(ErrorMessage = "Application deadline must be later than the current time.")]
         public DateTime ApplicationDeadline { get; set; } = DateTime.UtcNow.AddDays(30);
 
         [Required(ErrorMessage = "Number of openings is required.")]

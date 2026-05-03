@@ -22,6 +22,10 @@ namespace Masar.Infrastructure.Config
             builder.Property(q => q.Type)
                 .IsRequired();
 
+            builder.Property(q => q.IsActive)
+                .IsRequired()
+                .HasDefaultValue(true);
+
             builder.Property(q => q.IsRequired)
                 .IsRequired();
 

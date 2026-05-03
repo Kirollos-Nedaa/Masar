@@ -85,16 +85,21 @@
                         if (dept == Department.None) continue;
                         var deptLabel = dept switch
                         {
-                            Department.ComputerScience        => "Computer Science",
-                            Department.InformationTechnology  => "Information Technology",
-                            Department.SoftwareEngineering    => "Software Engineering",
-                            Department.ElectricalEngineering  => "Electrical Engineering",
-                            Department.MechanicalEngineering  => "Mechanical Engineering",
-                            Department.CivilEngineering       => "Civil Engineering",
-                            Department.BusinessAdministration => "Business Administration",
-                            Department.HumanResources         => "Human Resources",
-                            Department.CustomerService        => "Customer Service",
-                            Department.ArtsAndDesign          => "Arts & Design",
+                            Department.ComputerScience          => "Computer Science",
+                            Department.InformationTechnology    => "Information Technology",
+                            Department.SoftwareEngineering      => "Software Engineering",
+                            Department.ElectricalEngineering    => "Electrical Engineering",
+                            Department.MechanicalEngineering    => "Mechanical Engineering",
+                            Department.CivilEngineering         => "Civil Engineering",
+                            Department.BusinessAdministration   => "Business Administration",
+                            Department.HumanResources           => "Human Resources",
+                            Department.CustomerService          => "Customer Service",
+                            Department.ArtsAndDesign            => "Arts & Design",
+							Department.Marketing                => "Marketing",
+							Department.Finance                  => "Finance",
+							Department.Healthcare               => "Healthcare",
+							Department.Education                => "Education",
+							Department.Other                    => "Other",
                             _ => dept.ToString()
                         };
                         <option value="@((int)dept)" selected="@(Model.Department == dept)">@deptLabel</option>
@@ -215,7 +220,7 @@
             <div class="col-12 col-sm-6">
                 <label class="epi-label">Application Deadline <span style="color:var(--red)">*</span></label>
                 <div class="date-input-wrap">
-                    <input asp-for="ApplicationDeadline" type="date" class="epi-input" />
+                    <input asp-for="ApplicationDeadline" type="datetime-local" class="epi-input" id="ApplicationDeadline" />
                 </div>
                 <span asp-validation-for="ApplicationDeadline" class="epi-error"></span>
             </div>
@@ -298,45 +303,6 @@
         </button>
     </div>
 </form>
-
-@section Styles {
-<style>
-.job-optional-label {
-    display: inline-flex; align-items: center;
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); padding: .15rem .55rem;
-    font-size: .72rem; font-weight: 600; color: var(--muted); letter-spacing: .03em;
-}
-.salary-input-wrap { display: flex; align-items: stretch; }
-.salary-prefix {
-    display: flex; align-items: center; padding: 0 .75rem;
-    background: var(--bg); border: 1.5px solid var(--border); border-right: none;
-    border-radius: var(--radius-md) 0 0 var(--radius-md);
-    font-weight: 600; color: var(--muted); font-size: .9rem;
-}
-.salary-input { border-radius: 0 var(--radius-md) var(--radius-md) 0 !important; }
-.job-checkbox-label {
-    display: flex; align-items: center; gap: .625rem;
-    cursor: pointer; font-size: .9rem; font-weight: 500; color: var(--dark); user-select: none;
-}
-.job-checkbox { display: none; }
-.job-checkbox-box {
-    width: 18px; height: 18px; border: 2px solid var(--border); border-radius: 4px;
-    background: var(--white); display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; transition: border-color .15s, background .15s;
-}
-.job-checkbox:checked + .job-checkbox-box { background: var(--blue); border-color: var(--blue); }
-.job-checkbox:checked + .job-checkbox-box::after {
-    content: ''; display: block; width: 5px; height: 9px;
-    border: 2px solid var(--white); border-top: none; border-left: none;
-    transform: rotate(45deg) translateY(-1px);
-}
-.question-row {
-    padding: .875rem 1rem; background: var(--bg);
-    border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: .625rem;
-}
-</style>
-}
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
@@ -450,5 +416,21 @@
                 });
             });
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const input = document.getElementById('ApplicationDeadline');
+
+            if (input) {
+                const now = new Date();
+
+                // Format to YYYY-MM-DDTHH:mm
+                const pad = n => n.toString().padStart(2, '0');
+                const formatted =
+                    `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}` +
+                    `T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+                input.min = formatted;
+            }
+        });
     </script>
 }

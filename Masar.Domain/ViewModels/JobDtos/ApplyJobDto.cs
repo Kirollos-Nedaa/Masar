@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+using Masar.Domain.Validation;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Masar.Domain.ViewModels.JobDtos
 {
@@ -23,7 +19,9 @@ namespace Masar.Domain.ViewModels.JobDtos
         public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Phone number is required.")]
+        [MinimumPhoneDigits(11, ErrorMessage = "Phone number must contain at least 11 digits.")]
         public string? PhoneNumber { get; set; }
+
         public string? Location { get; set; }
 
         // ── Resume ────────────────────────────────────────────

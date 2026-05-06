@@ -15,5 +15,9 @@
     <ProjectReference Include="..\Masar.Domain\Masar.Domain.csproj" />
     <ProjectReference Include="..\Masar.Infrastructure\Masar.Infrastructure.csproj" />
   </ItemGroup>
+
+    <ItemGroup>
+	    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    </ItemGroup>
 	
 </Project>

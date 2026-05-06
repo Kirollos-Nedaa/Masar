@@ -18,6 +18,7 @@ namespace Masar.Controllers
         private readonly IProfileService _profileService;
         private readonly IApplicationService _applicationService;
         private readonly IAuthService _authService;
+        private readonly IFileService _fileService;
         private readonly UserManager<ApplicationUser> _userManager;
 
         public CandidateController(
@@ -25,13 +26,15 @@ namespace Masar.Controllers
             IProfileService profileService,
             IApplicationService applicationService,
             UserManager<ApplicationUser> userManager,
-            IAuthService authService)
+            IAuthService authService,
+            IFileService fileService)
         {
             _dashboardService = dashboardService;
             _profileService = profileService;
             _applicationService = applicationService;
             _userManager = userManager;
             _authService = authService;
+            _fileService = fileService;
         }
 
         // ── Dashboard ─────────────────────────────────────────
@@ -52,6 +55,23 @@ namespace Masar.Controllers
             var userId = _userManager.GetUserId(User);
             var dto = await _profileService.GetMyCandidateProfileAsync(userId);
             return View(dto);
+        }
+
+        // ── UploadResume ───────────────────────────────────────────
+
+        [HttpPost]
+        public async Task<IActionResult> UploadResume(IFormFile Resume)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            var result = await _profileService.UpdateResumeAsync(userId, Resume);
+
+            if (!result.Success)
+                TempData["ProfileError"] = result.Error;
+            else
+                TempData["ProfileSuccess"] = "Resume uploaded successfully.";
+
+            return RedirectToAction(nameof(Profile));
         }
 
         // ── Personal Info ─────────────────────────────────────

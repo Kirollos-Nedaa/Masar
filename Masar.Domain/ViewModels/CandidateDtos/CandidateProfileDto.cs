@@ -26,8 +26,9 @@ namespace Masar.Domain.ViewModels.CandidateDtos
         public List<int>? SkillIds { get; set; } = new();
         public List<string>? SkillNames { get; set; } = new();
 
-        // ── Resume ───────────────────────────────────────────
+        // ── Urls ───────────────────────────────────────────
         public string? ResumeUrl { get; set; }
+        public string? AvatarUrl { get; set; }
 
         // ── Professional Links ────────────────────────────────
         public List<ProfessionalLinkDto>? ProfessionalLinks { get; set; } = new();

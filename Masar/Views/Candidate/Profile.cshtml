@@ -200,39 +200,50 @@
 </div>
 
 @* ── Resume ───────────────────────────────────────────────── *@
-<div class="app-card mb-4">
-    <div class="card-section-header">
-        <div class="card-section-title">
-            <span class="iconify" data-icon="lucide:file-user"></span>
-            Resume
-        </div>
-    </div>
-
-    @if (!string.IsNullOrEmpty(Model.ResumeUrl))
-    {
-        <div class="resume-row">
-            <span class="iconify resume-icon" data-icon="lucide:file-text"></span>
-            <div class="resume-info">
-                <div class="resume-name">resume.pdf</div>
-                <div class="resume-meta text-muted">Uploaded</div>
+<form asp-controller="Candidate" asp-action="UploadResume" method="post" enctype="multipart/form-data">
+    <div class="app-card mb-4">
+        <div class="card-section-header">
+            <div class="card-section-title">
+                <span class="iconify" data-icon="lucide:file-user"></span>
+                Resume
             </div>
-            <a href="@Model.ResumeUrl" target="_blank" class="btn-outline-app btn-sm-app">
-                <span class="iconify" data-icon="lucide:eye"></span> View
-            </a>
         </div>
-    }
-    else
-    {
-        <div class="resume-upload-zone">
-            <span class="iconify resume-upload-icon" data-icon="lucide:upload"></span>
-            <p class="mb-1">Drop your resume here or click to browse</p>
-            <p class="text-muted mb-3" style="font-size:.82rem;">PDF, DOC, DOCX (max 5MB)</p>
-            <button type="button" class="btn-primary-app btn-sm-app">
-                <span class="iconify" data-icon="lucide:upload"></span> Upload Resume
-            </button>
-        </div>
-    }
-</div>
+
+        @if (!string.IsNullOrEmpty(Model.ResumeUrl))
+        {
+            <div class="resume-row">
+                <span class="iconify resume-icon" data-icon="lucide:file-text"></span>
+                <div class="resume-info">
+                    <div class="resume-name">resume.pdf</div>
+                    <div class="resume-meta text-muted">Uploaded</div>
+                </div>
+                <a href="@Model.ResumeUrl" target="_blank" class="btn-outline-app btn-sm-app">
+                    <span class="iconify" data-icon="lucide:eye"></span> View
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="resume-upload-zone" id="resumeDropZone">
+                <input type="file"
+                       id="resumeInput"
+                       name="Resume"
+                       accept=".pdf,.doc,.docx"
+                       hidden />
+                <span class="iconify resume-upload-icon" data-icon="lucide:upload"></span>
+                <p class="mb-1">Drop your resume here or click to browse</p>
+                <p class="text-muted mb-3" style="font-size:.82rem;">PDF, DOC, DOCX (max 5MB)</p>
+                <button type="button"
+                        class="btn-primary-app btn-sm-app"
+                        id="resumeButton">
+                    <span class="iconify" data-icon="lucide:upload"></span>
+                    Upload Resume
+                </button>
+                <p id="selectedFileName" class="mt-2 text-success"></p>
+            </div>
+        }
+    </div>
+</form>
 
 @* ── Professional Links ───────────────────────────────────── *@
 <div class="app-card mb-4">
@@ -292,3 +303,40 @@
         </div>
     }
 </div>
+
+<script>
+    const resumeInput = document.getElementById("resumeInput");
+    const resumeButton = document.getElementById("resumeButton");
+    const resumeDropZone = document.getElementById("resumeDropZone");
+    const selectedFileName = document.getElementById("selectedFileName");
+
+    // Open file picker when button clicked
+    resumeButton.addEventListener("click", () => {
+        resumeInput.click();
+    });
+
+    // Open file picker when zone clicked
+    resumeDropZone.addEventListener("click", (e) => {
+        if (e.target !== resumeButton) {
+            resumeInput.click();
+        }
+    });
+
+    // Show selected file name
+    resumeInput.addEventListener("change", () => {
+        if (resumeInput.files.length > 0) {
+            selectedFileName.textContent = `Selected: ${resumeInput.files[0].name}`;
+        }
+    });
+
+    if (resumeButton && resumeInput) {
+
+        // Auto upload after selecting file
+        resumeInput.addEventListener("change", function () {
+
+            if (resumeInput.files.length > 0) {
+                resumeInput.form.submit();
+            }
+        });
+    }
+</script>

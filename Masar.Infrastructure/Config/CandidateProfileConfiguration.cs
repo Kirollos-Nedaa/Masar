@@ -42,6 +42,9 @@ namespace Masar.Infrastructure.Config
             builder.Property(cp => cp.ResumeUrl)
                 .IsRequired(false);
 
+            builder.Property(cp => cp.AvatarUrl)
+                .IsRequired(false);
+
             builder.Property(cp => cp.CreatedAt)
                 .HasDefaultValueSql("GETUTCDATE()")
                 .ValueGeneratedOnAdd();

@@ -28,6 +28,7 @@ namespace Masar.Domain.Models
         public ICollection<Education> Educations { get; set; } = new List<Education>();
 
         public string? ResumeUrl { get; set; }
+        public string? ResumeOriginalName { get; set; }
 
         public ICollection<CandidateSkill> CandidateSkills { get; set; } = new List<CandidateSkill>();
 

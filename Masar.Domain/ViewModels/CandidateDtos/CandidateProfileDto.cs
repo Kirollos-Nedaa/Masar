@@ -9,6 +9,8 @@ namespace Masar.Domain.ViewModels.CandidateDtos
 {
     public class CandidateProfileDto
     {
+        public string? AvatarUrl { get; set; }
+
         // ── Personal Information ──────────────────────────────
         public string FirstName { get; set; }
         public string LastName { get; set; }
@@ -26,9 +28,9 @@ namespace Masar.Domain.ViewModels.CandidateDtos
         public List<int>? SkillIds { get; set; } = new();
         public List<string>? SkillNames { get; set; } = new();
 
-        // ── Urls ───────────────────────────────────────────
+        // ── Resume ───────────────────────────────────────────
         public string? ResumeUrl { get; set; }
-        public string? AvatarUrl { get; set; }
+        public string? ResumeOriginalName { get; set; }
 
         // ── Professional Links ────────────────────────────────
         public List<ProfessionalLinkDto>? ProfessionalLinks { get; set; } = new();

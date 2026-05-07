@@ -17,6 +17,7 @@ namespace Masar.Domain.ViewModels.CandidateDtos
         public string JobType { get; set; } = string.Empty;
         public string? SalaryDisplay { get; set; }
         public string PostedDateDisplay { get; set; } = string.Empty;
+        public string DescriptionSnippet { get; set; } = string.Empty;
         public bool IsActive { get; set; }
     }
 }

@@ -224,7 +224,6 @@ namespace Masar.Core.Services
         }
 
         // ── FILE UPLOADS — Candidate ──────────────────────────────
-
         public async Task<(bool Success, string? Error)> UpdateResumeAsync(string userId, IFormFile file)
         {
             try
@@ -232,26 +231,37 @@ namespace Masar.Core.Services
                 var profile = await GetOrCreateCandidateProfileAsync(userId);
 
                 if (!string.IsNullOrEmpty(profile.ResumeUrl))
-                {
                     _fileService.DeleteFile(profile.ResumeUrl);
-                }
 
                 var url = await _fileService.SaveResumeAsync(file, userId);
 
                 profile.ResumeUrl = url;
+                profile.ResumeOriginalName = file.FileName;
 
                 await _context.SaveChangesAsync();
-
                 return (true, null);
             }
-            catch (InvalidOperationException ex)
+            catch (InvalidOperationException ex) { return (false, ex.Message); }
+            catch { return (false, "An unexpected error occurred while saving your resume."); }
+        }
+
+        public async Task<(bool Success, string? Error)> DeleteResumeAsync(string userId)
+        {
+            try
             {
-                return (false, ex.Message);
+                var profile = await _context.CandidateProfiles
+                    .FirstOrDefaultAsync(p => p.UserId == userId);
+
+                if (profile == null) return (false, "Profile not found.");
+
+                _fileService.DeleteFile(profile.ResumeUrl);
+                profile.ResumeUrl = null;
+                profile.ResumeOriginalName = null;
+
+                await _context.SaveChangesAsync();
+                return (true, null);
             }
-            catch
-            {
-                return (false, "An unexpected error occurred while saving your resume.");
-            }
+            catch { return (false, "An unexpected error occurred while deleting your resume."); }
         }
 
         public async Task<(bool Success, string? Error)> UpdateAvatarAsync(string userId, IFormFile file)
@@ -345,7 +355,6 @@ namespace Masar.Core.Services
         }
 
         // ── FILE UPLOADS — Company ────────────────────────────────
-
         public async Task<(bool Success, string? Error)> UpdateLogoAsync(string userId, IFormFile file)
         {
             try
@@ -409,6 +418,7 @@ namespace Masar.Core.Services
             dto.Location = profile.Location;
             dto.DateOfBirth = profile.DateOfBirth;
             dto.Bio = profile.Bio;
+            dto.ResumeOriginalName = profile.ResumeOriginalName;
             dto.ResumeUrl = profile.ResumeUrl;
             dto.AvatarUrl = profile.AvatarUrl;
 

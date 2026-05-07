@@ -108,7 +108,7 @@ namespace Masar.Controllers
             return RedirectToAction(nameof(Profile));
         }
 
-        // ── Education ─────────────────────────────────────────
+        // ── Change Password ─────────────────────────────────────────
         [HttpGet]
         public IActionResult ChangePassword()
         {
@@ -230,10 +230,14 @@ namespace Masar.Controllers
         // ── Saved Jobs ────────────────────────────────────────
 
         [HttpGet]
-        public async Task<IActionResult> SavedJobs()
+        public async Task<IActionResult> SavedJobs(string? search = null, string? sortBy = null)
         {
             var userId = _userManager.GetUserId(User);
-            var saved = await _applicationService.GetSavedJobsAsync(userId);
+            var saved = await _applicationService.GetSavedJobsAsync(userId, search, sortBy);
+
+            ViewBag.Search = search;
+            ViewBag.SortBy = sortBy ?? "recent";
+
             return View(saved);
         }
 
@@ -247,6 +251,15 @@ namespace Masar.Controllers
                 return Redirect(returnUrl);
 
             return RedirectToAction("Details", "Jobs", new { id = jobId });
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> ClearSavedJobs()
+        {
+            var userId = _userManager.GetUserId(User);
+            await _applicationService.ClearSavedJobsAsync(userId);
+            TempData["SavedJobsSuccess"] = "All saved jobs have been cleared.";
+            return RedirectToAction(nameof(SavedJobs));
         }
     }
 }

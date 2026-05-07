@@ -20,8 +20,9 @@ namespace Masar.Core.IService
         Task<List<CandidateApplicationDto>> GetCandidateApplicationsAsync(string userId);
 
         // ── Candidate: saved jobs ─────────────────────────────
-        Task<List<SavedJobDto>> GetSavedJobsAsync(string userId);
+        Task<List<SavedJobDto>> GetSavedJobsAsync(string userId, string? search = null, string? sortBy = null);
         Task<(bool Success, string? Error)> ToggleSaveJobAsync(int jobId, string userId);
+        Task<(bool Success, string? Error)> ClearSavedJobsAsync(string userId);
 
         // ── Company: review applicants ────────────────────────
         Task<ApplicantsViewDto?> GetApplicantsAsync(int jobId, string companyUserId, string? searchQuery = null, string? statusFilter = null, string? sortFilter = null, int page = 1, int pageSize = 6);

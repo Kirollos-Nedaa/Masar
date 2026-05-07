@@ -25,6 +25,7 @@ namespace Masar.Core.IService
         Task<(bool Success, string? ErrorMessage)> UpdateSkillsAsync(string userId, EditSkillsDto dto);
         Task UpdateCandidateLinksAsync(string userId, List<ProfessionalLinkDto> links);
         Task<(bool Success, string? Error)> UpdateResumeAsync(string userId, IFormFile file);
+        Task<(bool Success, string? Error)> DeleteResumeAsync(string userId);
         Task<(bool Success, string? Error)> UpdateAvatarAsync(string userId, IFormFile file);
 
         // ── EDIT — Company ────────────────────────────────────────

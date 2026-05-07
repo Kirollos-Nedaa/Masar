@@ -33,7 +33,7 @@ namespace Masar.Core.Services
         }
 
         // ─────────────────────────────────────────────────────
-        //  CANDIDATE — apply
+        //  CANDIDATE
         // ─────────────────────────────────────────────────────
 
         public async Task<ApplyJobViewDto?> GetApplyViewAsync(int jobId, string userId)
@@ -159,12 +159,7 @@ namespace Masar.Core.Services
             return (true, null);
         }
 
-        // ─────────────────────────────────────────────────────
-        //  CANDIDATE — track applications
-        // ─────────────────────────────────────────────────────
-
-        public async Task<List<CandidateApplicationDto>> GetCandidateApplicationsAsync(
-            string userId)
+        public async Task<List<CandidateApplicationDto>> GetCandidateApplicationsAsync(string userId)
         {
             var profile = await _context.CandidateProfiles
                 .FirstOrDefaultAsync(p => p.UserId == userId);
@@ -194,11 +189,7 @@ namespace Masar.Core.Services
                 .ToListAsync();
         }
 
-        // ─────────────────────────────────────────────────────
-        //  CANDIDATE — saved jobs
-        // ─────────────────────────────────────────────────────
-
-        public async Task<List<SavedJobDto>> GetSavedJobsAsync(string userId)
+        public async Task<List<SavedJobDto>> GetSavedJobsAsync(string userId, string? search = null, string? sortBy = null)
         {
             await _jobLifecycleService.CloseExpiredJobsAsync();
 
@@ -207,9 +198,29 @@ namespace Masar.Core.Services
 
             if (profile == null) return new List<SavedJobDto>();
 
-            return await _context.SavedJobs
+            var query = _context.SavedJobs
                 .Where(s => s.CandidateProfileId == profile.Id)
-                .OrderByDescending(s => s.SavedAt)
+                .AsQueryable();
+
+            // ── Search ────────────────────────────────────────
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.Trim().ToLower();
+                query = query.Where(sj =>
+                    sj.Job.Title.ToLower().Contains(s) ||
+                    sj.Job.Company.Name.ToLower().Contains(s) ||
+                    sj.Job.Location.ToLower().Contains(s));
+            }
+
+            // ── Sort ──────────────────────────────────────────
+            query = sortBy switch
+            {
+                "oldest" => query.OrderBy(sj => sj.SavedAt),
+                "title" => query.OrderBy(sj => sj.Job.Title),
+                _ => query.OrderByDescending(sj => sj.SavedAt)
+            };
+
+            return await query
                 .Select(s => new SavedJobDto
                 {
                     SavedJobId = s.Id,
@@ -220,16 +231,41 @@ namespace Masar.Core.Services
                     Location = s.Job.Location,
                     JobType = s.Job.JobType.ToString(),
                     SalaryDisplay = s.Job.MinSalary != null && s.Job.MaxSalary != null
-                        ? $"${s.Job.MinSalary:N0}–${s.Job.MaxSalary:N0}"
-                        : null,
+                                              ? $"${s.Job.MinSalary:N0}–${s.Job.MaxSalary:N0}"
+                                              : s.Job.MinSalary != null
+                                                  ? $"From ${s.Job.MinSalary:N0}"
+                                                  : null,
                     PostedDateDisplay = GetRelativeDate(s.Job.PostedDate),
+                    DescriptionSnippet = s.Job.Description.Length > 120
+                                              ? s.Job.Description.Substring(0, 120) + "..."
+                                              : s.Job.Description,
                     IsActive = s.Job.IsActive
                 })
                 .ToListAsync();
         }
 
-        public async Task<(bool Success, string? Error)> ToggleSaveJobAsync(
-            int jobId, string userId)
+        public async Task<(bool Success, string? Error)> ClearSavedJobsAsync(string userId)
+        {
+            var profile = await _context.CandidateProfiles
+                .FirstOrDefaultAsync(p => p.UserId == userId);
+
+            if (profile == null)
+                return (false, "Profile not found.");
+
+            var savedJobs = await _context.SavedJobs
+                .Where(s => s.CandidateProfileId == profile.Id)
+                .ToListAsync();
+
+            if (savedJobs.Any())
+            {
+                _context.SavedJobs.RemoveRange(savedJobs);
+                await _context.SaveChangesAsync();
+            }
+
+            return (true, null);
+        }
+
+        public async Task<(bool Success, string? Error)> ToggleSaveJobAsync(int jobId, string userId)
         {
             var profile = await _context.CandidateProfiles
                 .FirstOrDefaultAsync(p => p.UserId == userId);
@@ -259,7 +295,7 @@ namespace Masar.Core.Services
         }
 
         // ─────────────────────────────────────────────────────
-        //  COMPANY — review applicants
+        //  COMPANY
         // ─────────────────────────────────────────────────────
 
         public async Task<ApplicantsViewDto?> GetApplicantsAsync(int jobId, string companyUserId, string? searchQuery = null, string? statusFilter = null, string? sortFilter = null, int page = 1, int pageSize = 6)

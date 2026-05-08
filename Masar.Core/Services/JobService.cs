@@ -214,8 +214,7 @@ namespace Masar.Core.Services
         //  CANDIDATE — browse jobs
         // ─────────────────────────────────────────────────────
 
-        public async Task<JobBrowseResultDto> BrowseJobsAsync(
-            JobFilterDto filter, string? candidateUserId = null)
+        public async Task<JobBrowseResultDto> BrowseJobsAsync(JobFilterDto filter, string? candidateUserId = null)
         {
             await _jobLifecycleService.CloseExpiredJobsAsync();
 
@@ -331,8 +330,7 @@ namespace Masar.Core.Services
             };
         }
 
-        public async Task<JobDetailDto?> GetJobDetailAsync(
-            int jobId, string? candidateUserId = null)
+        public async Task<JobDetailDto?> GetJobDetailAsync(int jobId, string? candidateUserId = null)
         {
             await _jobLifecycleService.CloseExpiredJobsAsync();
 
@@ -495,16 +493,12 @@ namespace Masar.Core.Services
             await _context.SaveChangesAsync();
         }
 
-        private static bool HasHistoricalQuestionChange(
-            JobQuestion existingQuestion,
-            string incomingQuestionText,
-            QuestionType incomingType)
+        private static bool HasHistoricalQuestionChange(JobQuestion existingQuestion, string incomingQuestionText, QuestionType incomingType)
         {
             return !string.Equals(
-                       existingQuestion.QuestionText.Trim(),
-                       incomingQuestionText.Trim(),
-                       StringComparison.Ordinal) ||
-                   existingQuestion.Type != incomingType;
+                existingQuestion.QuestionText.Trim(), 
+                incomingQuestionText.Trim(), 
+                StringComparison.Ordinal) || existingQuestion.Type != incomingType;
         }
 
         private async Task<Job?> GetOwnedJobAsync(string userId, int jobId)

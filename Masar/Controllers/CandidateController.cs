@@ -63,13 +63,32 @@ namespace Masar.Controllers
         public async Task<IActionResult> UploadResume(IFormFile Resume)
         {
             var userId = _userManager.GetUserId(User);
-
             var result = await _profileService.UpdateResumeAsync(userId, Resume);
 
-            if (!result.Success)
-                TempData["ProfileError"] = result.Error;
-            else
-                TempData["ProfileSuccess"] = "Resume uploaded successfully.";
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                if (!result.Success) return Json(new { success = false, message = result.Error });
+                return Json(new { success = true, message = "Resume uploaded successfully." });
+            }
+
+            if (!result.Success) TempData["ProfileError"] = result.Error;
+            else TempData["ProfileSuccess"] = "Resume uploaded successfully.";
+
+            return RedirectToAction(nameof(Profile));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteResume()
+        {
+            var userId = _userManager.GetUserId(User);
+            var result = await _profileService.DeleteResumeAsync(userId);
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                if (!result.Success) return Json(new { success = false, message = result.Error });
+                return Json(new { success = true, message = "Resume deleted successfully." });
+            }
 
             return RedirectToAction(nameof(Profile));
         }

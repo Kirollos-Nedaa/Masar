@@ -41,6 +41,16 @@ namespace Masar.Core.Services
             return MapToCandidateProfileDto(user, profile);
         }
 
+        public async Task<CompanyProfileDto> GetMyCompanyProfileAsync(string userId)
+        {
+            var profile = await _context.CompanyProfiles
+                .Include(p => p.ContactInfo)
+                .Include(p => p.ProfessionalLinks)
+                .FirstOrDefaultAsync(p => p.UserId == userId);
+
+            return MapToCompanyProfileDto(profile);
+        }
+
         public async Task<CandidateProfileDto> GetCandidateProfileAsync(int candidateProfileId)
         {
             var profile = await _context.CandidateProfiles
@@ -51,16 +61,6 @@ namespace Masar.Core.Services
                 .FirstOrDefaultAsync(p => p.Id == candidateProfileId);
 
             return MapToCandidateProfileDto(profile?.User, profile);
-        }
-
-        public async Task<CompanyProfileDto> GetMyCompanyProfileAsync(string userId)
-        {
-            var profile = await _context.CompanyProfiles
-                .Include(p => p.ContactInfo)
-                .Include(p => p.ProfessionalLinks)
-                .FirstOrDefaultAsync(p => p.UserId == userId);
-
-            return MapToCompanyProfileDto(profile);
         }
 
         public async Task<CompanyProfileDto> GetCompanyProfileAsync(int companyProfileId)
@@ -382,6 +382,31 @@ namespace Masar.Core.Services
             catch
             {
                 return (false, "An unexpected error occurred while saving the logo.");
+            }
+        }
+
+        public async Task<(bool Success, string? Error)> DeleteLogoAsync(string userId)
+        {
+            try
+            {
+                var profile = await _context.CompanyProfiles
+                    .FirstOrDefaultAsync(p => p.UserId == userId);
+
+                if (profile == null)
+                    return (false, "Company profile not found.");
+
+                if (!string.IsNullOrEmpty(profile.LogoUrl))
+                {
+                    _fileService.DeleteFile(profile.LogoUrl);
+                    profile.LogoUrl = null;
+                    await _context.SaveChangesAsync();
+                }
+
+                return (true, null);
+            }
+            catch
+            {
+                return (false, "An unexpected error occurred while deleting the logo.");
             }
         }
 

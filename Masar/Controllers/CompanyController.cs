@@ -56,8 +56,40 @@ namespace Masar.Controllers
             return View(dto);
         }
 
-        // ── Edit Company Info ─────────────────────────────────
+        // ── Profile ───────────────────────────────────────────
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadLogo(IFormFile Logo)
+        {
+            var userId = _userManager.GetUserId(User);
+            var result = await _profileService.UpdateLogoAsync(userId, Logo);
 
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                if (!result.Success) return Json(new { success = false, message = result.Error });
+                return Json(new { success = true, message = "Logo uploaded successfully." });
+            }
+
+            return RedirectToAction(nameof(Profile));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteLogo()
+        {
+            var userId = _userManager.GetUserId(User);
+            var result = await _profileService.DeleteLogoAsync(userId);
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                if (!result.Success) return Json(new { success = false, message = result.Error });
+                return Json(new { success = true, message = "Logo deleted successfully." });
+            }
+
+            return RedirectToAction(nameof(Profile));
+        }
+
+        // ── Edit Company Info ─────────────────────────────────
         [HttpGet]
         public async Task<IActionResult> EditInfo()
         {

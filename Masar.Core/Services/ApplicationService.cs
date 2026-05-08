@@ -66,7 +66,8 @@ namespace Masar.Core.Services
                 PhoneNumber = profile?.PhoneNumber,
                 Location = profile?.Location,
                 UseExistingResume = !string.IsNullOrEmpty(profile?.ResumeUrl),
-                ExistingResumeUrl = profile?.ResumeUrl
+                ExistingResumeUrl = profile?.ResumeUrl,
+                ExistingResumeName = profile.ResumeOriginalName
             };
 
             var jobDetail = new JobDetailDto

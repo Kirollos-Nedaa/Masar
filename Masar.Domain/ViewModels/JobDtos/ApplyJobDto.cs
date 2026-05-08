@@ -26,6 +26,7 @@ namespace Masar.Domain.ViewModels.JobDtos
 
         // ── Resume ────────────────────────────────────────────
         public bool UseExistingResume { get; set; } = true;
+        public string? ExistingResumeName { get; set; }
         public string? ExistingResumeUrl { get; set; }
 
         // ── Cover Letter ──────────────────────────────────────

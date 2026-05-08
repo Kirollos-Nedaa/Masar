@@ -27,17 +27,20 @@
 }
 
 /* Remove default calendar icon */
-input[type="date"]::-webkit-calendar-picker-indicator {
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 opacity: 0;
 cursor: pointer;
 }
 
-input[type="date"] {
+input[type="date"],
+input[type="datetime-local"] {
 color: var(--dark);
 font-family: 'DM Sans', sans-serif;
 }
 
-input[type="date"]::-webkit-datetime-edit {
+input[type="date"]::-webkit-datetime-edit,
+input[type="datetime-local"]::-webkit-datetime-edit {
     padding: 0;
 }
 
@@ -1408,7 +1411,6 @@ padding: 2.5rem;
 text-align: center;
 color: var(--muted);
 transition: border-color .15s, background .15s;
-cursor: pointer;
 }
 
 .resume-upload-zone:hover {
@@ -3158,4 +3160,57 @@ RESPONSIVE — Mobile first
     .sj-search-btn {
         width: 100%;
     }
+}
+
+#toastContainer {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1055;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.masar-toast {
+    min-width: 250px;
+    padding: 15px;
+    border-radius: 8px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+    .masar-toast.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+.masar-toast-success {
+    background-color: #10b981;
+}
+
+.masar-toast-error {
+    background-color: #ef4444;
+}
+
+/* Progress Bar */
+.masar-progress-container {
+    width: 100%;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.masar-progress-bar {
+    height: 100%;
+    background: var(--primary);
+    width: 0%;
+    transition: width 0.2s linear;
 }

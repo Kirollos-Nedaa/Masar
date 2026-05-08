@@ -32,5 +32,6 @@ namespace Masar.Core.IService
         Task UpdateCompanyInfoAsync(string userId, CompanyInfoDto dto);
         Task UpdateCompanyLinksAsync(string userId, List<ProfessionalLinkDto> links);
         Task<(bool Success, string? Error)> UpdateLogoAsync(string userId, IFormFile file);
+        Task<(bool Success, string? Error)> DeleteLogoAsync(string userId);
     }
 }

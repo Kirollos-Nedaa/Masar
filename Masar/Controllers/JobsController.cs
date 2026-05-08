@@ -10,18 +10,21 @@ namespace Masar.Controllers
     {
         private readonly IJobService _jobService;
         private readonly IApplicationService _applicationService;
+        private readonly IFileService _fileService;
         private readonly UserManager<ApplicationUser> _userManager;
 
         public JobsController
         (
             IJobService jobService, 
             UserManager<ApplicationUser> userManager, 
-            IApplicationService applicationService
+            IApplicationService applicationService,
+            IFileService fileService
         )
         {
             _jobService = jobService;
             _userManager = userManager;
             _applicationService = applicationService;
+            _fileService = fileService;
         }
 
         [HttpGet]
@@ -91,11 +94,9 @@ namespace Masar.Controllers
         {
             var userId = _userManager.GetUserId(User);
 
-            // Rebuild vm first (needed for both validation failure and cover letter check)
             var vm = await _applicationService.GetApplyViewAsync(jobId, userId);
             if (vm == null) return NotFound();
 
-            // Conditional cover letter validation
             if (vm.Job.RequireCoverLetter && string.IsNullOrWhiteSpace(Form.CoverLetter))
                 ModelState.AddModelError("Form.CoverLetter", "Cover letter is required for this position.");
 
@@ -109,7 +110,15 @@ namespace Masar.Controllers
             }
 
             string? uploadedResumeUrl = null;
-            // TODO: S3 upload
+
+            if (Request.Form.Files.Count > 0)
+            {
+                var resumeFile = Request.Form.Files["resumeFile"];
+                if (resumeFile != null && resumeFile.Length > 0)
+                {
+                    uploadedResumeUrl = await _fileService.SaveResumeAsync(resumeFile, userId);
+                }
+            }
 
             var (success, error) = await _applicationService.SubmitApplicationAsync(
                 jobId, userId, Form, uploadedResumeUrl);
@@ -122,6 +131,12 @@ namespace Masar.Controllers
             }
 
             TempData["ApplySuccess"] = "Your application has been submitted successfully!";
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return Json(new { success = true, redirectUrl = Url.Action("Details", "Jobs", new { id = jobId }) });
+            }
+
             return RedirectToAction("Details", "Jobs", new { id = jobId });
         }
     }

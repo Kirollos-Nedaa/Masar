@@ -89,8 +89,7 @@
                 <div class="phone-input-wrap" id="applicationPhoneWrap">
                     <div class="phone-country-btn" id="applicationCountryBtn">
                         <span id="applicationSelectedFlag">
-                            <span class="iconify" data-icon="circle-flags:eg"
-                                  style="font-size:1.25rem;"></span>
+                            <span class="iconify" data-icon="circle-flags:eg" style="font-size:1.25rem;"></span>
                         </span>
                         <span id="applicationSelectedCode">+20</span>
                         <span class="iconify phone-chevron" data-icon="lucide:chevron-down"></span>
@@ -98,19 +97,11 @@
                     <div class="phone-country-dropdown" id="applicationCountryDropdown" style="display:none;">
                         <div class="phone-search-wrap">
                             <span class="iconify phone-search-icon" data-icon="lucide:search"></span>
-                            <input type="text"
-                                   id="applicationCountrySearch"
-                                   class="phone-search-input"
-                                   placeholder="Search country..."
-                                   onclick="event.stopPropagation()" />
+                            <input type="text" id="applicationCountrySearch" class="phone-search-input" placeholder="Search country..." onclick="event.stopPropagation()" />
                         </div>
                         <ul id="applicationCountryList" class="phone-country-list"></ul>
                     </div>
-                    <input type="text"
-                           id="applicationPhoneLocal"
-                           class="epi-input phone-local-input"
-                           placeholder="010XXXXXXXX"
-                           inputmode="numeric" />
+                    <input type="text" id="applicationPhoneLocal" class="epi-input phone-local-input" placeholder="010XXXXXXXX" inputmode="numeric" />
                 </div>
                 <span class="epi-hint">Include at least 11 digits. Leading zero is removed automatically.</span>
                 <span asp-validation-for="Form.PhoneNumber" class="epi-error"></span>
@@ -138,6 +129,7 @@
                                onchange="toggleResumeSection()" />
                         Use my existing resume
                     </label>
+
                     <label class="resume-option">
                         <input type="radio" name="Form.UseExistingResume" value="false"
                                id="uploadNew" checked="@(!f.UseExistingResume)"
@@ -145,14 +137,14 @@
                         Upload a new resume
                     </label>
 
-                    <div id="existingResumePanel">
+                    <div id="existingResumePanel" style="display:@(f.UseExistingResume ? "block" : "none");">
                         <div class="resume-existing-file">
                             <div class="resume-file-icon">
                                 <span class="iconify" data-icon="lucide:file-text"></span>
                             </div>
                             <div>
-                                <div class="resume-file-name">My Resume</div>
-                                <div class="resume-file-sub">Previously uploaded</div>
+                                <div class="resume-file-name">@(f.ExistingResumeName ?? "My Resume")</div>
+                                <div class="resume-file-sub">Previously uploaded in profile</div>
                             </div>
                             <a href="@f.ExistingResumeUrl" target="_blank" class="resume-replace-btn">
                                 <span class="iconify" data-icon="lucide:eye"></span> View
@@ -160,31 +152,29 @@
                         </div>
                     </div>
 
-                    <div id="uploadNewPanel" style="display:none;">
-                        <input type="file" name="resumeFile" id="resumeFile"
-                               accept=".pdf,.doc,.docx" class="d-none" />
+                    <div id="uploadNewPanel" style="display:@(f.UseExistingResume ? "none" : "block");">
+                        <input type="file" name="resumeFile" id="resumeFile" accept=".pdf,.doc,.docx" class="d-none" />
                         <div class="resume-upload-zone" onclick="document.getElementById('resumeFile').click()">
-                            <span class="iconify" style="font-size:2rem;display:block;margin:0 auto .5rem;color:var(--border);"
-                                  data-icon="lucide:upload-cloud"></span>
+                            <span class="iconify" style="font-size:2rem;display:block;margin:0 auto .5rem;color:var(--border);" data-icon="lucide:upload-cloud"></span>
                             <p class="mb-1" style="font-weight:600;">Click to upload or drag and drop</p>
                             <p class="text-muted mb-0" style="font-size:.8rem;">PDF, DOC, DOCX</p>
                         </div>
+                        <p id="resumeFileName" class="resume-hint fw-bold text-success mt-2"></p>
                     </div>
                 }
                 else
                 {
-                    <input type="file" name="resumeFile" id="resumeFile"
-                           accept=".pdf,.doc,.docx" class="d-none" />
+                    <input type="hidden" name="Form.UseExistingResume" value="false" />
+                    <input type="file" name="resumeFile" id="resumeFile" accept=".pdf,.doc,.docx" class="d-none" />
                     <div class="resume-upload-zone" onclick="document.getElementById('resumeFile').click()">
-                        <span class="iconify" style="font-size:2rem;display:block;margin:0 auto .5rem;color:var(--border);"
-                              data-icon="lucide:upload-cloud"></span>
+                        <span class="iconify" style="font-size:2rem;display:block;margin:0 auto .5rem;color:var(--border);" data-icon="lucide:upload-cloud"></span>
                         <p class="mb-1" style="font-weight:600;">Click to upload or drag and drop</p>
                         <p class="text-muted mb-0" style="font-size:.8rem;">PDF, DOC, DOCX</p>
                     </div>
-                    <p id="resumeFileName" class="resume-hint"></p>
+                    <p id="resumeFileName" class="resume-hint fw-bold text-success mt-2"></p>
                 }
 
-                <p class="resume-hint">Accepted formats: PDF, DOC, DOCX (max 5MB)</p>
+                <p class="resume-hint mt-2">Accepted formats: PDF, DOC, DOCX (max 5MB)</p>
             </div>
         }
 
@@ -200,12 +190,9 @@
                     Why are you interested in this position?
                     <span class="epi-char-count" id="clCount">0 / 2000</span>
                 </label>
-                <textarea asp-for="Form.CoverLetter"
-                          rows="6"
-                          class="epi-input epi-textarea"
+                <textarea asp-for="Form.CoverLetter" rows="6" class="epi-input epi-textarea"
                           placeholder="Tell us about your interest in this role, relevant experience, and what makes you a great fit..."
-                          maxlength="2000"
-                          oninput="updateCount(this, 'clCount')"></textarea>
+                          maxlength="2000" oninput="updateCount(this, 'clCount')"></textarea>
                 <span asp-validation-for="Form.CoverLetter" class="epi-error"></span>
                 <p class="epi-hint">Minimum 100 characters</p>
             </div>
@@ -220,7 +207,6 @@
                 @for (int i = 0; i < Model.Questions.Count; i++)
                 {
                     var q = Model.Questions[i];
-
                     <div class="mb-4">
                         <label class="epi-label">
                             @q.QuestionText
@@ -234,27 +220,18 @@
                         {
                             <div class="apply-radio-group">
                                 <label class="apply-radio-label">
-                                    <input type="radio"
-                                           name="Form.Answers[@i].AnswerText"
-                                           value="Yes"
-                                    @(q.IsRequired ? "required" : "") />
+                                    <input type="radio" name="Form.Answers[@i].AnswerText" value="Yes" @(q.IsRequired ? "required" : "") />
                                     Yes
                                 </label>
                                 <label class="apply-radio-label">
-                                    <input type="radio"
-                                           name="Form.Answers[@i].AnswerText"
-                                           value="No" />
+                                    <input type="radio" name="Form.Answers[@i].AnswerText" value="No" />
                                     No
                                 </label>
                             </div>
                         }
                         else
                         {
-                            <input type="text"
-                                   name="Form.Answers[@i].AnswerText"
-                                   class="epi-input"
-                                   placeholder="Your answer..."
-                            @(q.IsRequired ? "required" : "") />
+                            <input type="text" name="Form.Answers[@i].AnswerText" class="epi-input" placeholder="Your answer..." @(q.IsRequired ? "required" : "") />
                         }
 
                         <input type="hidden" name="Form.Answers[@i].QuestionId" value="@q.Id" />
@@ -296,11 +273,11 @@
 
         @* ── Actions ──────────────────────────────────────── *@
         <div class="apply-actions">
-            <a asp-controller="Jobs" asp-action="Details" asp-route-id="@job.Id"
-               class="btn-outline-app">
+            <a asp-controller="Jobs" asp-action="Details" asp-route-id="@job.Id" class="btn-outline-app">
                 Cancel
             </a>
-            <button type="submit" class="btn-primary-app">
+
+            <button type="submit" class="btn-primary-app" id="submitAppBtn">
                 <span class="iconify" data-icon="lucide:send"></span>
                 Submit Application
             </button>
@@ -311,15 +288,77 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <style>
+        /* Toast & Progress Bar Styles */
+        #toastContainer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1055;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .masar-toast {
+            min-width: 250px;
+            padding: 15px;
+            border-radius: 8px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+            .masar-toast.show {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+        .masar-toast-success {
+            background-color: #10b981;
+        }
+
+        .masar-toast-error {
+            background-color: #ef4444;
+        }
+
+        .masar-progress-container {
+            width: 100%;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .masar-progress-bar {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.2s linear;
+        }
+    </style>
+
+    <div id="toastContainer"></div>
+
     <script>
         function updateCount(el, id) {
             document.getElementById(id).textContent = `${el.value.length} / ${el.maxLength}`;
         }
 
         function toggleResumeSection() {
-            const useExisting = document.getElementById('useExisting')?.checked;
+            const useExistingRadio = document.querySelector('input[name="Form.UseExistingResume"]:checked');
+            const useExisting = useExistingRadio ? useExistingRadio.value === 'true' : false;
+
             const existingPanel = document.getElementById('existingResumePanel');
             const uploadPanel   = document.getElementById('uploadNewPanel');
+
             if (existingPanel) existingPanel.style.display = useExisting ? 'block' : 'none';
             if (uploadPanel)   uploadPanel.style.display   = useExisting ? 'none'  : 'block';
         }
@@ -327,31 +366,155 @@
         // Show file name when upload selected
         document.getElementById('resumeFile')?.addEventListener('change', function () {
             const nameEl = document.getElementById('resumeFileName');
-            if (nameEl && this.files[0]) {
+            if (nameEl && this.files.length > 0) {
                 nameEl.textContent = `Selected: ${this.files[0].name}`;
+            } else if (nameEl) {
+                nameEl.textContent = '';
             }
         });
+
+        // Toast logic
+        function showToast(message, isError = false) {
+            var container = document.getElementById('toastContainer');
+            var toast = document.createElement('div');
+            toast.className = 'masar-toast ' + (isError ? 'masar-toast-error' : 'masar-toast-success');
+            toast.innerHTML = `<span class="iconify" data-icon="${isError ? 'lucide:circle-x' : 'lucide:check-circle'}" style="font-size:1.5rem"></span> <div>${message}</div>`;
+            container.appendChild(toast);
+            Iconify.scan(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
+        }
 
         window.addEventListener('DOMContentLoaded', () => {
             const cl = document.querySelector('textarea[name="Form.CoverLetter"]');
             if (cl) updateCount(cl, 'clCount');
 
-            MasarPhoneInput.init({
-                formId: 'applyForm',
-                hiddenInputId: 'ApplicationPhoneNumber',
-                localInputId: 'applicationPhoneLocal',
-                wrapperId: 'applicationPhoneWrap',
-                countryButtonId: 'applicationCountryBtn',
-                dropdownId: 'applicationCountryDropdown',
-                countryListId: 'applicationCountryList',
-                countrySearchId: 'applicationCountrySearch',
-                selectedFlagId: 'applicationSelectedFlag',
-                selectedCodeId: 'applicationSelectedCode',
-                defaultCountryIso: 'eg',
-                minDigits: 11,
-                requiredMessage: 'Phone number is required.',
-                minDigitsMessage: 'Phone number must contain at least 11 digits.'
-            });
+            // Phone masking initialization
+            if (typeof MasarPhoneInput !== 'undefined') {
+                MasarPhoneInput.init({
+                    formId: 'applyForm',
+                    hiddenInputId: 'ApplicationPhoneNumber',
+                    localInputId: 'applicationPhoneLocal',
+                    wrapperId: 'applicationPhoneWrap',
+                    countryButtonId: 'applicationCountryBtn',
+                    dropdownId: 'applicationCountryDropdown',
+                    countryListId: 'applicationCountryList',
+                    countrySearchId: 'applicationCountrySearch',
+                    selectedFlagId: 'applicationSelectedFlag',
+                    selectedCodeId: 'applicationSelectedCode',
+                    defaultCountryIso: 'eg',
+                    minDigits: 11,
+                    requiredMessage: 'Phone number is required.',
+                    minDigitsMessage: 'Phone number must contain at least 11 digits.'
+                });
+            }
+        });
+
+        // AJAX Form Submission
+        document.getElementById('applyForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = this;
+            const fileInput = document.getElementById('resumeFile');
+            const requireCv = @job.RequireCv.ToString().ToLower();
+
+            // Check if user chose to use an existing resume
+            const useExistingRadio = document.querySelector('input[name="Form.UseExistingResume"]:checked');
+            // If they don't have an existing resume, the hidden input value="false" will be used
+            const hiddenUseExisting = document.querySelector('input[type="hidden"][name="Form.UseExistingResume"]');
+
+            let useExisting = false;
+            if (useExistingRadio && useExistingRadio.value === 'true') {
+                useExisting = true;
+            } else if (hiddenUseExisting && hiddenUseExisting.value === 'true') {
+                useExisting = true; // Just in case
+            }
+
+            // File Validation
+            if (requireCv && !useExisting) {
+                if (!fileInput || fileInput.files.length === 0) {
+                    showToast("Please upload a resume for this application.", true);
+                    return;
+                }
+                const file = fileInput.files[0];
+                const allowed = ['.pdf', '.doc', '.docx'];
+                const ext = '.' + file.name.split('.').pop().toLowerCase();
+                if (!allowed.includes(ext)) {
+                    showToast("Invalid file type. Allowed: PDF, DOC, DOCX", true);
+                    return;
+                }
+                if (file.size > 5 * 1024 * 1024) {
+                    showToast("File size exceeds 5MB limit.", true);
+                    return;
+                }
+            }
+
+            // Setup UI Feedback (Loading & Progress)
+            const btn = document.getElementById('submitAppBtn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="iconify" data-icon="lucide:loader-2" class="spin"></span> Submitting... <span id="progressPct">0%</span>`;
+
+            let progressContainer = document.getElementById('applyProgressContainer');
+            if(!progressContainer) {
+                progressContainer = document.createElement('div');
+                progressContainer.id = 'applyProgressContainer';
+                progressContainer.className = 'masar-progress-container';
+                progressContainer.innerHTML = '<div class="masar-progress-bar" id="applyProgressBar"></div>';
+
+                // Append directly to the actions container so it spans nicely
+                document.querySelector('.apply-actions').appendChild(progressContainer);
+            }
+            progressContainer.style.display = 'block';
+
+            // Send via AJAX
+            const xhr = new XMLHttpRequest();
+            xhr.open(form.method, form.action, true);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+            xhr.upload.onprogress = function(event) {
+                if (event.lengthComputable) {
+                    const percent = Math.round((event.loaded / event.total) * 100);
+                    document.getElementById('applyProgressBar').style.width = percent + '%';
+                    const pctLabel = document.getElementById('progressPct');
+                    if(pctLabel) pctLabel.textContent = percent + '%';
+                }
+            };
+
+            xhr.onload = function() {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        const res = JSON.parse(xhr.responseText);
+                        if (res.success) {
+                            showToast("Application submitted successfully!");
+                            setTimeout(() => window.location.href = res.redirectUrl, 1500);
+                        } else {
+                            showToast(res.message || "An error occurred during submission.", true);
+                            resetBtn();
+                        }
+                    } catch {
+                        // If it's not JSON, it might be a View return with ModelState errors
+                        document.open();
+                        document.write(xhr.responseText);
+                        document.close();
+                    }
+                } else {
+                    showToast("Server error: " + xhr.status, true);
+                    resetBtn();
+                }
+            };
+
+            xhr.onerror = function() {
+                showToast("Network error. Please check your connection.", true);
+                resetBtn();
+            };
+
+            xhr.send(new FormData(form));
+
+            function resetBtn() {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                if(progressContainer) progressContainer.style.display = 'none';
+            }
         });
     </script>
 }

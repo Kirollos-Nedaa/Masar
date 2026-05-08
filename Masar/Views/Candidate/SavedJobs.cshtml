@@ -25,30 +25,20 @@
     </div>
 </div>
 
-@* ── Success banner ───────────────────────────────────────── *@
-@if (TempData["SavedJobsSuccess"] is string msg)
-{
-    <div class="success-banner mb-4">
-        <span class="iconify" data-icon="lucide:check-circle"></span>
-        @msg
-    </div>
-}
-
 @* ── Search + Sort bar ────────────────────────────────────── *@
-<div class="app-card mb-4">
-    <form method="get" asp-controller="Candidate" asp-action="SavedJobs"
-          class="sj-filter-bar">
+<form method="get" asp-controller="Candidate" asp-action="SavedJobs" class="sj-filter-bar gap-2 mb-2">
 
         @* Search input *@
         <div class="sj-search-wrap">
             <span class="iconify sj-search-icon" data-icon="lucide:search"></span>
             <input type="text"
-                   name="search"
-                   class="sj-search-input"
-                   placeholder="Search saved jobs..."
-                   value="@currentSearch" />
+                    name="search"
+                    class="sj-search-input"
+                    placeholder="Search saved jobs..."
+                    value="@currentSearch" />
         </div>
 
+    <div class="sj-inputs-wrap gap-2">
         @* Sort dropdown *@
         <select name="sortBy"
                 class="epi-input epi-select sj-sort-select"
@@ -69,9 +59,9 @@
             <span class="iconify" data-icon="lucide:search"></span>
             Search
         </button>
+    </div>
 
-    </form>
-</div>
+</form>
 
 @* ── Results header + Clear All ───────────────────────────── *@
 <div class="sj-results-bar">
@@ -114,9 +104,7 @@
         <div class="sj-card @(!job.IsActive ? "sj-card--closed" : "")">
 
             @* ── Card body (clickable) ──────────────────────── *@
-            <a asp-controller="Jobs" asp-action="Details"
-               asp-route-id="@job.JobId"
-               class="sj-card-link">
+            <a asp-controller="Jobs" asp-action="Details" asp-route-id="@job.JobId" class="sj-card-link">
 
                 @* Company logo *@
                 <div class="sj-card-logo">
@@ -253,11 +241,42 @@ else
     </div>
 </div>
 
+<div id="toastContainer"></div>
+
 @section Scripts {
     <script>
+        function showToast(message, isError = false) {
+            var container = document.getElementById('toastContainer');
+            if (!container) return;
+            var toast = document.createElement('div');
+            toast.className = 'masar-toast ' + (isError ? 'masar-toast-error' : 'masar-toast-success');
+            toast.innerHTML = `<span class="iconify" data-icon="${isError ? 'lucide:circle-x' : 'lucide:check-circle'}" style="font-size:1.5rem"></span> <div>${message}</div>`;
+            container.appendChild(toast);
+
+            if (typeof Iconify !== 'undefined') {
+                Iconify.scan(toast);
+            }
+
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
         function confirmClearAll() {
             var modal = new bootstrap.Modal(document.getElementById('clearAllModal'));
             modal.show();
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if TempData has the success message upon redirect and trigger the toast
+        @if (TempData["SavedJobsSuccess"] != null)
+        {
+            <text>
+                    showToast("@TempData["SavedJobsSuccess"]", false);
+            </text>
+        }
+        });
     </script>
 }

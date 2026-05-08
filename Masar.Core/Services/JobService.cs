@@ -259,12 +259,28 @@ namespace Masar.Core.Services
 
             if (!string.IsNullOrWhiteSpace(filter.SalaryRange))
             {
-                switch (filter.SalaryRange)
+                // 1. Handle the "150000+" scenario
+                if (filter.SalaryRange.EndsWith("+"))
                 {
-                    case "0-50000": query = query.Where(j => j.MinSalary <= 50000); break;
-                    case "50000-100000": query = query.Where(j => j.MinSalary >= 50000 && j.MinSalary <= 100000); break;
-                    case "100000-150000": query = query.Where(j => j.MinSalary >= 100000 && j.MinSalary <= 150000); break;
-                    case "150000+": query = query.Where(j => j.MinSalary >= 150000); break;
+                    var cleanValue = filter.SalaryRange.TrimEnd('+');
+                    if (decimal.TryParse(cleanValue, out decimal userMinBoundary))
+                    {
+                        query = query.Where(j => (j.MaxSalary ?? j.MinSalary) >= userMinBoundary);
+                    }
+                }
+                // 2. Handle the "50000-100000" scenario
+                else if (filter.SalaryRange.Contains("-"))
+                {
+                    var parts = filter.SalaryRange.Split('-');
+                    if (parts.Length == 2 &&
+                        decimal.TryParse(parts[0], out decimal userMin) &&
+                        decimal.TryParse(parts[1], out decimal userMax))
+                    {
+                        query = query.Where(j =>
+                            j.MinSalary <= userMax &&
+                            (j.MaxSalary ?? j.MinSalary) >= userMin
+                        );
+                    }
                 }
             }
 

@@ -6,385 +6,6 @@
     var f = Model.Filter;
 }
 
-@section Styles {
-<style>
-.jobs-layout {
-    display: flex;
-    gap: 1.5rem;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem 1.5rem;
-    align-items: flex-start;
-}
-
-/* ── Sidebar ─────────────────────────────────────────────── */
-.jobs-sidebar {
-    width: 220px;
-    flex-shrink: 0;
-    position: sticky;
-    top: calc(var(--navbar-h) + 1.5rem);
-}
-
-.sidebar-filter-card {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 1.25rem;
-}
-
-.filter-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1.25rem;
-}
-
-.filter-title {
-    font-family: 'Sora', sans-serif;
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--dark);
-}
-
-.filter-clear {
-    font-size: .78rem;
-    font-weight: 600;
-    color: var(--blue);
-    text-decoration: none;
-}
-
-.filter-clear:hover { text-decoration: underline; }
-
-.filter-group {
-    margin-bottom: 1.25rem;
-    padding-bottom: 1.25rem;
-    border-bottom: 1px solid var(--border);
-}
-
-.filter-group:last-child {
-    margin-bottom: 0;
-    padding-bottom: 0;
-    border-bottom: none;
-}
-
-.filter-group-label {
-    font-size: .75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .07em;
-    color: var(--muted);
-    margin-bottom: .75rem;
-}
-
-.filter-check-label {
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-    font-size: .875rem;
-    color: var(--dark);
-    cursor: pointer;
-    padding: .25rem 0;
-    user-select: none;
-}
-
-.filter-check-label input[type="checkbox"] {
-    width: 15px;
-    height: 15px;
-    accent-color: var(--blue);
-    cursor: pointer;
-    flex-shrink: 0;
-}
-
-.filter-location-input {
-    width: 100%;
-    background: var(--bg);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: .45rem .75rem;
-    font-size: .85rem;
-    font-family: 'DM Sans', sans-serif;
-    color: var(--dark);
-    outline: none;
-    transition: border-color .15s;
-}
-
-.filter-location-input:focus { border-color: var(--blue); }
-
-.filter-select {
-    width: 100%;
-    background: var(--bg);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: .45rem .65rem;
-    font-size: .85rem;
-    font-family: 'DM Sans', sans-serif;
-    color: var(--dark);
-    outline: none;
-    cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%2364748B' viewBox='0 0 20 20'%3E%3Cpath d='M5.5 7.5l4.5 4.5 4.5-4.5' stroke='%2364748B' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right .5rem center;
-    background-size: .9rem;
-}
-
-/* ── Main Content ────────────────────────────────────────── */
-.jobs-main { flex: 1; min-width: 0; }
-
-.jobs-topbar {
-    display: flex;
-    align-items: center;
-    gap: .75rem;
-    margin-bottom: 1.25rem;
-}
-
-.jobs-search-wrap {
-    flex: 1;
-    position: relative;
-    display: flex;
-}
-
-.jobs-search-icon {
-    position: absolute;
-    left: .875rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--muted);
-    font-size: 1rem;
-    pointer-events: none;
-}
-
-.jobs-search-input {
-    width: 100%;
-    background: var(--white);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-md) 0 0 var(--radius-md);
-    padding: .65rem .875rem .65rem 2.5rem;
-    font-size: .9rem;
-    font-family: 'DM Sans', sans-serif;
-    color: var(--dark);
-    outline: none;
-    transition: border-color .15s;
-}
-
-.jobs-search-input:focus { border-color: var(--blue); }
-
-.jobs-search-btn {
-    background: var(--blue);
-    color: var(--white);
-    border: none;
-    border-radius: 0 var(--radius-md) var(--radius-md) 0;
-    padding: .65rem 1.25rem;
-    font-family: 'DM Sans', sans-serif;
-    font-size: .9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background .15s;
-    white-space: nowrap;
-}
-
-.jobs-search-btn:hover { background: var(--blue-hover); }
-
-.jobs-results-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-}
-
-.jobs-results-count {
-    font-size: .9rem;
-    color: var(--muted);
-}
-
-.jobs-results-count strong { color: var(--dark); }
-
-.jobs-sort-select {
-    background: var(--white);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: .4rem 2rem .4rem .75rem;
-    font-size: .85rem;
-    font-family: 'DM Sans', sans-serif;
-    color: var(--dark);
-    outline: none;
-    cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%2364748B' viewBox='0 0 20 20'%3E%3Cpath d='M5.5 7.5l4.5 4.5 4.5-4.5' stroke='%2364748B' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right .5rem center;
-    background-size: .9rem;
-}
-
-/* ── Job Card ────────────────────────────────────────────── */
-.job-browse-card {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 1.25rem 1.5rem;
-    margin-bottom: .875rem;
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-    transition: box-shadow .18s, border-color .18s;
-    text-decoration: none;
-    color: inherit;
-    cursor: pointer;
-    position: relative;
-}
-
-.job-browse-card:hover {
-    box-shadow: 0 4px 20px rgba(15,23,42,.08);
-    border-color: #C7D7F5;
-}
-
-.job-company-logo {
-    width: 44px;
-    height: 44px;
-    border-radius: var(--radius-md);
-    background: var(--blue-50);
-    border: 1px solid var(--blue-100);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    font-family: 'Sora', sans-serif;
-    font-size: .85rem;
-    font-weight: 700;
-    color: var(--blue);
-    overflow: hidden;
-}
-
-.job-company-logo img { width: 100%; height: 100%; object-fit: cover; }
-
-.job-card-body { flex: 1; min-width: 0; }
-
-.job-card-title-row {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: .5rem;
-    margin-bottom: .25rem;
-}
-
-.job-card-title {
-    font-family: 'Sora', sans-serif;
-    font-size: .9875rem;
-    font-weight: 700;
-    color: var(--dark);
-    line-height: 1.3;
-    transition: color .15s;
-}
-
-.job-browse-card:hover .job-card-title { color: var(--blue); }
-
-.job-card-company {
-    font-size: .875rem;
-    color: var(--muted);
-    font-weight: 500;
-    margin-bottom: .5rem;
-}
-
-.job-card-meta-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .3rem .875rem;
-    font-size: .8rem;
-    color: var(--muted);
-    margin-bottom: .625rem;
-}
-
-.job-card-meta-row span {
-    display: inline-flex;
-    align-items: center;
-    gap: .3rem;
-}
-
-.job-card-desc {
-    font-size: .8375rem;
-    color: var(--muted);
-    line-height: 1.55;
-    margin-bottom: .75rem;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.job-card-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
-
-.job-tag {
-    display: inline-flex;
-    align-items: center;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: .2rem .65rem;
-    font-size: .75rem;
-    font-weight: 600;
-    color: var(--muted);
-}
-
-.btn-save-job {
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-sm);
-    background: var(--white);
-    border: 1.5px solid var(--border);
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 1rem;
-    flex-shrink: 0;
-    transition: border-color .15s, color .15s, background .15s;
-    text-decoration: none;
-}
-
-.btn-save-job:hover, .btn-save-job.saved {
-    border-color: var(--blue);
-    color: var(--blue);
-    background: var(--blue-50);
-}
-
-/* ── Pagination ──────────────────────────────────────────── */
-.jobs-pagination {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: .375rem;
-    margin-top: 1.75rem;
-}
-
-.page-btn {
-    min-width: 38px;
-    height: 38px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--white);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-size: .875rem;
-    font-weight: 600;
-    color: var(--dark);
-    text-decoration: none;
-    padding: 0 .625rem;
-    transition: border-color .15s, background .15s, color .15s;
-}
-
-.page-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-50); }
-.page-btn.active { background: var(--blue); border-color: var(--blue); color: var(--white); }
-.page-btn.disabled { opacity: .4; pointer-events: none; }
-
-@@media (max-width: 768px) {
-    .jobs-layout { flex-direction: column; padding: 1rem; }
-    .jobs-sidebar { width: 100%; position: static; }
-}
-</style>
-}
-
 <form method="get" asp-controller="Jobs" asp-action="Index" id="filterForm">
 <div class="jobs-layout">
 
@@ -393,7 +14,7 @@
         <div class="sidebar-filter-card">
             <div class="filter-header">
                 <span class="filter-title">Filters</span>
-                <a href="@Url.Action("Index", "Jobs")" class="filter-clear">Clear All</a>
+                <a asp-controller="Jobs" asp-action="Index" class="filter-clear">Clear All</a>
             </div>
 
             @* Location *@
@@ -430,7 +51,21 @@
             <div class="filter-group">
                 <div class="filter-group-label">Industry</div>
                 @foreach (var ind in new[] {
-                    "Technology","Finance","Healthcare","Marketing","Design","DataScience"
+                    "Finance",
+                    "Healthcare",
+                    "Education",
+                    "Manufacturing",
+                    "Retail",
+                    "Energy",
+                    "Transportation",
+                    "Hospitality",
+                    "Construction",
+                    "Agriculture",
+                    "Media",
+                    "Telecommunications",
+                    "Government",
+                    "NonProfit",
+                    "Other"
                 })
                 {
                     var label = ind == "DataScience" ? "Data Science" : ind;
@@ -446,18 +81,50 @@
             </div>
 
             @* Salary *@
-            <div class="filter-group">
-                <div class="filter-group-label">Salary Range</div>
-                <select name="salaryRange"
-                        class="filter-select"
-                        onchange="this.form.submit()">
-                    <option value="">Select range</option>
-                        <option value="0-50000" selected="@(f.SalaryRange == "0-50000" ? "selected" : null)">Under $50k</option>
-                        <option value="50000-100000" selected="@(f.SalaryRange == "50000-100000" ? "selected" : null)">$50k – $100k</option>
-                        <option value="100000-150000" selected="@(f.SalaryRange == "100000-150000" ? "selected" : null)">$100k – $150k</option>
-                        <option value="150000+" selected="@(f.SalaryRange == "150000+" ? "selected" : null)">$150k+</option>
-                </select>
-            </div>
+                @{
+                    // Parse the existing "Min-Max" string to set initial slider positions
+                    var currentRange = f.SalaryRange ?? "";
+                    var minVal = 0;
+                    var maxVal = 250000; // Define your absolute maximum here
+
+                    if (currentRange.Contains("-"))
+                    {
+                        var parts = currentRange.Split('-');
+                        int.TryParse(parts[0], out minVal);
+                        int.TryParse(parts[1], out maxVal);
+                    }
+                    else if (currentRange.EndsWith("+"))
+                    {
+                        int.TryParse(currentRange.Replace("+", ""), out minVal);
+                        maxVal = 200000;
+                    }
+                }
+
+                <div class="filter-group">
+                    <div class="filter-group-label" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>Salary Range</span>
+                        <span id="salaryDisplay" style="color: var(--blue); font-weight: 700; text-transform: none; letter-spacing: 0;">
+                            $@(minVal / 1000)k - $@(maxVal / 1000)k
+                        </span>
+                    </div>
+
+                    <div class="dual-slider-wrap">
+                        <!-- The visual track and fill -->
+                        <div class="slider-track">
+                            <div class="slider-fill" id="sliderFill"></div>
+                        </div>
+
+                        <!-- Overlapping native range inputs -->
+                        <input type="range" id="minSalary" class="dual-slider-input"
+                               min="0" max="200000" step="5000" value="@minVal">
+
+                        <input type="range" id="maxSalary" class="dual-slider-input"
+                               min="0" max="200000" step="5000" value="@maxVal">
+
+                        <!-- Hidden input to hold the actual string value submitted to the backend -->
+                        <input type="hidden" name="salaryRange" id="salaryRangeInput" value="@f.SalaryRange">
+                    </div>
+                </div>
 
             <button type="submit" class="btn-primary-app w-100" style="justify-content:center;">
                 Apply Filters
@@ -486,7 +153,7 @@
             <span class="jobs-results-count">
                 <strong>@Model.TotalCount</strong> job@(Model.TotalCount != 1 ? "s" : "") found
             </span>
-            <select name="sortBy" class="jobs-sort-select" onchange="this.form.submit()">
+            <select name="sortBy" class="epi-input epi-select jobs-sort-select" onchange="this.form.submit()">
                     <option value="recent" selected="@(f.SortBy == "recent" ? "selected" : null)">Most Recent</option>
                     <option value="salary_desc" selected="@(f.SortBy == "salary_desc" ? "selected" : null)">Highest Salary</option>
                     <option value="salary_asc" selected="@(f.SortBy == "salary_asc" ? "selected" : null)">Lowest Salary</option>
@@ -508,12 +175,25 @@
                     <div class="job-card-body">
                         <div class="job-card-title-row">
                             <span class="job-card-title">@job.Title</span>
-                                <a asp-controller="Jobs" asp-action="Details" asp-route-id="@job.Id"
-                                    class="btn-save-job @(job.IsSaved ? "saved" : "")"
-                                    onclick="event.stopPropagation()"
-                                    title="@(job.IsSaved ? "Saved" : "Save job")">
-                                    <span class="iconify" data-icon="@(job.IsSaved ? "lucide:bookmark-check" : "lucide:bookmark")"></span>
-                                </a>
+                                <form asp-controller="Candidate" asp-action="ToggleSaveJob" method="post"
+                                      style="display:inline;" onclick="event.stopPropagation()">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="jobId" value="@job.Id" />
+                                    <input type="hidden" name="returnUrl"
+                                           value="@Url.Action("Index", "Jobs", new {
+                                        search     = f.Search,
+                                        location   = f.Location,
+                                        salaryRange = f.SalaryRange,
+                                        sortBy     = f.SortBy,
+                                        page       = Model.Page
+                                    })" />
+                                    <button type="submit"
+                                            class="btn-save-job @(job.IsSaved ? "saved" : "")"
+                                            title="@(job.IsSaved ? "Saved" : "Save job")">
+                                        <span class="iconify"
+                                              data-icon="@(job.IsSaved ? "lucide:bookmark-check" : "lucide:bookmark")"></span>
+                                    </button>
+                                </form>
                         </div>
 
                         <div class="job-card-company">
@@ -566,19 +246,16 @@
                         })!;
                     }
 
-                    <a href="@(Model.Page > 1 ? PageUrl(prevPage) : "#")"
-                       class="page-btn @(Model.Page <= 1 ? "disabled" : "")">
+                    <a href="@(Model.Page > 1 ? PageUrl(prevPage) : "#")" class="page-btn @(Model.Page <= 1 ? "disabled" : "")">
                         Previous
                     </a>
 
                     @for (int p = 1; p <= Model.TotalPages; p++)
                     {
-                        <a href="@PageUrl(p)"
-                           class="page-btn @(p == Model.Page ? "active" : "")">@p</a>
+                        <a href="@PageUrl(p)" class="page-btn @(p == Model.Page ? "active" : "")">@p</a>
                     }
 
-                    <a href="@(Model.Page < Model.TotalPages ? PageUrl(nextPage) : "#")"
-                       class="page-btn @(Model.Page >= Model.TotalPages ? "disabled" : "")">
+                    <a href="@(Model.Page < Model.TotalPages ? PageUrl(nextPage) : "#")" class="page-btn @(Model.Page >= Model.TotalPages ? "disabled" : "")">
                         Next
                     </a>
                 </div>
@@ -587,19 +264,15 @@
         else
         {
             <div class="app-card text-center py-5">
-                <span class="iconify" style="font-size:3rem;color:var(--border);display:block;margin:0 auto .75rem;"
-                      data-icon="lucide:search-x"></span>
-                <p class="text-muted mb-0">No jobs found matching your criteria.</p>
-                <a href="@Url.Action("Index", "Jobs")" class="btn-outline-app mt-3 d-inline-flex">
-                    Clear filters
-                </a>
+                <span class="iconify" style="font-size:3rem;color:var(--border);display:block;margin:0 auto .75rem;" data-icon="lucide:frown"></span>
+                <p class="text-muted mb-0">We have no open jobs for you right now.</p>
             </div>
         }
     </div>
 </div>
 </form>
 
-@* preserve filter state in pagination links *@
+
 @section Scripts {
 <script>
     // Preserve checkbox state in pagination links — resubmit the full form
@@ -619,6 +292,69 @@
             pageInput.value = url.searchParams.get('page') ?? 1;
             form.submit();
         });
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const minSlider = document.getElementById('minSalary');
+        const maxSlider = document.getElementById('maxSalary');
+        const sliderFill = document.getElementById('sliderFill');
+        const salaryDisplay = document.getElementById('salaryDisplay');
+        const hiddenInput = document.getElementById('salaryRangeInput');
+
+        // The absolute max value of your slider
+        const absoluteMax = parseInt(maxSlider.max);
+
+        function updateSliderUI() {
+            let minVal = parseInt(minSlider.value);
+            let maxVal = parseInt(maxSlider.value);
+
+            // Prevent thumbs from crossing over each other
+            if (minVal >= maxVal) {
+                // Depending on which one is being dragged, push the other one
+                if (this === minSlider) {
+                    minSlider.value = maxVal - 5000;
+                    minVal = parseInt(minSlider.value);
+                } else {
+                    maxSlider.value = minVal + 5000;
+                    maxVal = parseInt(maxSlider.value);
+                }
+            }
+
+            // Calculate percentages for the blue fill bar
+            const minPercent = (minVal / absoluteMax) * 100;
+            const maxPercent = (maxVal / absoluteMax) * 100;
+
+            sliderFill.style.left = minPercent + "%";
+            sliderFill.style.width = (maxPercent - minPercent) + "%";
+
+            // Update the display text (e.g., "$5k - $15k" or "$150k+")
+            if (maxVal === absoluteMax) {
+                salaryDisplay.textContent = `$${minVal / 1000}k+`;
+                hiddenInput.value = `${minVal}+`;
+            } else {
+                salaryDisplay.textContent = `$${minVal / 1000}k - $${maxVal / 1000}k`;
+                hiddenInput.value = `${minVal}-${maxVal}`;
+            }
+        }
+
+        // Function to handle the actual form submission
+        function submitFilterForm() {
+            // Trigger the closest form submission
+            hiddenInput.closest('form').submit();
+        }
+
+        // Run once on load to set initial fill position
+        if (minSlider && maxSlider) {
+            updateSliderUI.call(minSlider);
+
+            // 'input' fires continuously while dragging for smooth UI updates
+            minSlider.addEventListener('input', updateSliderUI);
+            maxSlider.addEventListener('input', updateSliderUI);
+
+            // 'change' fires only when the user releases the click
+            minSlider.addEventListener('change', submitFilterForm);
+            maxSlider.addEventListener('change', submitFilterForm);
+        }
     });
 </script>
 }

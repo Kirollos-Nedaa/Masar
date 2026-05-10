@@ -65,6 +65,8 @@ input[type="datetime-local"] {
 
 /* ── Base ────────────────────────────────────────────────── */
 *, *::before, *::after {
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
 }
 
@@ -4646,4 +4648,435 @@ RESPONSIVE / MEDIA QUERIES
     .hero h1 {
         font-size: 2.25rem;
     }
+}
+
+/*---------------- Access Denied Page --------------------*/
+.access-denied-page {
+    min-height: calc(100vh - 64px);
+    width: 100%;
+    background: #F8FAFC;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 62px;
+    padding-bottom: 80px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+}
+
+/* FLOATING LOCK */
+
+.floating-lock {
+    position: absolute;
+    top: 55px;
+    right: calc(50% - 122px);
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #E62525;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 15px;
+    z-index: 10;
+    box-shadow: 0 10px 18px rgba(230, 37, 37, .18);
+}
+
+.floating-wifi {
+    position: absolute;
+    top: 55px;
+    right: calc(50% - 122px);
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #E62525;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 15px;
+    z-index: 10;
+    box-shadow: 0 10px 18px rgba(230, 37, 37, .18);
+}
+
+/* ILLUSTRATION */
+
+.error-illustration {
+    width: 226px;
+    height: 226px;
+    border-radius: 50%;
+    background: radial-gradient(circle at center, #F6D8CA 0%, #F0DFC0 100%);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.big-403 {
+    position: absolute;
+    font-size: 96px;
+    font-weight: 800;
+    color: rgba(235, 107, 37, 0.14);
+    letter-spacing: -5px;
+    user-select: none;
+}
+
+.center-shield {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 3px solid var(--orange);
+    background: #FFF7F2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+    .center-shield i {
+        font-size: 27px;
+        color: var(--orange);
+    }
+
+.small-403 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--orange);
+    line-height: normal;
+}
+
+/* TEXT */
+
+.title {
+    margin-top: 36px;
+    font-size: 54px;
+    line-height: 1;
+    font-weight: 800;
+    color: #0F172A;
+    letter-spacing: -1.5px;
+}
+
+.subtitle {
+    margin-top: 20px;
+    font-size: 16px;
+    color: #64748B;
+    font-weight: 500;
+}
+
+.description {
+    margin-top: 10px;
+    max-width: 700px;
+    text-align: center;
+    line-height: 1.8;
+    color: #94A3B8;
+    font-size: 15px;
+    padding: 0 18px;
+}
+
+/* CARD */
+
+.reason-card {
+    width: 672px;
+    margin-top: 38px;
+    border: 1px solid rgba(235, 107, 37, 0.38);
+    border-radius: 14px;
+    background: rgba(255,255,255,.75);
+    padding: 24px 24px 20px;
+}
+
+    .reason-card h3 {
+        color: #C45A1F;
+        font-size: 28px;
+        font-weight: 500;
+        margin-bottom: 22px;
+        letter-spacing: .2px;
+    }
+
+    .reason-card ul {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .reason-card li {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #64748B;
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+.bullet {
+    min-width: 18px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid #F29A6A;
+    color: #EB6B25;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* ACTIONS */
+
+.actions {
+    margin-top: 42px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.back-btn {
+    height: 42px;
+    padding: 0 18px;
+    border-radius: 10px;
+    border: 1px solid #D6DCE5;
+    background: white;
+    color: #475569;
+    font-size: 15px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: .2s ease;
+}
+
+    .back-btn:hover {
+        border-color: #CBD5E1;
+        transform: translateY(-1px);
+    }
+
+.home-btn {
+    height: 42px;
+    padding: 0 18px;
+    border-radius: 10px;
+    background: var(--blue);
+    color: white;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: .2s ease;
+}
+
+    .home-btn:hover {
+        background: var(--blue-hover);
+        transform: translateY(-1px);
+    }
+
+.error-code {
+    margin-top: 42px;
+    color: var(--muted);
+    font-size: 14px;
+    letter-spacing: .2px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 768px) {
+
+    .access-denied-page {
+        padding-top: 40px;
+    }
+
+    .floating-lock {
+        right: calc(50% - 105px);
+    }
+
+    .title {
+        font-size: 40px;
+        text-align: center;
+    }
+
+    .subtitle {
+        text-align: center;
+        padding: 0 16px;
+    }
+
+    .description {
+        font-size: 14px;
+    }
+
+    .reason-card {
+        width: calc(100% - 32px);
+        padding: 22px 18px;
+    }
+
+        .reason-card h3 {
+            font-size: 20px;
+        }
+
+    .actions {
+        flex-direction: column;
+        width: calc(100% - 32px);
+    }
+
+    .back-btn,
+    .home-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+.reason-card h3 {
+    color: #C45A1F;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: .8px !important;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+}
+
+/* Center-shield icon size (lucide:circle-x via Iconify) */
+.center-shield .iconify {
+    font-size: 28px;
+    color: var(--orange);
+}
+
+/* Floating lock icon via Iconify */
+.floating-lock .iconify {
+    font-size: 16px;
+}
+
+/* error-code bold span */
+.error-code strong {
+    color: var(--orange);
+    font-weight: 600;
+}
+
+/* home-btn: ensure consistent height with btn-outline-app */
+.home-btn {
+    height: 42px;
+    padding: 0 20px;
+    border-radius: var(--radius-md);
+    background: var(--blue);
+    color: var(--white);
+    text-decoration: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .9375rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background .2s, transform .2s;
+}
+
+    .home-btn:hover {
+        background: var(--blue-hover);
+        color: var(--white);
+        transform: translateY(-1px);
+    }
+
+    .home-btn .iconify {
+        font-size: 15px;
+    }
+
+/* btn-outline-app on the 403 page: match height */
+.access-denied-page .btn-outline-app {
+    height: 42px;
+    padding: 0 18px;
+    border-radius: var(--radius-md);
+    font-size: .9375rem;
+    gap: 8px;
+}
+
+/*---------------- Not Found Page --------------------*/
+.access-denied-page {
+    min-height: calc(100vh - 64px);
+    width: 100%;
+    background: #F8FAFC;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 62px;
+    padding-bottom: 80px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+}
+
+.floating-wifi {
+    position: absolute;
+    top: 55px;
+    right: calc(50% - 122px);
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #E62525;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 15px;
+    z-index: 10;
+    box-shadow: 0 10px 18px rgba(230, 37, 37, .18);
+}
+
+/* ILLUSTRATION */
+
+.error-illustration-404 {
+    width: 226px;
+    height: 226px;
+    border-radius: 50%;
+    background: var(--blue-50);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.big-404 {
+    position: absolute;
+    font-size: 96px;
+    font-weight: 800;
+    color: var(--blue-100);
+    letter-spacing: -5px;
+    user-select: none;
+}
+
+.center-shield-404 {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 3px solid var(--blue);
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+    .center-shield-404 .iconify {
+        font-size: 27px;
+        color: var(--blue);
+    }
+
+.small-404 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--blue);
+    line-height: normal;
+    z-index: 9;
+}
+
+.error-code-404 {
+    margin-top: 42px;
+    color: var(--muted);
+    font-size: 14px;
+    letter-spacing: .2px;
+}
+
+/* Floating lock icon via Iconify */
+.floating-wifi .iconify {
+    font-size: 1.2rem;
 }

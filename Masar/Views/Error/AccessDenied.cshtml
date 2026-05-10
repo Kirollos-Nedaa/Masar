@@ -1,0 +1,87 @@
+﻿@{
+    ViewData["Title"] = "Access Denied";
+    Layout = "_Layout";
+}
+
+<div class="access-denied-page">
+
+    <!-- floating lock badge -->
+    <div class="floating-lock">
+        <span class="iconify" data-icon="lucide:lock"></span>
+    </div>
+
+    <!-- illustration circle -->
+    <div class="error-illustration">
+
+        <div class="big-403">403</div>
+
+        <div class="d-flex flex-column align-items-center justify-content-center">
+            <div class="center-shield">
+                <span class="iconify" data-icon="lucide:shield-off"></span>
+            </div>
+
+            <div class="small-403">403</div>
+        </div>
+
+    </div>
+
+    <!-- title -->
+    <h1 class="title">Access Denied</h1>
+
+    <!-- subtitle -->
+    <p class="subtitle">
+        You don't have permission to view this page.
+    </p>
+
+    <!-- description -->
+    <p class="description">
+        This area is restricted. Please check your credentials or contact your administrator if you believe this is a mistake.
+    </p>
+
+    <!-- reason card -->
+    <div class="reason-card">
+
+        <h3>THIS MAY HAVE HAPPENED BECAUSE:</h3>
+
+        <ul>
+            <li>
+                <span class="bullet">1</span>
+                You are not logged in to your account.
+            </li>
+            <li>
+                <span class="bullet">2</span>
+                Your session may have expired.
+            </li>
+            <li>
+                <span class="bullet">3</span>
+                You don't have the required role to access this page.
+            </li>
+            <li>
+                <span class="bullet">4</span>
+                The resource is restricted to specific user types.
+            </li>
+        </ul>
+
+    </div>
+
+    <!-- actions -->
+    <div class="actions">
+
+        <button class="btn-outline-app" onclick="history.back()">
+            <span class="iconify" data-icon="lucide:arrow-left"></span>
+            Go Back
+        </button>
+
+        <a href="/" class="home-btn">
+            <span class="iconify" data-icon="lucide:house"></span>
+            Back to Home
+        </a>
+
+    </div>
+
+    <!-- error code -->
+    <div class="error-code">
+        Error code: <strong>403_FORBIDDEN</strong>
+    </div>
+
+</div>

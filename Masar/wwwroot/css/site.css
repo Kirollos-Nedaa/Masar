@@ -24,6 +24,7 @@
     --shadow-md: 0 4px 16px rgba(15,23,42,.08);
     --shadow-sidebar: 0 8px 32px rgba(15,23,42,.18);
     --shadow-dropdown: 0 8px 24px rgba(15,23,42,.12), 0 2px 8px rgba(15,23,42,.06);
+    --white-rgb: 255, 255, 255;
 }
 
 /* Remove default calendar icon */
@@ -112,10 +113,23 @@ body.app-body {
     letter-spacing: -.03em;
     flex-shrink: 0;
 }
+.app-brand-light {
+    font-family: 'Sora', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--white);
+    text-decoration: none;
+    letter-spacing: -.03em;
+    flex-shrink: 0;
+}
 
-    .app-brand span {
-        color: var(--blue);
-    }
+.app-brand span {
+    color: var(--blue);
+}
+
+.app-brand-light span {
+    color: var(--blue);
+}
 
 /* ── Sidebar toggle (hamburger) — visible only on mobile ─── */
 .sidebar-toggle-btn {
@@ -3835,4 +3849,801 @@ RESPONSIVE / MEDIA QUERIES
 .dual-slider-input::-moz-range-thumb:hover {
     transform: scale(1.1);
     box-shadow: 0 0 0 4px var(--blue);
+}
+
+.app-footer {
+    background-color: var(--dark);
+    padding-top: 3rem;
+    padding-bottom: 1.5rem;
+}
+
+.footer-logo {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.dot{
+    margin-left: -8px;
+}
+
+.footer-text {
+    color: var(--muted);
+    line-height: 1.6;
+    font-size: 0.875rem;
+}
+
+.footer-heading {
+    font-weight: 600;
+    color: var(--white);
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.footer-link {
+    text-decoration: none;
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.6);
+    transition: color 0.15s ease;
+}
+
+    .footer-link:hover {
+        color: var(--white);
+    }
+
+.footer-bottom {
+    display: flex;
+    justify-content: center;
+    padding-top: 1.5rem;
+    margin-top: 1.5rem;
+    border-top: 1px solid var(--slate);
+}
+
+.footer-copyright {
+    font-size: 0.875rem;
+    color: var(--muted);
+}
+
+/* ============================================================
+   HOME PAGE SPECIFIC STYLES
+============================================================ */
+
+/* ── Hero ── */
+.hero {
+    background: linear-gradient(135deg, var(--blue-50) 0%, var(--bg) 55%, #FFF7ED 100%);
+    padding: 80px 24px 72px;
+    border-bottom: 1px solid var(--border);
+}
+
+.hero-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    align-items: center;
+}
+
+.hero h1 {
+    font-family: 'Sora', sans-serif;
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1.15;
+    color: var(--dark);
+    margin-bottom: 20px;
+    letter-spacing: -0.02em;
+}
+
+    .hero h1 .accent {
+        color: var(--blue);
+        position: relative;
+    }
+
+.hero p {
+    font-size: 1.0625rem;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 36px;
+    max-width: 480px;
+}
+
+.hero-search {
+    display: flex;
+    gap: 10px;
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 6px 6px 6px 16px;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 20px;
+}
+
+    .hero-search input {
+        flex: 1;
+        border: none;
+        outline: none;
+        font-family: 'DM Sans', sans-serif;
+        font-size: .9375rem;
+        color: var(--dark);
+        background: transparent;
+    }
+
+        .hero-search input::placeholder {
+            color: var(--muted);
+        }
+
+.hero-btn-primary {
+    background: var(--blue);
+    color: var(--white);
+    padding: 9px 20px;
+    border-radius: var(--radius-md);
+    font-family: 'DM Sans', sans-serif;
+    font-size: .875rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: all .2s;
+}
+
+    .hero-btn-primary:hover {
+        background: var(--blue-hover);
+    }
+
+/* ── Latest Openings Panel ── */
+.openings-panel {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(15,23,42,.10);
+}
+
+.openings-header {
+    align-items: center;
+    display: flex;
+    margin-bottom: 16px;
+}
+
+.openings-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: var(--dark);
+}
+
+.opening-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    transition: background .15s;
+    text-decoration: none;
+    color: inherit;
+}
+
+.company-logo {
+    width: 42px;
+    height: 42px;
+    border-radius: 100%;
+    background-color: var(--blue-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Sora', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--blue);
+    flex-shrink: 0;
+}
+
+.opening-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.opening-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color .15s;
+}
+
+.opening-item:hover .opening-title {
+    color: var(--blue);
+}
+
+.opening-meta {
+    font-size: .875rem;
+    color: var(--muted);
+}
+
+.badge {
+    border: 1px solid;
+    border-radius: 999px;
+    background: var(--blue-50);
+    color: var(--blue);
+    font-size: .6875rem;
+    font-weight: 700;
+    font-family: 'Sora', sans-serif;
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 6px 10px;
+}
+
+/* ── Stats Bar ── */
+.stats-bar {
+    background: var(--blue);
+    padding: 56px 24px;
+}
+
+.stats-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    text-align: center;
+}
+
+.stat-item {
+    padding: 0 20px;
+}
+
+    .stat-item + .stat-item {
+        border-left: 1px solid rgba(255,255,255,.2);
+    }
+
+.stat-value {
+    font-family: 'Sora', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--white);
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: .875rem;
+    color: rgba(255,255,255,.7);
+    margin-top: 6px;
+    font-weight: 500;
+}
+
+/* ── Home Page General Sections ── */
+.section {
+    padding: 48px 24px;
+}
+
+.section-bg {
+    background: var(--bg);
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.section-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--dark);
+    letter-spacing: -.02em;
+    margin-bottom: 10px;
+}
+
+.section-sub {
+    font-size: .9375rem;
+    color: var(--muted);
+}
+
+.section-header-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 36px;
+}
+
+/* ── Industry Carousel ── */
+.carousel-wrap {
+    position: relative;
+    overflow: hidden;
+}
+
+.carousel-track {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    transition: transform .5s cubic-bezier(.4,0,.2,1);
+}
+
+.industry-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 22px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: all .25s;
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+    color: inherit;
+}
+
+    .industry-card:hover {
+        border-color: var(--blue);
+        box-shadow: 0 6px 20px rgba(37,99,235,.12);
+        transform: translateY(-2px);
+    }
+
+.industry-icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-md);
+    background: var(--blue-50);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background .25s;
+}
+
+.industry-card:hover .industry-icon-wrap {
+    background: var(--blue-100);
+}
+
+.industry-icon-wrap .iconify {
+    color: var(--blue);
+}
+
+.industry-name {
+    font-family: 'Sora', sans-serif;
+    font-size: .875rem;
+    font-weight: 700;
+    color: var(--dark);
+}
+
+.industry-jobs {
+    font-size: .75rem;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+.carousel-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 28px;
+}
+
+.carousel-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #CBD5E1;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: all .3s;
+}
+
+    .carousel-dot.active {
+        width: 24px;
+        background: var(--blue);
+    }
+
+/* ── Featured Opportunities Grid ── */
+.featured-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.featured-job-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    height: 280px;
+    box-shadow: var(--shadow-sm);
+    transition: all .25s;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+}
+
+    .featured-job-card:hover {
+        border-color: var(--blue);
+        box-shadow: 0 10px 30px rgba(15,23,42,.10);
+        transform: translateY(-3px);
+    }
+
+.job-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.job-company-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.job-company-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 100%;
+    background-color: var(--blue-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Sora', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--blue);
+    flex-shrink: 0;
+}
+
+.job-company-name {
+    font-family: 'Sora', sans-serif;
+    font-size: .97rem;
+    font-weight: 700;
+    color: var(--dark);
+}
+
+.job-company-loc {
+    font-size: .875rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.job-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--dark);
+    margin-bottom: 8px;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.featured-job-card:hover .job-title {
+    color: var(--blue);
+}
+
+.job-desc {
+    font-size: .875rem;
+    color: var(--muted);
+    line-height: 1.55;
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.job-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--bg);
+    line-height: 1;
+}
+
+.job-salary {
+    font-family: 'Sora', sans-serif;
+    font-size: .8125rem;
+    font-weight: 700;
+    color: var(--dark);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.job-posted {
+    font-size: .875rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* ── How it works ── */
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 48px;
+    position: relative;
+}
+
+.steps-connector {
+    position: absolute;
+    top: 42px;
+    left: calc(16.67% + 12px);
+    right: calc(16.67% + 12px);
+    height: 1px;
+    background: var(--border);
+}
+
+.step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.step-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    border: 4px solid var(--white);
+    box-shadow: 0 4px 20px rgba(0,0,0,.12);
+}
+
+.step-num {
+    font-family: 'Sora', sans-serif;
+    font-size: .6875rem;
+    font-weight: 800;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.step-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: var(--dark);
+    margin-bottom: 10px;
+}
+
+.step-desc {
+    font-size: .875rem;
+    color: var(--muted);
+    line-height: 1.65;
+}
+
+/* ── Testimonials ── */
+.testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.testimonial-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-shadow: var(--shadow-sm);
+}
+
+.stars {
+    display: flex;
+    gap: 3px;
+}
+
+    .stars .iconify {
+        color: #F59E0B;
+    }
+
+.testimonial-text {
+    font-size: .9rem;
+    color: var(--muted);
+    line-height: 1.7;
+    font-style: italic;
+    flex: 1;
+}
+
+.testimonial-author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.author-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--blue-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Sora', sans-serif;
+    font-weight: 800;
+    font-size: .875rem;
+    color: var(--blue);
+    flex-shrink: 0;
+}
+
+.author-name {
+    font-family: 'Sora', sans-serif;
+    font-size: .875rem;
+    font-weight: 700;
+    color: var(--dark);
+}
+
+.author-role {
+    font-size: .75rem;
+    color: var(--muted);
+}
+
+/* ── CTA Dual Cards ── */
+.cta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.cta-card {
+    border-radius: 20px;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.cta-card-dark {
+    background: var(--dark);
+}
+
+.cta-icon-wrap {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    background: rgba(255,255,255,.1);
+}
+
+.cta-h {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--white);
+    margin-bottom: 10px;
+}
+
+.cta-p {
+    font-size: .9rem;
+    line-height: 1.65;
+    margin-bottom: 24px;
+    color: var(--muted);
+}
+
+.cta-list {
+    list-style: none;
+    margin-bottom: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-left: 0;
+}
+
+    .cta-list li {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: .875rem;
+        color: #CBD5E1; /* Faded Gray */
+    }
+
+        .cta-list li .iconify {
+            flex-shrink: 0;
+            color: var(--green);
+        }
+
+.view-all-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Sora', sans-serif;
+    font-size: .875rem;
+    font-weight: 700;
+    color: var(--blue);
+    transition: gap .2s;
+    text-decoration: none;
+}
+
+    .view-all-link:hover {
+        gap: 10px;
+    }
+
+.btn-orange {
+    background: var(--orange);
+    border-radius: var(--radius-sm);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 9px 20px;
+}
+
+    .btn-orange:hover {
+        background: #d35a1a;
+        color: var(--white);
+    }
+
+/* ── Home Page Media Queries ── */
+@media (max-width: 1024px) {
+    .hero-inner {
+        grid-template-columns: 1fr;
+    }
+
+    .openings-panel {
+        display: none;
+    }
+
+    .featured-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-inner {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+    }
+
+    .stat-item + .stat-item {
+        border-left: none;
+    }
+
+    .steps-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+    }
+
+    .steps-connector {
+        display: none;
+    }
+
+    .cta-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .testimonials-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .featured-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .carousel-track {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .hero h1 {
+        font-size: 2.25rem;
+    }
 }

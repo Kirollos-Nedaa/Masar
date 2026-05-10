@@ -24,6 +24,7 @@ namespace Masar.Domain.Enums
         Telecommunications = 13,
         Government = 14,
         NonProfit = 15,
-        Other = 16
+        Operations = 16,
+        Other = 17
     }
 }

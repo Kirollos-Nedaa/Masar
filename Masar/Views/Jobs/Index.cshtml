@@ -3,7 +3,12 @@
 
 @{
     ViewData["Title"] = "Find Jobs";
+    ViewData["HasFooter"] = true;
     var f = Model.Filter;
+}
+
+@section Footer {
+    <partial name="_Footer" />
 }
 
 <form method="get" asp-controller="Jobs" asp-action="Index" id="filterForm">

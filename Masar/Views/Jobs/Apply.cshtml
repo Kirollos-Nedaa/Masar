@@ -4,8 +4,13 @@
 
 @{
     ViewData["Title"] = "Apply for Position";
+    ViewData["HasFooter"] = true;
     var job = Model.Job;
     var f = Model.Form;
+}
+
+@section Footer {
+    <partial name="_Footer" />
 }
 
 <div class="apply-wrap">

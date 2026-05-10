@@ -1,0 +1,52 @@
+﻿<footer class="app-footer">
+    <div class="container">
+        <div class="row g-4 mb-4">
+
+            <div class="col-12 col-md-3">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center justify-content-center">
+                        <img src="~/Logo.png" alt="Masar Logo" class="footer-logo">
+                    </div>
+                    <a asp-controller="Home" asp-action="Index" class="app-brand-light">
+                        MASAR<span>.</span>
+                    </a>
+                </div>
+                <p class="footer-text mb-0">
+                    Your Path. Your Future.
+                </p>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <p class="footer-heading">For Candidates</p>
+                <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
+                    <li><a asp-controller="Jobs" asp-action="Index" class="footer-link">Browse Jobs</a></li>
+                    <li><a asp-controller="Auth" asp-action="Register" class="footer-link">Create Profile</a></li>
+                    <li><a asp-controller="Candidate" asp-action="Applications" class="footer-link">Application Tracking</a></li>
+                </ul>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <p class="footer-heading">For Companies</p>
+                <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
+                    <li><a asp-controller="Company" asp-action="PostJob" class="footer-link">Post a Job</a></li>
+                    <li><a asp-controller="Company" asp-action="Applicants" class="footer-link">Manage Applicants</a></li>
+                    <li><a asp-controller="Company" asp-action="Profile" class="footer-link">Company Profile</a></li>
+                </ul>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <p class="footer-heading">Support</p>
+                <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
+                    <li><a href="#" class="footer-link">Help Center</a></li>
+                    <li><a href="#" class="footer-link">Privacy Policy</a></li>
+                    <li><a href="#" class="footer-link">Terms of Use</a></li>
+                </ul>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom">
+            <p class="footer-copyright mb-0">© 2026 Masar. All rights reserved.</p>
+        </div>
+    </div>
+</footer>

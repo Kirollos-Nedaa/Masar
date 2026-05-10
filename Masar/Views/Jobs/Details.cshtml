@@ -3,6 +3,11 @@
 
 @{
     ViewData["Title"] = Model.Title;
+    ViewData["HasFooter"] = true;
+}
+
+@section Footer {
+    <partial name="_Footer" />
 }
 
 <div class="job-detail-wrap">

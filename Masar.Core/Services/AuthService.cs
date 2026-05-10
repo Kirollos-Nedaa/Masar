@@ -40,7 +40,7 @@ namespace Masar.Core.Services
             return (true, user.Id, null);
         }
 
-        public async Task AssignRoleAsync(string userId, string role)
+        public async Task AssignRoleAsync(string userId, string role, string profilePictureUrl)
         {
             var user = await _userManager.FindByIdAsync(userId);
 
@@ -48,18 +48,45 @@ namespace Masar.Core.Services
             {
                 await _userManager.AddToRoleAsync(user, role);
 
-                // Create appropriate profile based on role
+                // Create appropriate profile based on role and assign the image URL
                 if (role == "Company")
                 {
-                    var companyProfile = new CompanyProfile { UserId = userId };
+                    var defaultName = $"{user.FirstName} {user.LastName}".Trim();
+
+                    var companyProfile = new CompanyProfile
+                    {
+                        UserId = userId,
+                        LogoUrl = profilePictureUrl,
+                        Name = defaultName
+                    };
                     _context.CompanyProfiles.Add(companyProfile);
                 }
                 else if (role == "Candidate")
                 {
-                    var candidateProfile = new CandidateProfile { UserId = userId };
+                    var candidateProfile = new CandidateProfile
+                    {
+                        UserId = userId,
+                        AvatarUrl = profilePictureUrl
+                    };
                     _context.CandidateProfiles.Add(candidateProfile);
                 }
 
+                // Saves the Profile pucture url in the coockies for the UI
+                if (!string.IsNullOrEmpty(profilePictureUrl))
+                {
+                    // We use a clean, universal name so the UI doesn't care if it's a "Logo" or an "Avatar"
+                    await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim("ProfilePicture", profilePictureUrl));
+                }
+
+                // Cleanup: Remove the temporary Google profile picture claim
+                var claims = await _userManager.GetClaimsAsync(user);
+                var pictureClaim = claims.FirstOrDefault(c => c.Type == "GoogleProfilePicture");
+                if (pictureClaim != null)
+                {
+                    await _userManager.RemoveClaimAsync(user, pictureClaim);
+                }
+
+                // Save the new profile to the database
                 await _context.SaveChangesAsync();
             }
         }
@@ -156,6 +183,11 @@ namespace Masar.Core.Services
                 );
             }
 
+            // Profile Image URL
+            var profileImageUrl = info.Principal.FindFirst("picture")?.Value
+                   ?? info.Principal.FindFirst("urn:google:picture")?.Value
+                   ?? string.Empty;
+
             // Brand new user
             var newUser = new ApplicationUser
             {
@@ -163,7 +195,7 @@ namespace Masar.Core.Services
                 Email = email,
                 EmailConfirmed = true,
                 FirstName = info.Principal.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value ?? string.Empty,
-                LastName = info.Principal.FindFirst(System.Security.Claims.ClaimTypes.Surname)?.Value ?? string.Empty
+                LastName = info.Principal.FindFirst(System.Security.Claims.ClaimTypes.Surname)?.Value ?? string.Empty,
             };
 
             var createResult = await _userManager.CreateAsync(newUser);
@@ -177,6 +209,12 @@ namespace Masar.Core.Services
                     },
                     false
                 );
+            }
+
+            // Here we are saving the profile image url into a new claim so the data is presistant
+            if (!string.IsNullOrEmpty(profileImageUrl))
+            {
+                await _userManager.AddClaimAsync(newUser, new System.Security.Claims.Claim("GoogleProfilePicture", profileImageUrl));
             }
 
             var linkResult = await _userManager.AddLoginAsync(newUser, info);

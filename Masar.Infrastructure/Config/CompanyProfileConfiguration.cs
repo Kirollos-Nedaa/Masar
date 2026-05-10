@@ -25,10 +25,10 @@ namespace Masar.Infrastructure.Config
 
             builder.Property(cp => cp.LogoUrl)
                 .IsRequired(false)
-                .HasMaxLength(500);
+                .HasMaxLength(2000);
 
             builder.Property(cp => cp.Description)
-                .IsRequired(true)
+                .IsRequired(false)
                 .HasMaxLength(2000);
 
             builder.Property(cp => cp.CreatedAt)

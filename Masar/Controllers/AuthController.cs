@@ -146,14 +146,18 @@ namespace Masar.Controllers
                 return View();
             }
 
-            var userId = _userManager.GetUserId(User);
-            await _authService.AssignRoleAsync(userId!, role);
+            // 1. Get the current user and their claims
+            var user = await _userManager.GetUserAsync(User);
+            var claims = await _userManager.GetClaimsAsync(user!);
 
-            // Refresh claims so IsInRole works immediately on next request
-            var user = await _userManager.FindByIdAsync(userId!);
-            await _signInManager.RefreshSignInAsync(user!);
+            // 2. Extract the saved Google profile picture
+            var profilePictureUrl = claims.FirstOrDefault(c => c.Type == "GoogleProfilePicture")?.Value ?? string.Empty;
 
-            // Write role to session so layout/views can read it cheaply
+            // 3. Pass the role AND the picture URL to your service
+            await _authService.AssignRoleAsync(user!.Id, role, profilePictureUrl);
+
+            await _signInManager.RefreshSignInAsync(user);
+
             HttpContext.Session.SetString("UserRole", role);
 
             return role switch

@@ -4,6 +4,7 @@ using Masar.Core.Services;
 using Masar.Domain.Models;
 using Masar.Infrastructure.Constants;
 using Masar.Infrastructure.Context;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -29,6 +30,7 @@ builder.Services.AddAuthentication()
         options.ClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
         options.ClientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET");
         options.SignInScheme = IdentityConstants.ExternalScheme;
+        options.ClaimActions.MapJsonKey("urn:google:picture", "picture", "url");
     });
 
 // ── Session ────────────────────────────────────────────────

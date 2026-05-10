@@ -16,6 +16,7 @@ namespace Masar.Domain.Models
 
         public string QuestionText { get; set; }
         public QuestionType Type { get; set; }
+        public bool IsActive { get; set; } = true;
         public bool IsRequired { get; set; }
         public int Order { get; set; }
     }

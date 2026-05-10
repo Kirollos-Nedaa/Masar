@@ -16,15 +16,19 @@ namespace Masar.Domain.Models
         public string UserId { get; set; }
         public ApplicationUser User { get; set; }
 
+        public string? AvatarUrl { get; set; }
+
         public string? PhoneNumber { get; set; }
         public Gender? Gender { get; set; }
         public string? Location { get; set; }
         public DateOnly? DateOfBirth { get; set; }
         public string? Bio { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public ICollection<Education> Educations { get; set; } = new List<Education>();
 
         public string? ResumeUrl { get; set; }
+        public string? ResumeOriginalName { get; set; }
 
         public ICollection<CandidateSkill> CandidateSkills { get; set; } = new List<CandidateSkill>();
 

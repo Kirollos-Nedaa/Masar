@@ -42,6 +42,17 @@ namespace Masar.Infrastructure.Config
             builder.Property(cp => cp.ResumeUrl)
                 .IsRequired(false);
 
+            builder.Property(cp => cp.ResumeOriginalName)
+                .IsRequired(false)
+                .HasMaxLength(260);
+
+            builder.Property(cp => cp.AvatarUrl)
+                .IsRequired(false);
+
+            builder.Property(cp => cp.CreatedAt)
+                .HasDefaultValueSql("GETUTCDATE()")
+                .ValueGeneratedOnAdd();
+
             builder.HasOne(cp => cp.User)
                 .WithOne(u => u.CandidateProfile)
                 .HasForeignKey<CandidateProfile>(cp => cp.UserId)

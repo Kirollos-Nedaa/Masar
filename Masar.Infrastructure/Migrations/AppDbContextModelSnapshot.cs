@@ -22,6 +22,34 @@ namespace Masar.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Masar.Domain.Models.ApplicationAnswer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AnswerText")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<int>("JobApplicationId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("JobQuestionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobApplicationId");
+
+                    b.HasIndex("JobQuestionId");
+
+                    b.ToTable("ApplicationAnswers");
+                });
+
             modelBuilder.Entity("Masar.Domain.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -115,9 +143,17 @@ namespace Masar.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Bio")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<DateOnly?>("DateOfBirth")
                         .HasColumnType("date");
@@ -132,6 +168,10 @@ namespace Masar.Infrastructure.Migrations
                     b.Property<string>("PhoneNumber")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("ResumeOriginalName")
+                        .HasMaxLength(260)
+                        .HasColumnType("nvarchar(260)");
 
                     b.Property<string>("ResumeUrl")
                         .HasColumnType("nvarchar(max)");
@@ -209,6 +249,11 @@ namespace Masar.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -389,7 +434,7 @@ namespace Masar.Infrastructure.Migrations
                     b.Property<int>("CandidateProfileId")
                         .HasColumnType("int");
 
-                    b.Property<string>("CoverLetterUrl")
+                    b.Property<string>("CoverLetter")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("JobId")
@@ -418,6 +463,11 @@ namespace Masar.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<bool>("IsRequired")
                         .HasColumnType("bit");
@@ -661,6 +711,25 @@ namespace Masar.Infrastructure.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Masar.Domain.Models.ApplicationAnswer", b =>
+                {
+                    b.HasOne("Masar.Domain.Models.JobApplication", "JobApplication")
+                        .WithMany("Answers")
+                        .HasForeignKey("JobApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Masar.Domain.Models.JobQuestion", "JobQuestion")
+                        .WithMany()
+                        .HasForeignKey("JobQuestionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("JobApplication");
+
+                    b.Navigation("JobQuestion");
+                });
+
             modelBuilder.Entity("Masar.Domain.Models.ApplicationUser", b =>
                 {
                     b.HasOne("Masar.Domain.Models.CompanyProfile", "CompanyProfile")
@@ -895,6 +964,11 @@ namespace Masar.Infrastructure.Migrations
                     b.Navigation("JobQuestions");
 
                     b.Navigation("SavedJobs");
+                });
+
+            modelBuilder.Entity("Masar.Domain.Models.JobApplication", b =>
+                {
+                    b.Navigation("Answers");
                 });
 
             modelBuilder.Entity("Masar.Domain.Models.Skill", b =>

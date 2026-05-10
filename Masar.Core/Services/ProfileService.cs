@@ -3,14 +3,10 @@ using Masar.Domain.Models;
 using Masar.Domain.ViewModels;
 using Masar.Domain.ViewModels.CandidateDtos;
 using Masar.Domain.ViewModels.CompanyDtos;
-using Masar.Infrastructure;
 using Masar.Infrastructure.Context;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Masar.Core.Services
 {
@@ -18,11 +14,16 @@ namespace Masar.Core.Services
     {
         private readonly AppDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IFileService _fileService;
 
-        public ProfileService(AppDbContext context, UserManager<ApplicationUser> userManager)
+        public ProfileService(
+            AppDbContext context,
+            UserManager<ApplicationUser> userManager,
+            IFileService fileService)
         {
             _context = context;
             _userManager = userManager;
+            _fileService = fileService;
         }
 
         // ── GET ───────────────────────────────────────────────────
@@ -40,6 +41,16 @@ namespace Masar.Core.Services
             return MapToCandidateProfileDto(user, profile);
         }
 
+        public async Task<CompanyProfileDto> GetMyCompanyProfileAsync(string userId)
+        {
+            var profile = await _context.CompanyProfiles
+                .Include(p => p.ContactInfo)
+                .Include(p => p.ProfessionalLinks)
+                .FirstOrDefaultAsync(p => p.UserId == userId);
+
+            return MapToCompanyProfileDto(profile);
+        }
+
         public async Task<CandidateProfileDto> GetCandidateProfileAsync(int candidateProfileId)
         {
             var profile = await _context.CandidateProfiles
@@ -50,16 +61,6 @@ namespace Masar.Core.Services
                 .FirstOrDefaultAsync(p => p.Id == candidateProfileId);
 
             return MapToCandidateProfileDto(profile?.User, profile);
-        }
-
-        public async Task<CompanyProfileDto> GetMyCompanyProfileAsync(string userId)
-        {
-            var profile = await _context.CompanyProfiles
-                .Include(p => p.ContactInfo)
-                .Include(p => p.ProfessionalLinks)
-                .FirstOrDefaultAsync(p => p.UserId == userId);
-
-            return MapToCompanyProfileDto(profile);
         }
 
         public async Task<CompanyProfileDto> GetCompanyProfileAsync(int companyProfileId)
@@ -76,15 +77,13 @@ namespace Masar.Core.Services
 
         public async Task UpdatePersonalInfoAsync(string userId, PersonalInfoDto dto)
         {
-            // Update ApplicationUser fields
             var user = await _userManager.FindByIdAsync(userId);
             user.FirstName = dto.FirstName;
             user.LastName = dto.LastName;
             user.Email = dto.Email;
-            user.UserName = dto.Email; // keep username in sync with email
+            user.UserName = dto.Email;
             await _userManager.UpdateAsync(user);
 
-            // Update CandidateProfile fields
             var profile = await _context.CandidateProfiles
                 .FirstOrDefaultAsync(p => p.UserId == userId);
 
@@ -109,7 +108,6 @@ namespace Masar.Core.Services
                 .Include(p => p.Educations)
                 .FirstOrDefaultAsync(p => p.UserId == userId);
 
-            // Get first education entry or create new one
             var education = profile.Educations.FirstOrDefault();
 
             if (education == null)
@@ -127,8 +125,6 @@ namespace Masar.Core.Services
             await _context.SaveChangesAsync();
         }
 
-        // -─ Add/remove single skill ───────────────────────────────
-
         public async Task<EditSkillsDto> GetEditSkillsAsync(string userId)
         {
             var profile = await _context.CandidateProfiles
@@ -139,17 +135,11 @@ namespace Masar.Core.Services
                 .Select(cs => cs.SkillId)
                 .ToHashSet() ?? new HashSet<int>();
 
-            // ── Pull all skills into memory first, THEN filter ────
             var allSkills = await _context.Skills
                 .OrderBy(s => s.Name)
-                .Select(s => new SkillItemDto
-                {
-                    Id = s.Id,
-                    Name = s.Name
-                })
-                .ToListAsync(); // materialize first
+                .Select(s => new SkillItemDto { Id = s.Id, Name = s.Name })
+                .ToListAsync();
 
-            // Now set IsSelected in memory, not in EF query
             foreach (var skill in allSkills)
                 skill.IsSelected = selectedIds.Contains(skill.Id);
 
@@ -161,8 +151,7 @@ namespace Masar.Core.Services
             };
         }
 
-        public async Task<(bool Success, string? ErrorMessage)> UpdateSkillsAsync(
-            string userId, EditSkillsDto dto)
+        public async Task<(bool Success, string? ErrorMessage)> UpdateSkillsAsync(string userId, EditSkillsDto dto)
         {
             if (dto.SelectedSkillIds.Count > EditSkillsDto.MaxSkills)
                 return (false, $"You can have a maximum of {EditSkillsDto.MaxSkills} skills.");
@@ -178,7 +167,6 @@ namespace Masar.Core.Services
                 await _context.SaveChangesAsync();
             }
 
-            // Handle custom skill if provided
             if (!string.IsNullOrWhiteSpace(dto.CustomSkillName))
             {
                 var normalized = dto.CustomSkillName.Trim().ToLower();
@@ -200,7 +188,6 @@ namespace Masar.Core.Services
                     dto.SelectedSkillIds.Add(existing.Id);
             }
 
-            // Replace all candidate skills
             _context.CandidateSkills.RemoveRange(profile.CandidateSkills);
             foreach (var skillId in dto.SelectedSkillIds.Distinct())
             {
@@ -215,15 +202,13 @@ namespace Masar.Core.Services
             return (true, null);
         }
 
-        // ── Update links ────────────────────────────────────────
         public async Task UpdateCandidateLinksAsync(string userId, List<ProfessionalLinkDto> links)
         {
             var profile = await _context.CandidateProfiles
                 .Include(p => p.ProfessionalLinks)
                 .FirstOrDefaultAsync(p => p.UserId == userId);
 
-            var candidateLinks = profile.ProfessionalLinks.ToList();
-            _context.ProfessionalLinks.RemoveRange(candidateLinks);
+            _context.ProfessionalLinks.RemoveRange(profile.ProfessionalLinks.ToList());
 
             foreach (var link in links)
             {
@@ -236,6 +221,73 @@ namespace Masar.Core.Services
             }
 
             await _context.SaveChangesAsync();
+        }
+
+        // ── FILE UPLOADS — Candidate ──────────────────────────────
+        public async Task<(bool Success, string? Error)> UpdateResumeAsync(string userId, IFormFile file)
+        {
+            try
+            {
+                var profile = await GetOrCreateCandidateProfileAsync(userId);
+
+                if (!string.IsNullOrEmpty(profile.ResumeUrl))
+                    _fileService.DeleteFile(profile.ResumeUrl);
+
+                var url = await _fileService.SaveResumeAsync(file, userId);
+
+                profile.ResumeUrl = url;
+                profile.ResumeOriginalName = file.FileName;
+
+                await _context.SaveChangesAsync();
+                return (true, null);
+            }
+            catch (InvalidOperationException ex) { return (false, ex.Message); }
+            catch { return (false, "An unexpected error occurred while saving your resume."); }
+        }
+
+        public async Task<(bool Success, string? Error)> DeleteResumeAsync(string userId)
+        {
+            try
+            {
+                var profile = await _context.CandidateProfiles
+                    .FirstOrDefaultAsync(p => p.UserId == userId);
+
+                if (profile == null) return (false, "Profile not found.");
+
+                _fileService.DeleteFile(profile.ResumeUrl);
+                profile.ResumeUrl = null;
+                profile.ResumeOriginalName = null;
+
+                await _context.SaveChangesAsync();
+                return (true, null);
+            }
+            catch { return (false, "An unexpected error occurred while deleting your resume."); }
+        }
+
+        public async Task<(bool Success, string? Error)> UpdateAvatarAsync(string userId, IFormFile file)
+        {
+            try
+            {
+                var profile = await GetOrCreateCandidateProfileAsync(userId);
+
+                // Delete old avatar if one exists
+                _fileService.DeleteFile(profile.AvatarUrl);
+
+                var url = await _fileService.SaveAvatarAsync(file, userId);
+
+                profile.AvatarUrl = url;
+                await _context.SaveChangesAsync();
+
+                return (true, null);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return (false, ex.Message);
+            }
+            catch
+            {
+                return (false, "An unexpected error occurred while saving your profile picture.");
+            }
         }
 
         // ── EDIT — Company ────────────────────────────────────────
@@ -252,20 +304,14 @@ namespace Masar.Core.Services
                 _context.CompanyProfiles.Add(profile);
             }
 
-            // ── Basic info ────────────────────────────────────────
             profile.Name = dto.CompanyName;
             profile.Industry = dto.Industry;
             profile.Size = dto.Size;
-            profile.Description = dto.Description ?? string.Empty; // Ensure Description is not null
-            profile.LogoUrl = dto.LogoUrl;
+            profile.Description = dto.Description ?? string.Empty;
 
-            // ── Contact info: upsert ──────────────────────────────
             if (profile.ContactInfo == null)
             {
-                profile.ContactInfo = new CompanyContactInfo
-                {
-                    CompanyProfileId = profile.Id
-                };
+                profile.ContactInfo = new CompanyContactInfo { CompanyProfileId = profile.Id };
                 _context.CompanyContactInfos.Add(profile.ContactInfo);
             }
 
@@ -289,13 +335,9 @@ namespace Masar.Core.Services
                 await _context.SaveChangesAsync();
             }
 
-            // Ensure list is not null
             profile.ProfessionalLinks ??= new List<ProfessionalLink>();
-
-            // Remove existing links
             _context.ProfessionalLinks.RemoveRange(profile.ProfessionalLinks);
 
-            // Add new ones (handle null input too)
             if (links != null && links.Any())
             {
                 foreach (var link in links)
@@ -312,10 +354,80 @@ namespace Masar.Core.Services
             await _context.SaveChangesAsync();
         }
 
-        // ── Mapping helpers ───────────────────────────────────────
+        // ── FILE UPLOADS — Company ────────────────────────────────
+        public async Task<(bool Success, string? Error)> UpdateLogoAsync(string userId, IFormFile file)
+        {
+            try
+            {
+                var profile = await _context.CompanyProfiles
+                    .FirstOrDefaultAsync(p => p.UserId == userId);
 
-        private static CandidateProfileDto MapToCandidateProfileDto(
-            ApplicationUser? user, CandidateProfile? profile)
+                if (profile == null)
+                    return (false, "Company profile not found.");
+
+                // Delete old logo if one exists
+                _fileService.DeleteFile(profile.LogoUrl);
+
+                var url = await _fileService.SaveLogoAsync(file, profile.Id.ToString());
+
+                profile.LogoUrl = url;
+                await _context.SaveChangesAsync();
+
+                return (true, null);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return (false, ex.Message);
+            }
+            catch
+            {
+                return (false, "An unexpected error occurred while saving the logo.");
+            }
+        }
+
+        public async Task<(bool Success, string? Error)> DeleteLogoAsync(string userId)
+        {
+            try
+            {
+                var profile = await _context.CompanyProfiles
+                    .FirstOrDefaultAsync(p => p.UserId == userId);
+
+                if (profile == null)
+                    return (false, "Company profile not found.");
+
+                if (!string.IsNullOrEmpty(profile.LogoUrl))
+                {
+                    _fileService.DeleteFile(profile.LogoUrl);
+                    profile.LogoUrl = null;
+                    await _context.SaveChangesAsync();
+                }
+
+                return (true, null);
+            }
+            catch
+            {
+                return (false, "An unexpected error occurred while deleting the logo.");
+            }
+        }
+
+        // ── Private helpers ───────────────────────────────────────
+
+        private async Task<CandidateProfile> GetOrCreateCandidateProfileAsync(string userId)
+        {
+            var profile = await _context.CandidateProfiles
+                .FirstOrDefaultAsync(p => p.UserId == userId);
+
+            if (profile == null)
+            {
+                profile = new CandidateProfile { UserId = userId };
+                _context.CandidateProfiles.Add(profile);
+                await _context.SaveChangesAsync();
+            }
+
+            return profile;
+        }
+
+        private static CandidateProfileDto MapToCandidateProfileDto(ApplicationUser? user, CandidateProfile? profile)
         {
             var dto = new CandidateProfileDto
             {
@@ -331,7 +443,9 @@ namespace Masar.Core.Services
             dto.Location = profile.Location;
             dto.DateOfBirth = profile.DateOfBirth;
             dto.Bio = profile.Bio;
+            dto.ResumeOriginalName = profile.ResumeOriginalName;
             dto.ResumeUrl = profile.ResumeUrl;
+            dto.AvatarUrl = profile.AvatarUrl;
 
             dto.Education = profile.Educations.FirstOrDefault() is { } edu
                 ? new EducationDto

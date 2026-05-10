@@ -203,5 +203,50 @@ namespace Masar.Core.Services
                 true
             );
         }
+
+        // ────────────────── Password reset methods ────────────────────────────────────
+        public async Task<(bool Found, string UserId, string Token)> GeneratePasswordResetTokenAsync(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email.Trim().ToLower());
+            if (user == null)
+                return (false, string.Empty, string.Empty);
+
+            // ASP.NET Identity's built-in token generation — no email sending required.
+            // The token is passed directly through the URL (server-side reset flow).
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            return (true, user.Id, token);
+        }
+
+        public async Task<(bool Success, IEnumerable<string> Errors)> ResetPasswordAsync(ResetPasswordDto dto)
+        {
+            var user = await _userManager.FindByIdAsync(dto.UserId);
+            if (user == null)
+                return (false, ["User not found."]);
+
+            var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+            if (!result.Succeeded)
+                return (false, result.Errors.Select(e => e.Description));
+
+            // Sign the user in immediately after a successful password reset
+            await _signInManager.SignInAsync(user, isPersistent: false);
+            return (true, []);
+        }
+
+        public async Task<(bool Success, IEnumerable<string> Errors)> ChangePasswordAsync(string userId, ChangePasswordDto dto)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return (false, ["User not found."]);
+
+            var result = await _userManager.ChangePasswordAsync(
+                user, dto.CurrentPassword, dto.NewPassword);
+
+            if (!result.Succeeded)
+                return (false, result.Errors.Select(e => e.Description));
+
+            // Refresh sign-in cookie so the security stamp stays valid
+            await _signInManager.RefreshSignInAsync(user);
+            return (true, []);
+        }
     }
 }

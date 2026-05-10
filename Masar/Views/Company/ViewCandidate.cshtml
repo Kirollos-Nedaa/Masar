@@ -1,5 +1,239 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model Masar.Domain.ViewModels.CandidateDtos.CandidateProfileDto
+
 @{
+    var fullName = $"{Model.FirstName} {Model.LastName}";
+
+    ViewData["Title"] = $"{fullName}'s Profile";
+    ViewData["HasSidebar"] = true;
+}
+
+@section Sidebar {
+<partial name="_CandidateSidebar" />
+}
+
+@* ── Page Header ──────────────────────────────────────────── *@
+<div class="page-header d-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-title">@fullName's Profile</h1>
+        <p class="page-subtitle">All professional information about this candidate.</p>
+    </div>
+</div>
+
+@* ── Personal Information ─────────────────────────────────── *@
+@functions {
+    string DisplayOrDefault(string value) => string.IsNullOrWhiteSpace(value) ? "Not provided" : value;
+}
+
+<div class="app-card mb-4">
+    <div class="card-section-header">
+        <div class="card-section-title">
+            <span class="iconify" data-icon="lucide:user"></span>
+            Personal Information
+        </div>
+    </div>
+
+    @* Row 1 — First Name, Last Name *@
+    <div class="row g-3 mb-3">
+
+        <div class="col-12 col-sm-6">
+            <div class="profile-field-label">First Name</div>
+            <div class="profile-field-value">
+				@(Model.FirstName ?? "Not provided")
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6">
+            <div class="profile-field-label">Last Name</div>
+            <div class="profile-field-value">
+                @(Model.LastName ?? "Not provided")
+            </div>
+        </div>
+    </div>
+
+    @* Row 2 — Gender, Location, Date of Birth *@
+    <div class="row g-3 mb-3">
+
+        <div class="col-12 col-sm-4">
+            <div class="profile-field-label">Gender</div>
+            <div class="profile-field-value">
+                @(Model.Gender?.ToString() ?? "Not provided")
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-4">
+            <div class="profile-field-label">Location</div>
+            <div class="profile-field-value">
+                @(Model.Location ?? "Not provided")
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-4">
+            <div class="profile-field-label">Date of Birth</div>
+            <div class="profile-field-value">
+                @(Model.DateOfBirth?.ToString("MMMM dd, yyyy") ?? "Not provided")
+            </div>
+        </div>
+    </div>
+
+    @* Row 3 — Email, Phone *@
+    <div class="row g-3 mb-3">
+
+        <div class="col-12 col-sm-6">
+            <div class="profile-field-label">Email</div>
+            <div class="profile-field-value">
+                @(Model.Email ?? "Not provided")
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6">
+            <div class="profile-field-label">Phone Number</div>
+            <div class="profile-field-value">
+                @(Model.PhoneNumber ?? "Not provided")
+            </div>
+        </div>
+    </div>
+
+    @* Row 4 — Bio *@
+    <div class="row g-3">
+
+        <div class="col-12">
+            <div class="profile-field-label">Bio</div>
+            <div class="profile-field-value">
+                @(Model.Bio ?? "No bio added yet.")
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ── Education ────────────────────────────────────────────── *@
+@if (Model.Education != null)
+{
+    <div class="app-card mb-4">
+        <div class="card-section-header">
+            <div class="card-section-title">
+                <span class="iconify" data-icon="lucide:graduation-cap"></span>
+                Education
+            </div>
+        </div>
+
+        <div class="education-block">
+            <div class="education-icon">
+                <span class="iconify" data-icon="lucide:school"></span>
+            </div>
+            <div class="education-details">
+                <div class="education-university">@Model.Education.University</div>
+                <div class="education-degree">
+                    @Model.Education.Degree
+                    @if (!string.IsNullOrEmpty(Model.Education.Major))
+                    {
+                        <span class="text-muted"> &mdash; @Model.Education.Major</span>
+                    }
+                </div>
+                <div class="education-years text-muted" style="font-size:.82rem; margin-top:.25rem;">
+                    @if (Model.Education.StartYear.HasValue)
+                    {
+                        @Model.Education.StartYear.Value.ToString("MM/yyyy")
+                    }
+                    @if (Model.Education.ExpectedGraduation.HasValue)
+                    {
+                        <span> &ndash; @Model.Education.ExpectedGraduation.Value.ToString("MM/yyyy")</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@* ── Skills ───────────────────────────────────────────────── *@
+@if (Model.SkillNames.Any())
+{
+    <div class="app-card mb-4">
+        <div class="card-section-header">
+            <div class="card-section-title">
+                <span class="iconify" data-icon="lucide:zap"></span>
+                Skills
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+            @foreach (var skill in Model.SkillNames)
+            {
+                <span class="skill-badge">@skill</span>
+            }
+        </div>
+    </div>
+}
+
+@* ── Resume ───────────────────────────────────────────────── *@
+@if (!string.IsNullOrEmpty(Model.ResumeUrl))
+{
+    <div class="app-card mb-4">
+        <div class="card-section-header">
+            <div class="card-section-title">
+                <span class="iconify" data-icon="lucide:file-user"></span>
+                Resume
+            </div>
+        </div>
+
+        <div class="resume-row">
+            <span class="iconify resume-icon" data-icon="lucide:file-text"></span>
+            <div class="resume-info">
+                <div class="resume-name">@Model.ResumeOriginalName</div>
+                <div class="resume-meta text-muted">Uploaded</div>
+            </div>
+            <a href="@Model.ResumeUrl" target="_blank" class="btn-outline-app btn-sm-app">
+                <span class="iconify" data-icon="lucide:eye"></span> View
+            </a>
+        </div>
+    </div>
+}
+
+@* ── Professional Links ───────────────────────────────────── *@
+@if (Model.ProfessionalLinks.Any())
+{
+    <div class="app-card mb-4">
+        <div class="card-section-header">
+            <div class="card-section-title">
+                <span class="iconify" data-icon="lucide:globe"></span>
+                Professional Links
+            </div>
+        </div>
+
+        <div>
+            @foreach (var link in Model.ProfessionalLinks)
+            {
+                string icon = (int)link.LinkName switch
+                {
+                    1 => "simple-icons:linkedin",
+                    2 => "simple-icons:github",
+                    3 => "lucide:globe",
+                    _ => "lucide:link"
+                };
+                string color = (int)link.LinkName switch
+                {
+                    1 => "#0A66C2",
+                    2 => "#24292E",
+                    3 => "#2563EB",
+                    _ => "#64748B"
+                };
+                string label = (int)link.LinkName switch
+                {
+                    1 => "LinkedIn",
+                    2 => "GitHub",
+                    3 => "Portfolio",
+                    _ => "Other"
+                };
+
+                <div class="saved-link-row">
+                    <div class="saved-link-icon-wrap">
+                        <span class="iconify"
+                                data-icon="@icon"
+                                style="color:@color;width:1.1rem;height:1.1rem;"></span>
+                    </div>
+                    <span class="saved-link-name">@label</span>
+                    <a href="@link.Url" target="_blank" class="saved-link-url">@link.Url</a>
+                </div>
+            }
+        </div>
+    </div>
 }

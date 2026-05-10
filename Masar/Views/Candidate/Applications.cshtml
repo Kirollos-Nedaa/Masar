@@ -1,0 +1,204 @@
+@using Masar.Domain.ViewModels.CandidateDtos
+@using Masar.Domain.Enums
+@model List<CandidateApplicationDto>
+
+@{
+    ViewData["Title"] = "My Applications";
+    ViewData["HasSidebar"] = true;
+}
+
+@section Sidebar {
+    <partial name="_CandidateSidebar" />
+}
+
+<div class="page-header d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="page-title">My Applications</h1>
+        <p class="page-subtitle">Track the status of all your job applications</p>
+    </div>
+    <a asp-controller="Jobs" asp-action="Index" class="btn-primary-app">
+        <span class="iconify" data-icon="lucide:search"></span> Find More Jobs
+    </a>
+</div>
+
+@* ── Stats row ─────────────────────────────────────────────── *@
+@{
+    var total      = Model.Count;
+    var applied    = Model.Count(a => a.Status == ApplicationStatus.Applied);
+    var reviewing  = Model.Count(a => a.Status == ApplicationStatus.UnderReview);
+    var accepted   = Model.Count(a => a.Status == ApplicationStatus.Accepted);
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-sm-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-card-label">Total</div>
+                <div class="stat-card-value">@total</div>
+            </div>
+            <div class="stat-card-icon stat-icon-blue">
+                <span class="iconify stat-icon" data-icon="lucide:file-text"></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-card-label">Applied</div>
+                <div class="stat-card-value">@applied</div>
+            </div>
+            <div class="stat-card-icon stat-icon-blue">
+                <span class="iconify stat-icon" data-icon="lucide:send"></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-card-label">Under Review</div>
+                <div class="stat-card-value">@reviewing</div>
+            </div>
+            <div class="stat-card-icon stat-icon-orange">
+                <span class="iconify stat-icon" data-icon="lucide:clock-alert"></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-card-label">Accepted</div>
+                <div class="stat-card-value">@accepted</div>
+            </div>
+            <div class="stat-card-icon stat-icon-green">
+                <span class="iconify stat-icon" data-icon="lucide:check-circle"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ── Applications list ─────────────────────────────────────── *@
+<div class="app-card">
+    <div class="card-section-header mb-3">
+        <div class="card-section-title">All Applications</div>
+        @if (Model.Any())
+        {
+            <span class="text-muted" style="font-size:.8rem;">
+                @Model.Count application@(Model.Count != 1 ? "s" : "")
+            </span>
+        }
+    </div>
+
+    @if (Model.Any())
+    {
+        foreach (var app in Model)
+        {
+            var initials = app.CompanyName.Length > 0
+                ? app.CompanyName.Substring(0, Math.Min(2, app.CompanyName.Length)).ToUpper()
+                : "?";
+
+            string badgeClass = app.Status switch
+            {
+                ApplicationStatus.UnderReview => "badge-review",
+                ApplicationStatus.Accepted    => "badge-accepted",
+                ApplicationStatus.Rejected    => "badge-rejected",
+                _                             => "badge-applied"
+            };
+
+            <div class="app-item">
+                <div class="app-item-logo">
+                    @if (!string.IsNullOrEmpty(app.CompanyLogo))
+                    {
+                        <img src="@app.CompanyLogo" alt="@app.CompanyName" />
+                    }
+                    else
+                    {
+                        @initials
+                    }
+                </div>
+
+                <div class="app-item-body">
+                    <div class="app-item-title-row">
+                        <a asp-controller="Jobs" asp-action="Details"
+                           asp-route-id="@app.JobId"
+                           class="app-item-title">@app.JobTitle</a>
+                        <span class="status-badge @badgeClass">@app.StatusDisplay</span>
+                    </div>
+                    <div class="app-item-meta">
+                        <span>
+                            <span class="iconify" data-icon="lucide:building-2"></span>
+                            @app.CompanyName
+                        </span>
+                        <span>
+                            <span class="iconify" data-icon="lucide:map-pin"></span>
+                            @app.Location
+                        </span>
+                        <span>
+                            <span class="iconify" data-icon="lucide:briefcase"></span>
+                            @app.JobType
+                        </span>
+                        @if (!string.IsNullOrEmpty(app.SalaryDisplay))
+                        {
+                            <span>
+                                <span class="iconify" data-icon="lucide:dollar-sign"></span>
+                                @app.SalaryDisplay
+                            </span>
+                        }
+                        <span>
+                            <span class="iconify" data-icon="lucide:clock"></span>
+                            Applied @app.AppliedDateDisplay
+                        </span>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <span class="iconify" style="font-size:3rem;color:var(--border);display:block;margin:0 auto .75rem;"
+                  data-icon="lucide:file-x"></span>
+            <p class="text-muted mb-3">You haven't applied to any jobs yet.</p>
+            <a asp-controller="Jobs" asp-action="Index" class="btn-primary-app">
+                <span class="iconify" data-icon="lucide:search"></span> Browse Jobs
+            </a>
+        </div>
+    }
+</div>
+
+@section Styles {
+<style>
+.app-item {
+    display: flex; align-items: flex-start; gap: 1rem;
+    padding: 1.1rem 0; border-bottom: 1px solid var(--border);
+}
+.app-item:last-child { border-bottom: none; }
+
+.app-item-logo {
+    width: 44px; height: 44px; border-radius: var(--radius-md);
+    background: var(--blue-50); border: 1px solid var(--blue-100);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Sora', sans-serif; font-size: .85rem;
+    font-weight: 700; color: var(--blue); flex-shrink: 0; overflow: hidden;
+}
+.app-item-logo img { width: 100%; height: 100%; object-fit: cover; }
+
+.app-item-body { flex: 1; min-width: 0; }
+
+.app-item-title-row {
+    display: flex; align-items: center;
+    justify-content: space-between; gap: .5rem; margin-bottom: .3rem;
+}
+
+.app-item-title {
+    font-size: .9375rem; font-weight: 700; color: var(--dark);
+    text-decoration: none; transition: color .15s;
+}
+.app-item-title:hover { color: var(--blue); }
+
+.app-item-meta {
+    display: flex; flex-wrap: wrap; gap: .25rem .875rem;
+    font-size: .8rem; color: var(--muted);
+}
+.app-item-meta span { display: inline-flex; align-items: center; gap: .3rem; }
+</style>
+}

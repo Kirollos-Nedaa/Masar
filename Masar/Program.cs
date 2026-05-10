@@ -50,6 +50,10 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IJobService, JobService>();
+builder.Services.AddScoped<IApplicationService, ApplicationService>();
+builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IJobLifecycleService, JobLifecycleService>();
 
 var app = builder.Build();
 

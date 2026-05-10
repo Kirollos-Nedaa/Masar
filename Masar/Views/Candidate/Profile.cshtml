@@ -26,7 +26,10 @@
 
 <div class="app-card mb-4">
     <div class="card-section-header">
-        <div class="card-section-title">Personal Information</div>
+        <div class="card-section-title">
+            <span class="iconify" data-icon="lucide:user"></span>
+            Personal Information
+        </div>
         <a asp-controller="Candidate" asp-action="EditPersonalInfo" class="btn-edit-section">
             <span class="iconify" data-icon="lucide:square-pen"></span> Edit
         </a>
@@ -124,7 +127,10 @@
 @* ── Education ────────────────────────────────────────────── *@
 <div class="app-card mb-4">
     <div class="card-section-header">
-        <div class="card-section-title">Education</div>
+        <div class="card-section-title">
+            <span class="iconify" data-icon="lucide:graduation-cap"></span>
+            Education
+        </div>
         <a asp-controller="Candidate" asp-action="EditEducation" class="btn-edit-section">
             <span class="iconify" data-icon="lucide:square-pen"></span> Edit
         </a>
@@ -134,7 +140,7 @@
     {
         <div class="education-block">
             <div class="education-icon">
-                <span class="iconify" data-icon="lucide:graduation-cap"></span>
+                <span class="iconify" data-icon="lucide:school"></span>
             </div>
             <div class="education-details">
                 <div class="education-university">@Model.Education.University</div>
@@ -167,7 +173,10 @@
 @* ── Skills ───────────────────────────────────────────────── *@
 <div class="app-card mb-4">
     <div class="card-section-header">
-        <div class="card-section-title">Skills</div>
+        <div class="card-section-title">
+            <span class="iconify" data-icon="lucide:zap"></span>
+            Skills
+        </div>
         <a asp-controller="Candidate" asp-action="EditSkills" class="btn-edit-section">
             <span class="iconify" data-icon="lucide:settings-2"></span> Manage Skills
         </a>
@@ -193,7 +202,22 @@
 @* ── Resume ───────────────────────────────────────────────── *@
 <div class="app-card mb-4">
     <div class="card-section-header">
-        <div class="card-section-title">Resume</div>
+        <div class="card-section-title">
+            <span class="iconify" data-icon="lucide:file-user"></span>
+            Resume
+        </div>
+        @if (!string.IsNullOrEmpty(Model.ResumeUrl))
+        {
+            <div class="d-flex gap-2">
+                <button type="button" class="btn-outline-app btn-sm-app" onclick="document.getElementById('resumeUpdateInput').click()">
+                    <span class="iconify" data-icon="lucide:upload-cloud"></span> Update
+                </button>
+                <button type="button" class="btn-outline-app btn-sm-app text-danger border-danger" onclick="confirmDeleteResume()">
+                    <span class="iconify" data-icon="lucide:trash-2"></span> Delete
+                </button>
+            </div>
+            <input type="file" id="resumeUpdateInput" accept=".pdf,.doc,.docx" hidden onchange="uploadResumeFile(this.files[0])" />
+        }
     </div>
 
     @if (!string.IsNullOrEmpty(Model.ResumeUrl))
@@ -201,23 +225,31 @@
         <div class="resume-row">
             <span class="iconify resume-icon" data-icon="lucide:file-text"></span>
             <div class="resume-info">
-                <div class="resume-name">resume.pdf</div>
+                <div class="resume-name">@Model.ResumeOriginalName</div>
                 <div class="resume-meta text-muted">Uploaded</div>
             </div>
             <a href="@Model.ResumeUrl" target="_blank" class="btn-outline-app btn-sm-app">
                 <span class="iconify" data-icon="lucide:eye"></span> View
             </a>
         </div>
+        <div class="masar-progress-container mt-3" id="resumeProgressContainer" style="display:none;">
+            <div class="masar-progress-bar" id="resumeProgressBar"></div>
+        </div>
     }
     else
     {
-        <div class="resume-upload-zone">
+        <div class="resume-upload-zone" id="resumeDropZone">
+            <input type="file" id="resumeInput" name="Resume" accept=".pdf,.doc,.docx" hidden onchange="uploadResumeFile(this.files[0])" />
             <span class="iconify resume-upload-icon" data-icon="lucide:upload"></span>
             <p class="mb-1">Drop your resume here or click to browse</p>
             <p class="text-muted mb-3" style="font-size:.82rem;">PDF, DOC, DOCX (max 5MB)</p>
-            <button type="button" class="btn-primary-app btn-sm-app">
+            <button type="button" class="btn-primary-app btn-sm-app" onclick="document.getElementById('resumeInput').click()">
                 <span class="iconify" data-icon="lucide:upload"></span> Upload Resume
             </button>
+            <p id="selectedFileName" class="mt-2 text-success"></p>
+            <div class="masar-progress-container" id="resumeProgressContainer" style="display:none;">
+                <div class="masar-progress-bar" id="resumeProgressBar"></div>
+            </div>
         </div>
     }
 </div>
@@ -280,3 +312,149 @@
         </div>
     }
 </div>
+
+
+<div class="modal fade review-confirm-modal" id="deleteResumeModal" tabindex="-1" aria-labelledby="deleteResumeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteResumeModalLabel">Delete Resume?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="review-modal-copy">
+                    Are you sure you want to delete your resume?
+                </p>
+                <p class="review-modal-note mb-0">
+                    This action cannot be undone.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-outline-app" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn-reject" id="confirmDeleteResumeBtn">
+                    <span class="iconify" data-icon="lucide:trash-2"></span>
+                    Delete Resume
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toastContainer"></div>
+
+<script>
+    function showToast(message, isError = false) {
+        var container = document.getElementById('toastContainer');
+        var toast = document.createElement('div');
+        toast.className = 'masar-toast ' + (isError ? 'masar-toast-error' : 'masar-toast-success');
+        toast.innerHTML = `<span class="iconify" data-icon="${isError ? 'lucide:circle-x' : 'lucide:check-circle'}" style="font-size:1.5rem"></span> <div>${message}</div>`;
+        container.appendChild(toast);
+        Iconify.scan(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    function uploadResumeFile(file) {
+        if (!file) return;
+
+        // Validation
+        const allowedExt = ['.pdf', '.doc', '.docx'];
+        const ext = '.' + file.name.split('.').pop().toLowerCase();
+        if (!allowedExt.includes(ext)) {
+            showToast("Invalid file type. Allowed: PDF, DOC, DOCX", true);
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            showToast("File size exceeds 5MB limit.", true);
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("Resume", file);
+
+        const progressContainer = document.getElementById('resumeProgressContainer');
+        const progressBar = document.getElementById('resumeProgressBar');
+        progressContainer.style.display = 'block';
+        progressBar.style.width = '0%';
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '@Url.Action("UploadResume", "Candidate")', true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+        xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable) {
+                const percent = Math.round((e.loaded / e.total) * 100);
+                progressBar.style.width = percent + '%';
+            }
+        };
+
+        xhr.onload = function() {
+            try {
+                const res = JSON.parse(xhr.responseText);
+                if (res.success) {
+                    showToast(res.message);
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showToast(res.message || "Upload failed", true);
+                    progressContainer.style.display = 'none';
+                }
+            } catch {
+                showToast("Server error during upload.", true);
+                progressContainer.style.display = 'none';
+            }
+        };
+        xhr.onerror = function() { showToast("Network error", true); progressContainer.style.display = 'none'; };
+        xhr.send(formData);
+    }
+
+    function confirmDeleteResume() {
+        var deleteModal = new bootstrap.Modal(document.getElementById('deleteResumeModal'));
+        var deleteConfirmBtn = document.getElementById('confirmDeleteResumeBtn');
+        deleteModal.show();
+
+        // Remove existing event listeners to avoid multiple triggers
+        var oldBtn = deleteConfirmBtn;
+        var newBtn = oldBtn.cloneNode(true);
+        oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+        deleteConfirmBtn = newBtn;
+
+        deleteConfirmBtn.addEventListener('click', function() {
+            deleteModal.hide();
+            const formData = new FormData();
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            if(token) formData.append('__RequestVerificationToken', token);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '@Url.Action("DeleteResume", "Candidate")', true);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+            xhr.onload = function() {
+                try {
+                    const res = JSON.parse(xhr.responseText);
+                    if (res.success) {
+                        showToast(res.message);
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        showToast(res.message || "Delete failed", true);
+                    }
+                } catch { showToast("Server error.", true); }
+            };
+            xhr.send(formData);
+        });
+    }
+
+    // Drag and Drop logic stays the same
+    const dropZone = document.getElementById('resumeDropZone');
+    if (dropZone) {
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-active'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-active'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-active');
+            if (e.dataTransfer.files.length) uploadResumeFile(e.dataTransfer.files[0]);
+        });
+    }
+</script>

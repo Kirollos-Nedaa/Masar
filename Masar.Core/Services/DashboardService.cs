@@ -7,8 +7,10 @@ using Masar.Domain.Models;
 using Masar.Domain.ViewModels;
 using Masar.Domain.ViewModels.CandidateDtos;
 using Masar.Domain.ViewModels.CompanyDtos;
+using Masar.Domain.ViewModels.Job;
 using Masar.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Masar.Core.Services
 {
@@ -16,17 +18,24 @@ namespace Masar.Core.Services
     {
         private readonly AppDbContext _context;
         private readonly IProfileService _profileService;
+        private readonly IJobLifecycleService _jobLifecycleService;
 
-        public DashboardService(AppDbContext context, IProfileService profileService)
+        public DashboardService(
+            AppDbContext context,
+            IProfileService profileService,
+            IJobLifecycleService jobLifecycleService)
         {
             _context = context;
             _profileService = profileService;
+            _jobLifecycleService = jobLifecycleService;
         }
 
 
         //-───────────── CANDIDATE DASHBOARD -────────────────────────────────────────────
         public async Task<CandidateDashboardDto> GetCandidateDashboardAsync(string userId)
         {
+            await _jobLifecycleService.CloseExpiredJobsAsync();
+
             var user = await _context.Users.FindAsync(userId);
 
             var profile = await _context.CandidateProfiles
@@ -104,6 +113,8 @@ namespace Masar.Core.Services
         //-─────────── COMPANY DASHBOARD -────────────────────────────────────────────
         public async Task<CompanyDashboardDto> GetCompanyDashboardAsync(string userId)
         {
+            await _jobLifecycleService.CloseExpiredJobsAsync();
+
             // Resolve the company profile that belongs to this user
             var companyProfile = await _context.CompanyProfiles
                 .FirstOrDefaultAsync(c => c.UserId == userId);
@@ -130,11 +141,11 @@ namespace Masar.Core.Services
                              && (a.Status == ApplicationStatus.Applied
                               || a.Status == ApplicationStatus.UnderReview));
 
-            // ── Posted Jobs (last 5, newest first) ────────────
+            // ── Posted Jobs (latest 6, newest first) ──────────
             var postedJobs = await _context.Jobs
                 .Where(j => j.CompanyProfileId == companyId)
                 .OrderByDescending(j => j.PostedDate)
-                .Take(5)
+                .Take(6)
                 .Select(j => new PostedJobDto
                 {
                     Id = j.Id,
@@ -147,18 +158,41 @@ namespace Masar.Core.Services
                 })
                 .ToListAsync();
 
-            // ── Recent Applicants (last 5 across all jobs) ─────
+            // ── Recent Applicants (latest 6 across all jobs) ───
             var recentApplicants = await _context.JobApplications
                 .Where(a => a.Job.CompanyProfileId == companyId)
                 .OrderByDescending(a => a.AppliedDate)
-                .Take(5)
+                .Take(6)
                 .Select(a => new RecentApplicantDto
                 {
                     JobId = a.JobId,
+                    ApplicationId = a.Id,
+                    CandidateProfileId = a.CandidateProfileId,
                     Name = a.Candidate.User.FirstName + " " + a.Candidate.User.LastName,
                     JobTitle = a.Job.Title,
                     AppliedDate = GetRelativeDate(a.AppliedDate),
                     Status = GetStatusDisplay(a.Status)
+                })
+                .ToListAsync();
+
+            var jobList = await _context.Jobs
+                .Where(j => j.CompanyProfileId == companyId)
+                .OrderByDescending(j => j.PostedDate)
+                .Take(6)
+                .Select(j => new JobListItemDto
+                {
+                    Id = j.Id,
+                    Title = j.Title,
+                    Location = j.Location,
+                    JobType = j.JobType.ToString(),
+                    Department = j.Department.ToString(),
+                    WorkMode = j.WorkMode.ToString(),
+                    IsActive = j.IsActive,
+                    IsFeatured = j.IsFeatured,
+                    ApplicantCount = j.JobApplications.Count,
+                    PostedDate = j.PostedDate,
+                    ApplicationDeadline = j.ApplicationDeadline,
+                    PostedDateDisplay = GetRelativeDate(j.PostedDate)
                 })
                 .ToListAsync();
 
@@ -169,7 +203,8 @@ namespace Masar.Core.Services
                 NewApplicants = newApplicants,
                 PendingReviews = pendingReviews,
                 PostedJobs = postedJobs,
-                RecentApplicants = recentApplicants
+                RecentApplicants = recentApplicants,
+                JobItems = jobList
             };
         }
 

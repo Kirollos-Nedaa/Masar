@@ -1,0 +1,282 @@
+﻿@using Masar.Domain.ViewModels.CandidateDtos
+@model List<SavedJobDto>
+
+@{
+    ViewData["Title"] = "Saved Jobs";
+    ViewData["HasSidebar"] = true;
+
+    string currentSearch = ViewBag.Search as string ?? string.Empty;
+    string currentSort = ViewBag.SortBy as string ?? "recent";
+}
+
+@section Sidebar {
+    <partial name="_CandidateSidebar" />
+}
+
+@* ── Page Header ──────────────────────────────────────────── *@
+<div class="page-header d-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-title">
+            <span class="iconify me-2" data-icon="lucide:bookmark-check"
+                  style="color:var(--blue);font-size:1.6rem;vertical-align:middle;"></span>
+            Saved Jobs
+        </h1>
+        <p class="page-subtitle">Jobs you've bookmarked for later review</p>
+    </div>
+</div>
+
+@* ── Search + Sort bar ────────────────────────────────────── *@
+<form method="get" asp-controller="Candidate" asp-action="SavedJobs" class="sj-filter-bar gap-2 mb-2">
+
+        @* Search input *@
+        <div class="sj-search-wrap">
+            <span class="iconify sj-search-icon" data-icon="lucide:search"></span>
+            <input type="text"
+                    name="search"
+                    class="sj-search-input"
+                    placeholder="Search saved jobs..."
+                    value="@currentSearch" />
+        </div>
+
+    <div class="sj-inputs-wrap gap-2">
+        @* Sort dropdown *@
+        <select name="sortBy"
+                class="epi-input epi-select sj-sort-select"
+                onchange="this.form.submit()">
+            <option value="recent" selected="@(currentSort == "recent" ? "selected" : null)">
+                Recently Saved
+            </option>
+            <option value="oldest" selected="@(currentSort == "oldest" ? "selected" : null)">
+                Oldest First
+            </option>
+            <option value="title" selected="@(currentSort == "title" ? "selected" : null)">
+                Title (A–Z)
+            </option>
+        </select>
+
+        @* Hidden search submit on Enter *@
+        <button type="submit" class="btn-primary-app sj-search-btn">
+            <span class="iconify" data-icon="lucide:search"></span>
+            Search
+        </button>
+    </div>
+
+</form>
+
+@* ── Results header + Clear All ───────────────────────────── *@
+<div class="sj-results-bar">
+    <span class="sj-results-count">
+        <strong>@Model.Count</strong> job@(Model.Count != 1 ? "s" : "") saved
+    </span>
+
+    @if (Model.Any())
+    {
+        <form asp-controller="Candidate" asp-action="ClearSavedJobs" method="post"
+              id="clearAllForm" style="display:inline;">
+            @Html.AntiForgeryToken()
+            <button type="button"
+                    class="sj-clear-btn"
+                    onclick="confirmClearAll()">
+                <span class="iconify" data-icon="lucide:bookmark-x"></span>
+                Clear All
+            </button>
+        </form>
+    }
+</div>
+
+@* ── Job Cards ────────────────────────────────────────────── *@
+@if (Model.Any())
+{
+    foreach (var job in Model)
+    {
+        var initials = job.CompanyName.Length > 0
+            ? job.CompanyName.Substring(0, Math.Min(2, job.CompanyName.Length)).ToUpper()
+            : "?";
+
+        var jobTypeLabel = job.JobType switch
+        {
+            "FullTime" => "Full-time",
+            "PartTime" => "Part-time",
+            "Internship" => "Internship",
+            _ => job.JobType
+        };
+
+        <div class="sj-card @(!job.IsActive ? "sj-card--closed" : "")">
+
+            @* ── Card body (clickable) ──────────────────────── *@
+            <a asp-controller="Jobs" asp-action="Details" asp-route-id="@job.JobId" class="sj-card-link">
+
+                @* Company logo *@
+                <div class="sj-card-logo">
+                    @if (!string.IsNullOrEmpty(job.CompanyLogo))
+                    {
+                        <img src="@job.CompanyLogo" alt="@job.CompanyName" />
+                    }
+                    else
+                    {
+                        @initials
+                    }
+                </div>
+
+                @* Main content *@
+                <div class="sj-card-body">
+                    <div class="sj-card-title-row">
+                        <span class="sj-card-title">@job.JobTitle</span>
+                        @if (!job.IsActive)
+                        {
+                            <span class="status-badge badge-rejected sj-closed-badge">Closed</span>
+                        }
+                    </div>
+
+                    <div class="sj-card-company">
+                        <span class="iconify" data-icon="lucide:building-2"></span>
+                        @job.CompanyName
+                    </div>
+
+                    <div class="sj-card-meta">
+                        <span>
+                            <span class="iconify" data-icon="lucide:map-pin"></span>
+                            @job.Location
+                        </span>
+                        <span>
+                            <span class="iconify" data-icon="lucide:clock"></span>
+                            @job.PostedDateDisplay
+                        </span>
+                        @if (!string.IsNullOrEmpty(job.SalaryDisplay))
+                        {
+                            <span>
+                                <span class="iconify" data-icon="lucide:dollar-sign"></span>
+                                @job.SalaryDisplay
+                            </span>
+                        }
+                    </div>
+
+                    <p class="sj-card-desc">@job.DescriptionSnippet</p>
+
+                    <div class="sj-card-tags">
+                        <span class="job-type-tag">@jobTypeLabel</span>
+                    </div>
+                </div>
+
+            </a>
+
+            @* ── Remove (toggle) button ─────────────────────── *@
+            <div class="sj-card-actions">
+                <form asp-controller="Candidate" asp-action="ToggleSaveJob"
+                      method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="jobId"
+                           value="@job.JobId" />
+                    <input type="hidden" name="returnUrl"
+                           value="@Url.Action("SavedJobs", "Candidate", new { search = currentSearch, sortBy = currentSort })" />
+                    <button type="submit" class="sj-remove-btn" title="Remove from saved">
+                        <span class="iconify" data-icon="lucide:bookmark-x"></span>
+                        Remove
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    }
+}
+else
+{
+    @* ── Empty state ─────────────────────────────────────── *@
+    <div class="app-card sj-empty">
+        <span class="iconify sj-empty-icon" data-icon="lucide:bookmark-x"></span>
+        @if (!string.IsNullOrWhiteSpace(currentSearch))
+        {
+            <p class="sj-empty-title">No results for "@currentSearch"</p>
+            <p class="sj-empty-sub">Try a different search term.</p>
+            <a asp-controller="Candidate" asp-action="SavedJobs"
+               class="btn-outline-app mt-3">
+                Clear search
+            </a>
+        }
+        else
+        {
+            <p class="sj-empty-title">No saved jobs yet</p>
+            <p class="sj-empty-sub">Browse jobs and bookmark the ones you like.</p>
+            <a asp-controller="Jobs" asp-action="Index" class="btn-primary-app mt-3">
+                <span class="iconify" data-icon="lucide:search"></span>
+                Browse Jobs
+            </a>
+        }
+    </div>
+}
+
+@* ── Confirmation modal for Clear All ────────────────────── *@
+<div class="modal fade" id="clearAllModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border:1px solid var(--border);border-radius:var(--radius-lg);">
+            <div class="modal-header" style="border-color:var(--border);padding:1rem 1.25rem;">
+                <h5 class="modal-title"
+                    style="font-family:'Sora',sans-serif;font-size:1rem;font-weight:700;color:var(--dark);">
+                    Clear all saved jobs?
+                </h5>
+                <button type="button" class="btn-close"
+                        data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding:1rem 1.25rem;">
+                <p style="margin:0;font-size:.95rem;color:var(--dark);">
+                    This will remove all <strong>@Model.Count</strong>
+                    saved job@(Model.Count != 1 ? "s" : "") from your list.
+                </p>
+                <p style="margin-top:.5rem;font-size:.875rem;color:var(--muted);">
+                    This action cannot be undone.
+                </p>
+            </div>
+            <div class="modal-footer" style="border-color:var(--border);padding:1rem 1.25rem;gap:.75rem;">
+                <button type="button" class="btn-outline-app"
+                        data-bs-dismiss="modal">
+                    Cancel
+                </button>
+                <button type="button" class="btn-reject"
+                        onclick="document.getElementById('clearAllForm').submit()">
+                    <span class="iconify" data-icon="lucide:trash-2"></span>
+                    Yes, Clear All
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toastContainer"></div>
+
+@section Scripts {
+    <script>
+        function showToast(message, isError = false) {
+            var container = document.getElementById('toastContainer');
+            if (!container) return;
+            var toast = document.createElement('div');
+            toast.className = 'masar-toast ' + (isError ? 'masar-toast-error' : 'masar-toast-success');
+            toast.innerHTML = `<span class="iconify" data-icon="${isError ? 'lucide:circle-x' : 'lucide:check-circle'}" style="font-size:1.5rem"></span> <div>${message}</div>`;
+            container.appendChild(toast);
+
+            if (typeof Iconify !== 'undefined') {
+                Iconify.scan(toast);
+            }
+
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function confirmClearAll() {
+            var modal = new bootstrap.Modal(document.getElementById('clearAllModal'));
+            modal.show();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if TempData has the success message upon redirect and trigger the toast
+        @if (TempData["SavedJobsSuccess"] != null)
+        {
+            <text>
+                    showToast("@TempData["SavedJobsSuccess"]", false);
+            </text>
+        }
+        });
+    </script>
+}

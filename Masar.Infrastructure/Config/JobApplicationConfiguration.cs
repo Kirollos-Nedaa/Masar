@@ -36,6 +36,11 @@ namespace Masar.Infrastructure.Config
                 .WithMany(c => c.JobApplications)
                 .HasForeignKey(ja => ja.CandidateProfileId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            builder.HasMany(ja => ja.Answers)
+                .WithOne(a => a.JobApplication)
+                .HasForeignKey(a => a.JobApplicationId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

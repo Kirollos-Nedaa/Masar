@@ -42,12 +42,6 @@
 
 Masar is an open-source career platform built with ASP.NET Core 8 MVC, designed to bridge the gap between job seekers and employers. It supports two user roles — **Candidates** and **Companies** — each with a tailored experience for finding opportunities or discovering talent.
 
-<img width="1366" height="3547" alt="home" src="https://github.com/user-attachments/assets/f5191e28-3438-4634-92f7-2ac16cebbda6" />
-<br>
-<img width="1366" height="1043" alt="company-dashboard" src="https://github.com/user-attachments/assets/7eff1b15-31e8-4167-953f-38e36e9388ef" />
-<br>
-<img width="1366" height="803" alt="candidate-dashboard" src="https://github.com/user-attachments/assets/4634e3a5-b6c4-4b39-b503-a078127a047f" />
-
 ---
 
 ## Features
@@ -252,11 +246,11 @@ Masar.Infrastructure/
 
 | Landing Page | Candidate Dashboard | Job Listings |
 |:---:|:---:|:---:|
-| *(Hero section with job search)* | *(Stats, recent applications, recommended jobs)* | *(Filterable browse with sidebar)* |
+| <img width="1366" height="3547" alt="home" src="https://github.com/user-attachments/assets/3c6ea5a5-0fc0-4e2c-b44e-919d87933fc1" /> | <img width="1366" height="803" alt="candidate-dashboard" src="https://github.com/user-attachments/assets/fb614914-cd26-4391-b3f3-4a3987ef9c02" /> | <img width="1366" height="1259" alt="jobs" src="https://github.com/user-attachments/assets/fc4a67aa-4aed-495d-8eaf-ddcc46f38bf3" /> |
 
 | Company Dashboard | Applicant Review | Job Posting |
 |:---:|:---:|:---:|
-| *(Active jobs table, recent applicants)* | *(Full candidate profile, accept/reject)* | *(Multi-section form with custom questions)* |
+| <img width="1366" height="1043" alt="company-dashboard" src="https://github.com/user-attachments/assets/4e021deb-e2a1-48cf-99ec-32f9494e02d2" /> | <img width="1366" height="1212" alt="applicant-review" src="https://github.com/user-attachments/assets/67af120a-3bff-47c9-9a12-1aedf43dadcd" /> | <img width="1366" height="2021" alt="job-posting" src="https://github.com/user-attachments/assets/e5057d2f-c4da-4a53-a061-2cdad62a127d" /> |
 
 ---
 

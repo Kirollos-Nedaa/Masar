@@ -1,12 +1,19 @@
+@using Masar.Domain.ViewModels.HomeDtos
+@model HomePageDto
+
 @{
     ViewData["Title"] = "Home";
     ViewData["HasFooter"] = true;
+
+    const int carouselPageSize = 12;
+    int totalCarouselPages = (int)Math.Ceiling(Model.Industries.Count / (double)carouselPageSize);
 }
 
 @section Footer {
-    <partial name="_Footer" />
+<partial name="_Footer" />
 }
 
+@* ---------------- Hero Section ------------------ *@
 <section class="hero">
     <div class="hero-inner">
         <div>
@@ -16,10 +23,10 @@
                 Your  <span class="accent">Career</span>
             </h1>
             <p>Masar connects ambitious students and professionals with top companies offering internships and full-time roles. Your path. Your Future.</p>
-            <div class="hero-search">
-                <input type="text" placeholder="Job title, or keywords" aria-label="Search jobs" />
-                <button class="btn hero-btn-primary">Search</button>
-            </div>
+            <form method="get" asp-controller="Jobs" asp-action="Index" class="hero-search">
+                <input type="text" name="search" placeholder="Job title, company, or keywords" aria-label="Search jobs" />
+                <button type="submit" class="btn hero-btn-primary">Search</button>
+            </form>
         </div>
 
         <div class="openings-panel">
@@ -28,52 +35,49 @@
                 <span class="openings-title">Latest Openings</span>
             </div>
 
-            <a href="/jobs/1" class="opening-item">
-                <div class="company-logo">T</div>
-                <div class="opening-info">
-                    <div class="opening-title">Frontend Developer Intern</div>
-                    <div class="opening-meta">
-                        TechCorp <span class="iconify" data-icon="lucide:dot" style="width:24px;height:24px;margin: 0px -8px;"></span> $25–35/hr
-                    </div>
-                </div>
-                <span class="badge">Internship</span>
-            </a>
+            @if (Model.LatestOpenings.Any())
+            {
+                @for (int i = 0; i < Model.LatestOpenings.Count; i++)
+                {
+                    var opening = Model.LatestOpenings[i];
+                    var isLast = i == Model.LatestOpenings.Count - 1;
 
-            <a href="/jobs/2" class="opening-item">
-                <div class="company-logo">S</div>
-                <div class="opening-info">
-                    <div class="opening-title">Software Engineer</div>
-                    <div class="opening-meta">StartupXYZ <span class="iconify" data-icon="lucide:dot" style="width:24px;height:24px;margin: 0px -8px;"></span> $120k–150k</div>
-                </div>
-                <span class="badge">Full-time</span>
-            </a>
+                    <a href="/Jobs/Details/@opening.Id" class="opening-item @(isLast ? "border-0 pb-0" : "")">
 
-            <a href="/jobs/3" class="opening-item">
-                <div class="company-logo">D</div>
-                <div class="opening-info">
-                    <div class="opening-title">Product Design Intern</div>
-                    <div class="opening-meta">DesignStudio <span class="iconify" data-icon="lucide:dot" style="width:24px;height:24px;margin: 0px -8px;"></span> $20–30/hr</div>
-                </div>
-                <span class="badge">Internship</span>
-            </a>
+                        @* Logo or initial *@
+                        <div class="company-logo" style="@(!string.IsNullOrEmpty(opening.CompanyLogo) ? "padding:0;overflow:hidden;" : "")">
+                            @if (!string.IsNullOrEmpty(opening.CompanyLogo))
+                            {
+                                <img src="@opening.CompanyLogo" alt="@opening.CompanyName" style="width:100%;height:100%;object-fit:cover;" />
+                            }
+                            else
+                            {
+                                @(opening.CompanyName.Length > 0 ? opening.CompanyName.Substring(0, 1).ToUpper() : "?")
+                            }
+                        </div>
 
-            <a href="/jobs/5" class="opening-item">
-                <div class="company-logo">B</div>
-                <div class="opening-info">
-                    <div class="opening-title">Marketing Coordinator</div>
-                    <div class="opening-meta">BrandCo <span class="iconify" data-icon="lucide:dot" style="width:24px;height:24px;margin: 0px -8px;"></span> $18–24/hr</div>
-                </div>
-                <span class="badge">Part-time</span>
-            </a>
+                        <div class="opening-info">
+                            <div class="opening-title">@opening.Title</div>
+                            <div class="opening-meta">@opening.CompanyName
 
-            <a href="/jobs/6" class="opening-item border-0 pb-0">
-                <div class="company-logo">C</div>
-                <div class="opening-info">
-                    <div class="opening-title">Backend Engineer</div>
-                    <div class="opening-meta">CloudSystems <span class="iconify" data-icon="lucide:dot" style="width:24px;height:24px;margin: 0px -8px;"></span> $130k–160k</div>
-                </div>
-                <span class="badge">Full-time</span>
-            </a>
+                                @if (!string.IsNullOrEmpty(opening.SalaryDisplay))
+                                {
+                                    <span class="iconify" data-icon="lucide:dot" style="width:24px;height:24px;margin:0 -8px;"></span>
+                                    @opening.SalaryDisplay
+                                }
+                            </div>
+                        </div>
+
+                        <span class="badge">@opening.JobTypeDisplay</span>
+                    </a>
+                }
+            }
+            else
+            {
+                <p class="text-muted" style="font-size:.875rem;padding:.75rem 0;">
+                    No open positions at the moment.
+                </p>
+            }
         </div>
     </div>
 </section>
@@ -82,19 +86,19 @@
 <section class="stats-bar">
     <div class="stats-inner">
         <div class="stat-item">
-            <div class="stat-value">12,500+</div>
+            <div class="stat-value">@Model.SiteStats.TotalJobsDisplay</div>
             <div class="stat-label">Jobs Posted</div>
         </div>
         <div class="stat-item">
-            <div class="stat-value">3,200+</div>
+            <div class="stat-value">@Model.SiteStats.TotalCompaniesDisplay</div>
             <div class="stat-label">Companies</div>
         </div>
         <div class="stat-item">
-            <div class="stat-value">48,000+</div>
+            <div class="stat-value">@Model.SiteStats.TotalCandidatesDisplay</div>
             <div class="stat-label">Candidates</div>
         </div>
         <div class="stat-item">
-            <div class="stat-value">89%</div>
+            <div class="stat-value">@Model.SiteStats.HiringRateDisplay</div>
             <div class="stat-label">Hiring Rate</div>
         </div>
     </div>
@@ -102,7 +106,7 @@
 
 @* ==================== Industries ==================== *@
 <section class="section section-bg">
-    <div class="container">
+    <div class="">
         <div class="section-header">
             <h2 class="section-title">Browse by Industry</h2>
             <p class="section-sub">Explore opportunities across every industry</p>
@@ -110,353 +114,119 @@
 
         <div class="carousel-wrap">
             <div class="carousel-track" id="carouselTrack" style="padding: 2px;">
-                <a href="/jobs?industry=technology" class="industry-card">
-                    <div class="industry-icon-wrap">
-                        <span class="iconify" data-icon="lucide:cpu" style="width:22px;height:22px;"></span>
-                    </div>
-                    <div>
-                        <div class="industry-name">Technology</div>
-                        <div class="industry-jobs">3,240 jobs</div>
-                    </div>
-                </a>
-                <a href="/jobs?industry=finance" class="industry-card">
-                    <div class="industry-icon-wrap">
-                        <span class="iconify" data-icon="lucide:trending-up" style="width:22px;height:22px;"></span>
-                    </div>
-                    <div>
-                        <div class="industry-name">Finance</div>
-                        <div class="industry-jobs">980 jobs</div>
-                    </div>
-                </a>
-                <a href="/jobs?industry=healthcare" class="industry-card">
-                    <div class="industry-icon-wrap">
-                        <span class="iconify" data-icon="lucide:heart-pulse" style="width:22px;height:22px;"></span>
-                    </div>
-                    <div>
-                        <div class="industry-name">Healthcare</div>
-                        <div class="industry-jobs">1,540 jobs</div>
-                    </div>
-                </a>
-                <a href="/jobs?industry=education" class="industry-card">
-                    <div class="industry-icon-wrap">
-                        <span class="iconify" data-icon="lucide:graduation-cap" style="width:22px;height:22px;"></span>
-                    </div>
-                    <div>
-                        <div class="industry-name">Education</div>
-                        <div class="industry-jobs">720 jobs</div>
-                    </div>
-                </a>
-                <a href="/jobs?industry=manufacturing" class="industry-card">
-                    <div class="industry-icon-wrap">
-                        <span class="iconify" data-icon="lucide:factory" style="width:22px;height:22px;"></span>
-                    </div>
-                    <div>
-                        <div class="industry-name">Manufacturing</div>
-                        <div class="industry-jobs">860 jobs</div>
-                    </div>
-                </a>
-                <a href="/jobs?industry=retail" class="industry-card">
-                    <div class="industry-icon-wrap">
-                        <span class="iconify" data-icon="lucide:shopping-bag" style="width:22px;height:22px;"></span>
-                    </div>
-                    <div>
-                        <div class="industry-name">Retail</div>
-                        <div class="industry-jobs">610 jobs</div>
-                    </div>
-                </a>
-                <a href="/jobs?industry=energy" class="industry-card">
-                    <div class="industry-icon-wrap">
-                        <span class="iconify" data-icon="lucide:zap" style="width:22px;height:22px;"></span>
-                    </div>
-                    <div>
-                        <div class="industry-name">Energy</div>
-                        <div class="industry-jobs">430 jobs</div>
-                    </div>
-                </a>
-                <a href="/jobs?industry=transportation" class="industry-card">
-                    <div class="industry-icon-wrap">
-                        <span class="iconify" data-icon="lucide:truck" style="width:22px;height:22px;"></span>
-                    </div>
-                    <div>
-                        <div class="industry-name">Transportation</div>
-                        <div class="industry-jobs">570 jobs</div>
-                    </div>
-                </a>
-                <a href="/jobs?industry=hospitality" class="industry-card">
-                    <div class="industry-icon-wrap">
-                        <span class="iconify" data-icon="lucide:utensils" style="width:22px;height:22px;"></span>
-                    </div>
-                    <div>
-                        <div class="industry-name">Hospitality</div>
-                        <div class="industry-jobs">490 jobs</div>
-                    </div>
-                </a>
-                <a href="/jobs?industry=construction" class="industry-card">
-                    <div class="industry-icon-wrap">
-                        <span class="iconify" data-icon="lucide:hard-hat" style="width:22px;height:22px;"></span>
-                    </div>
-                    <div>
-                        <div class="industry-name">Construction</div>
-                        <div class="industry-jobs">380 jobs</div>
-                    </div>
-                </a>
-                <a href="/jobs?industry=media" class="industry-card">
-                    <div class="industry-icon-wrap">
-                        <span class="iconify" data-icon="lucide:tv-2" style="width:22px;height:22px;"></span>
-                    </div>
-                    <div>
-                        <div class="industry-name">Media</div>
-                        <div class="industry-jobs">520 jobs</div>
-                    </div>
-                </a>
-                <a href="/jobs?industry=government" class="industry-card">
-                    <div class="industry-icon-wrap">
-                        <span class="iconify" data-icon="lucide:landmark" style="width:22px;height:22px;"></span>
-                    </div>
-                    <div>
-                        <div class="industry-name">Government</div>
-                        <div class="industry-jobs">310 jobs</div>
-                    </div>
-                </a>
-
-                <a href="/jobs?industry=nonprofit" class="industry-card carousel-page-2" style="display:none;">
-                    <div class="industry-icon-wrap">
-                        <span class="iconify" data-icon="lucide:heart-handshake" style="width:22px;height:22px;"></span>
-                    </div>
-                    <div>
-                        <div class="industry-name">Non-Profit</div>
-                        <div class="industry-jobs">240 jobs</div>
-                    </div>
-                </a>
-                <a href="/jobs?industry=agriculture" class="industry-card carousel-page-2" style="display:none;">
-                    <div class="industry-icon-wrap">
-                        <span class="iconify" data-icon="lucide:wheat" style="width:22px;height:22px;"></span>
-                    </div>
-                    <div>
-                        <div class="industry-name">Agriculture</div>
-                        <div class="industry-jobs">170 jobs</div>
-                    </div>
-                </a>
-                <a href="/jobs?industry=telecom" class="industry-card carousel-page-2" style="display:none;">
-                    <div class="industry-icon-wrap">
-                        <span class="iconify" data-icon="lucide:radio-tower" style="width:22px;height:22px;"></span>
-                    </div>
-                    <div>
-                        <div class="industry-name">Telecom</div>
-                        <div class="industry-jobs">290 jobs</div>
-                    </div>
-                </a>
-                <a href="/jobs?industry=legal" class="industry-card carousel-page-2" style="display:none;">
-                    <div class="industry-icon-wrap">
-                        <span class="iconify" data-icon="lucide:scale" style="width:22px;height:22px;"></span>
-                    </div>
-                    <div>
-                        <div class="industry-name">Legal</div>
-                        <div class="industry-jobs">195 jobs</div>
-                    </div>
-                </a>
-                <a href="/jobs?industry=other" class="industry-card carousel-page-2" style="display:none;">
-                    <div class="industry-icon-wrap">
-                        <span class="iconify" data-icon="lucide:briefcase" style="width:22px;height:22px;"></span>
-                    </div>
-                    <div>
-                        <div class="industry-name">Other</div>
-                        <div class="industry-jobs">570 jobs</div>
-                    </div>
-                </a>
+                @foreach (var industry in Model.Industries)
+                {
+                    <a href="@Url.Action("Index", "Jobs", new { industries = industry.FilterValue })" class="industry-card">
+                        <div class="industry-icon-wrap">
+                            <span class="iconify" data-icon="@industry.Icon" style="width:22px;height:22px;"></span>
+                        </div>
+                        <div>
+                            <div class="industry-name">@industry.DisplayName</div>
+                            <div class="industry-jobs">@industry.JobCount Job@(industry.JobCount > 1 ? "s" : "")</div>
+                        </div>
+                    </a>
+                }
             </div>
         </div>
 
         <div class="carousel-controls">
-            <button class="carousel-dot active" data-page="0" aria-label="Page 1"></button>
-            <button class="carousel-dot" data-page="1" aria-label="Page 2"></button>
+            @for (int p = 0; p < totalCarouselPages; p++)
+            {
+                <button class="carousel-dot @(p == 0 ? "active" : "")" data-page="@p" aria-label="Page @(p + 1)"></button>
+            }
         </div>
     </div>
 </section>
 
 @* =========== Featured Opportunities ================== *@
-<section class="section" style="background-color: white;">
+<section class="section" style="background-color:white;">
     <div class="container">
         <div class="section-header-row">
             <div class="section-header-left">
                 <h2 class="section-title">Featured Opportunities</h2>
-                <p class="section-sub" style="text-align:left;margin-top:4px;">Hand-picked roles from top-rated companies</p>
+                <p class="section-sub" style="text-align:left;margin-top:4px;">
+                    Hand-picked roles from top-rated companies
+                </p>
             </div>
-            <a href="/jobs" class="view-all-link">
+            <a asp-controller="Jobs" asp-action="Index" class="view-all-link">
                 View All Jobs
                 <span class="iconify" data-icon="lucide:chevron-right" style="width:16px;height:16px;"></span>
             </a>
         </div>
 
-        <div class="featured-grid">
-            <a href="/jobs/1" class="featured-job-card">
-                <div class="job-card-head">
-                    <div class="job-company-row">
-                        <div class="job-company-logo">T</div>
-                        <div>
-                            <div class="job-company-name">TechCorp</div>
-                            <div class="job-company-loc">
-                                <span class="iconify" data-icon="lucide:map-pin" style="width:12px;height:12px;"></span>
-                                San Francisco, CA
-                            </div>
-                        </div>
-                    </div>
-                    <span class="badge badge-internship">Internship</span>
-                </div>
-                <div class="job-title">Frontend Developer Intern</div>
-                <div class="job-desc">Join our engineering team to build responsive web interfaces using React and TypeScript.</div>
-                <div class="job-card-footer">
-                    <span class="job-salary">
-                        <span class="iconify" data-icon="lucide:dollar-sign" style="width:14px;height:14px;color:var(--muted);"></span>
-                        $25–35/hr
-                    </span>
-                    <span class="job-posted">
-                        <span class="iconify" data-icon="lucide:clock" style="width:14px;height:14px;"></span>
-                        2 days ago
-                    </span>
-                </div>
-            </a>
+        @if (Model.FeaturedJobs.Any())
+        {
+            <div class="featured-grid">
+                @foreach (var job in Model.FeaturedJobs)
+                {
+                    var jobTypeBadgeClass = job.JobTypeDisplay switch
+                    {
+                        "Full-time" => "badge-fulltime",
+                        "Part-time" => "badge-parttime",
+                        "Internship" => "badge-internship",
+                        _ => ""
+                    };
 
-            <a href="/jobs/2" class="featured-job-card">
-                <div class="job-card-head">
-                    <div class="job-company-row">
-                        <div class="job-company-logo">S</div>
-                        <div>
-                            <div class="job-company-name">StartupXYZ</div>
-                            <div class="job-company-loc">
-                                <span class="iconify" data-icon="lucide:map-pin" style="width:12px;height:12px;"></span>
-                                Remote
-                            </div>
-                        </div>
-                    </div>
-                    <span class="badge badge-fulltime">Full-time</span>
-                </div>
-                <div class="job-title">Software Engineer</div>
-                <div class="job-desc">Design and build scalable backend services and REST APIs that power our core product.</div>
-                <div class="job-card-footer">
-                    <span class="job-salary">
-                        <span class="iconify" data-icon="lucide:dollar-sign" style="width:14px;height:14px;color:var(--muted);"></span>
-                        $120k–150k
-                    </span>
-                    <span class="job-posted">
-                        <span class="iconify" data-icon="lucide:clock" style="width:14px;height:14px;"></span>
-                        1 week ago
-                    </span>
-                </div>
-            </a>
+                    <a asp-controller="Jobs" asp-action="Details" asp-route-id="@job.Id" class="featured-job-card">
+                        <div class="job-card-head">
+                            <div class="job-company-row">
 
-            <a href="/jobs/3" class="featured-job-card">
-                <div class="job-card-head">
-                    <div class="job-company-row">
-                        <div class="job-company-logo">D</div>
-                        <div>
-                            <div class="job-company-name">DesignStudio</div>
-                            <div class="job-company-loc">
-                                <span class="iconify" data-icon="lucide:map-pin" style="width:12px;height:12px;"></span>
-                                New York, NY
-                            </div>
-                        </div>
-                    </div>
-                    <span class="badge badge-internship">Internship</span>
-                </div>
-                <div class="job-title">Product Design Intern</div>
-                <div class="job-desc">Work alongside our design team to craft intuitive user experiences for mobile and web.</div>
-                <div class="job-card-footer">
-                    <span class="job-salary">
-                        <span class="iconify" data-icon="lucide:dollar-sign" style="width:14px;height:14px;color:var(--muted);"></span>
-                        $20–30/hr
-                    </span>
-                    <span class="job-posted">
-                        <span class="iconify" data-icon="lucide:clock" style="width:14px;height:14px;"></span>
-                        3 days ago
-                    </span>
-                </div>
-            </a>
+                                @* Logo or initial *@
+                                <div class="job-company-logo"
+                                     style="@(!string.IsNullOrEmpty(job.CompanyLogo) ? "padding:0;overflow:hidden;" : "")">
+                                    @if (!string.IsNullOrEmpty(job.CompanyLogo))
+                                    {
+                                        <img src="@job.CompanyLogo" alt="@job.CompanyName" style="width:100%;height:100%;object-fit:cover;" />
+                                    }
+                                    else
+                                    {
+                                        @(job.CompanyName.Length > 0 ? job.CompanyName.Substring(0, 1).ToUpper() : "?")
+                                    }
+                                </div>
 
-            <a href="/jobs/4" class="featured-job-card">
-                <div class="job-card-head">
-                    <div class="job-company-row">
-                        <div class="job-company-logo">F</div>
-                        <div>
-                            <div class="job-company-name">DataFlow Inc.</div>
-                            <div class="job-company-loc">
-                                <span class="iconify" data-icon="lucide:map-pin" style="width:12px;height:12px;"></span>
-                                Austin, TX
+                                <div>
+                                    <div class="job-company-name">@job.CompanyName</div>
+                                    <div class="job-company-loc">
+                                        <span class="iconify" data-icon="lucide:map-pin" style="width:12px;height:12px;"></span>
+                                        @job.Location
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <span class="badge badge-fulltime">Full-time</span>
-                </div>
-                <div class="job-title">Data Analyst</div>
-                <div class="job-desc">Analyze large datasets and build dashboards that guide strategic business decisions.</div>
-                <div class="job-card-footer">
-                    <span class="job-salary">
-                        <span class="iconify" data-icon="lucide:dollar-sign" style="width:14px;height:14px;color:var(--muted);"></span>
-                        $85k–105k
-                    </span>
-                    <span class="job-posted">
-                        <span class="iconify" data-icon="lucide:clock" style="width:14px;height:14px;"></span>
-                        5 days ago
-                    </span>
-                </div>
-            </a>
 
-            <a href="/jobs/5" class="featured-job-card">
-                <div class="job-card-head">
-                    <div class="job-company-row">
-                        <div class="job-company-logo">B</div>
-                        <div>
-                            <div class="job-company-name">BrandCo</div>
-                            <div class="job-company-loc">
-                                <span class="iconify" data-icon="lucide:map-pin" style="width:12px;height:12px;"></span>
-                                Chicago, IL
-                            </div>
+                            <span class="badge @jobTypeBadgeClass">@job.JobTypeDisplay</span>
                         </div>
-                    </div>
-                    <span class="badge badge-parttime">Part-time</span>
-                </div>
-                <div class="job-title">Marketing Coordinator</div>
-                <div class="job-desc">Execute campaigns across social, email, and content channels for a growing brand.</div>
-                <div class="job-card-footer">
-                    <span class="job-salary">
-                        <span class="iconify" data-icon="lucide:dollar-sign" style="width:14px;height:14px;color:var(--muted);"></span>
-                        $18–24/hr
-                    </span>
-                    <span class="job-posted">
-                        <span class="iconify" data-icon="lucide:clock" style="width:14px;height:14px;"></span>
-                        4 days ago
-                    </span>
-                </div>
-            </a>
 
-            <a href="/jobs/6" class="featured-job-card">
-                <div class="job-card-head">
-                    <div class="job-company-row">
-                        <div class="job-company-logo">C</div>
-                        <div>
-                            <div class="job-company-name">CloudSystems</div>
-                            <div class="job-company-loc">
-                                <span class="iconify" data-icon="lucide:map-pin" style="width:12px;height:12px;"></span>
-                                Seattle, WA
-                            </div>
+                        <div class="job-title">@job.Title</div>
+                        <div class="job-desc">@job.Description</div>
+
+                        <div class="job-card-footer">
+                            <span class="job-salary">
+                                @if (!string.IsNullOrEmpty(job.SalaryDisplay))
+                                {
+                                    <span class="iconify" data-icon="lucide:dollar-sign" style="width:14px;height:14px;color:var(--muted);"></span>
+                                    @job.SalaryDisplay
+                                }
+                                else
+                                {
+                                    <span style="color:var(--muted);font-size:.8rem;">Salary not specified</span>
+                                }
+                            </span>
+                            <span class="job-posted">
+                                <span class="iconify" data-icon="lucide:clock" style="width:14px;height:14px;"></span>
+                                @job.PostedDateDisplay
+                            </span>
                         </div>
-                    </div>
-                    <span class="badge badge-fulltime">Full-time</span>
-                </div>
-                <div class="job-title">Backend Engineer</div>
-                <div class="job-desc">Build cloud-native infrastructure and microservices at scale using Go, K8s, and AWS.</div>
-                <div class="job-card-footer">
-                    <span class="job-salary">
-                        <span class="iconify" data-icon="lucide:dollar-sign" style="width:14px;height:14px;color:var(--muted);"></span>
-                        $130k–160k
-                    </span>
-                    <span class="job-posted">
-                        <span class="iconify" data-icon="lucide:clock" style="width:14px;height:14px;"></span>
-                        6 days ago
-                    </span>
-                </div>
-            </a>
-        </div>
+                    </a>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <span class="iconify" data-icon="lucide:briefcase" style="font-size:3rem;color:var(--border);display:block;margin:0 auto .75rem;"></span>
+                <p class="text-muted">No job postings yet. Check back soon!</p>
+            </div>
+        }
     </div>
 </section>
 
@@ -563,6 +333,7 @@
     </div>
 </section>
 
+@* -------------- Getting started Section ---------------- *@
 <section class="section section-bg">
     <div class="container">
         <div class="section-header">
@@ -629,13 +400,72 @@
     <script>
         // ── Industry Carousel ──
         (function () {
-            const dots = document.querySelectorAll('.carousel-dot');
+            const wrap = document.querySelector('.carousel-wrap');
+            const track = document.querySelector('.carousel-track');
+            const controls = document.querySelector('.carousel-controls');
             const allCards = document.querySelectorAll('.industry-card');
-
-            // Set to -1 initially so the first load gets a generic fade-in
-            let currentPage = -1;
-            const PAGE_SIZE = 12;
             const cardsList = Array.from(allCards);
+
+            let currentPage = -1;
+            let PAGE_SIZE = 12; // will be updated based on breakpoint
+            let columns = 4; // number of columns in grid
+
+            // Function to update layout based on breakpoint
+            function updateLayout() {
+                const isDesktop = window.innerWidth >= 768;
+                if (isDesktop) {
+                    PAGE_SIZE = 12;
+                    columns = 4;
+                } else {
+                    PAGE_SIZE = 6;
+                    columns = 1;
+                }
+                // Update grid template columns on track
+                track.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+                // Update dots
+                updateDots();
+                // Update fixed height
+                updateFixedHeight();
+            }
+
+            function updateDots() {
+                const pageCount = Math.ceil(cardsList.length / PAGE_SIZE);
+                // Build dots HTML
+                let dotsHTML = '';
+                for (let i = 0; i < pageCount; i++) {
+                    dotsHTML += `<button class="carousel-dot${i === 0 ? ' active' : ''}" data-page="${i}" aria-label="Page ${i + 1}"></button>`;
+                }
+                controls.innerHTML = dotsHTML;
+                // Add click events to new dots
+                document.querySelectorAll('.carousel-dot').forEach((dot, i) => {
+                    dot.addEventListener('click', () => showPage(i));
+                });
+            }
+
+            function updateFixedHeight() {
+                if (cardsList.length === 0) return;
+
+                const cardHeight = cardsList[0].offsetHeight;
+                const rows = Math.ceil(PAGE_SIZE / columns); // Using Math.ceil ensures partial rows aren't ignored
+
+                // 1. Grab the track element to read its live CSS
+                const track = document.getElementById('carouselTrack');
+                const trackStyles = window.getComputedStyle(track);
+
+                // 2. Extract the exact gap and padding values (fallback to defaults if undefined)
+                const gap = parseFloat(trackStyles.rowGap) || 14;
+                const paddingTop = parseFloat(trackStyles.paddingTop) || 2;
+                const paddingBottom = parseFloat(trackStyles.paddingBottom) || 2;
+
+                // 3. Calculate total extra space
+                // If there are 2 rows, there is 1 gap. If 3 rows, 2 gaps, etc.
+                const totalGapHeight = rows > 1 ? (rows - 1) * gap : 0;
+                const totalPadding = paddingTop + paddingBottom;
+
+                // 4. Apply the perfect height
+                const height = (rows * cardHeight) + totalGapHeight + totalPadding + 1;
+                wrap.style.height = `${height}px`;
+        }
 
             function showPage(page) {
                 // Prevent animation if clicking the same active dot
@@ -670,36 +500,18 @@
                 });
 
                 // Update active dot state
-                dots.forEach((dot, i) => {
+                document.querySelectorAll('.carousel-dot').forEach((dot, i) => {
                     dot.classList.toggle('active', i === page);
                 });
             }
 
-            // Bind click events
-            dots.forEach((dot, i) => {
-                dot.addEventListener('click', () => showPage(i));
-            });
-
-            // Inject directional keyframe animations (Using @@ to escape Razor syntax)
-            const style = document.createElement('style');
-            style.textContent = `
-                @@keyframes slideInRight {
-                    from { opacity: 0; transform: translateX(60px); }
-                    to   { opacity: 1; transform: translateX(0); }
-                }
-                @@keyframes slideInLeft {
-                    from { opacity: 0; transform: translateX(-60px); }
-                    to   { opacity: 1; transform: translateX(0); }
-                }
-                @@keyframes fadeSlideIn {
-                    from { opacity: 0; transform: translateY(10px); }
-                    to   { opacity: 1; transform: translateY(0); }
-                }
-            `;
-            document.head.appendChild(style);
-
+            // Initialize
+            updateLayout();
             // Initial render
             showPage(0);
+
+            // Update on resize
+            window.addEventListener('resize', updateLayout);
         })();
     </script>
 }

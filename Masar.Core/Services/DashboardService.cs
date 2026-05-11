@@ -3,6 +3,7 @@
 using Humanizer;
 using Masar.Core.IService;
 using Masar.Domain.Enums;
+using Masar.Domain.Helpers;
 using Masar.Domain.Models;
 using Masar.Domain.ViewModels;
 using Masar.Domain.ViewModels.CandidateDtos;
@@ -69,7 +70,7 @@ namespace Masar.Core.Services
                     {
                         JobTitle = a.Job.Title,
                         Company = a.Job.Company.Name,
-                        AppliedDate = GetRelativeDate(a.AppliedDate),
+                        AppliedDate = a.AppliedDate.ToRelativeDate(),
                         Status = GetStatusDisplay(a.Status)
                     })
                     .ToListAsync();
@@ -85,7 +86,7 @@ namespace Masar.Core.Services
                     Title = j.Title,
                     Company = j.Company.Name,
                     Location = j.Location,
-                    PostedDate = GetRelativeDate(j.PostedDate),
+                    PostedDate = j.PostedDate.ToRelativeDate(),
                     Salary = j.MinSalary != null && j.MaxSalary != null
                                      ? $"${j.MinSalary}–{j.MaxSalary}"
                                      : "N/A",
@@ -154,7 +155,7 @@ namespace Masar.Core.Services
                     JobType = j.JobType.ToString(),
                     Status = j.IsActive ? "Active" : "Closed",
                     ApplicantCount = j.JobApplications.Count,
-                    PostedDate = GetRelativeDate(j.PostedDate)
+                    PostedDate = j.PostedDate.ToRelativeDate()
                 })
                 .ToListAsync();
 
@@ -170,7 +171,7 @@ namespace Masar.Core.Services
                     CandidateProfileId = a.CandidateProfileId,
                     Name = a.Candidate.User.FirstName + " " + a.Candidate.User.LastName,
                     JobTitle = a.Job.Title,
-                    AppliedDate = GetRelativeDate(a.AppliedDate),
+                    AppliedDate = a.AppliedDate.ToRelativeDate(),
                     Status = GetStatusDisplay(a.Status)
                 })
                 .ToListAsync();
@@ -192,7 +193,7 @@ namespace Masar.Core.Services
                     ApplicantCount = j.JobApplications.Count,
                     PostedDate = j.PostedDate,
                     ApplicationDeadline = j.ApplicationDeadline,
-                    PostedDateDisplay = GetRelativeDate(j.PostedDate)
+                    PostedDateDisplay = j.PostedDate.ToRelativeDate()
                 })
                 .ToListAsync();
 
@@ -286,15 +287,5 @@ namespace Masar.Core.Services
             ApplicationStatus.Rejected => "Rejected",
             _ => "Unknown"
         };
-
-        private static string GetRelativeDate(DateTime date)
-        {
-            var diff = DateTime.UtcNow - date;
-            if (diff.TotalDays < 1) return "Today";
-            if (diff.TotalDays < 2) return "Yesterday";
-            if (diff.TotalDays < 7) return $"{(int)diff.TotalDays} days ago";
-            if (diff.TotalDays < 30) return $"{(int)(diff.TotalDays / 7)} week(s) ago";
-            return date.ToString("MMM dd, yyyy");
-        }
     }
 }

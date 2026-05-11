@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using Masar.Domain.Models;
+using Masar.Core.IService;
 using Masar.Domain.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,15 +8,18 @@ namespace Masar.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly IHomeService _homeService;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, IHomeService homeService)
         {
             _logger = logger;
+            _homeService = homeService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var vm = await _homeService.GetHomePageDataAsync();
+            return View(vm);
         }
 
         public IActionResult Privacy()
@@ -27,7 +30,10 @@ namespace Masar.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View(new ErrorViewModel
+            {
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+            });
         }
     }
 }

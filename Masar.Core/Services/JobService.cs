@@ -1,5 +1,6 @@
 ﻿using Masar.Core.IService;
 using Masar.Domain.Enums;
+using Masar.Domain.Helpers;
 using Masar.Domain.Models;
 using Masar.Domain.ViewModels.CompanyDtos;
 using Masar.Domain.ViewModels.Job;
@@ -197,7 +198,7 @@ namespace Masar.Core.Services
                     ApplicantCount = j.JobApplications.Count,
                     PostedDate = j.PostedDate,
                     ApplicationDeadline = j.ApplicationDeadline,
-                    PostedDateDisplay = GetRelativeDate(j.PostedDate)
+                    PostedDateDisplay = j.PostedDate.ToRelativeDate()
                 })
                 .ToListAsync();
 
@@ -323,10 +324,8 @@ namespace Masar.Core.Services
                     WorkMode = j.WorkMode.ToString(),
                     Department = j.Department.ToString(),
                     Industry = j.Company.Industry,
-                    PostedDateDisplay = GetRelativeDate(j.PostedDate),
-                    SalaryDisplay = j.MinSalary != null && j.MaxSalary != null
-                        ? $"${j.MinSalary:N0}–${j.MaxSalary:N0}"
-                        : j.MinSalary != null ? $"From ${j.MinSalary:N0}" : null,
+                    PostedDateDisplay = j.PostedDate.ToRelativeDate(),
+                    SalaryDisplay = j.MinSalary.ToSalaryDisplay(j.MaxSalary),
                     DescriptionSnippet = j.Description.Length > 150
                         ? j.Description.Substring(0, 150) + "..."
                         : j.Description
@@ -387,10 +386,8 @@ namespace Masar.Core.Services
                 Description = job.Description,
                 Requirements = job.Requirements,
                 Benefits = job.Benefits,
-                PostedDateDisplay = GetRelativeDate(job.PostedDate),
-                SalaryDisplay = job.MinSalary != null && job.MaxSalary != null
-                    ? $"${job.MinSalary:N0}–${job.MaxSalary:N0}"
-                    : job.MinSalary != null ? $"From ${job.MinSalary:N0}" : null,
+                PostedDateDisplay = job.PostedDate.ToRelativeDate(),
+                SalaryDisplay = job.MinSalary.ToSalaryDisplay(job.MaxSalary),
                 ApplicantCount = job.JobApplications.Count,
                 NumberOfOpenings = job.NumberOfOpenings,
                 ApplicationDeadline = job.ApplicationDeadline,
@@ -528,16 +525,6 @@ namespace Masar.Core.Services
         {
             if (applicationDeadline <= DateTime.UtcNow)
                 throw new ValidationException("Application deadline must be later than the current time.");
-        }
-
-        private static string GetRelativeDate(DateTime date)
-        {
-            var diff = DateTime.UtcNow - date;
-            if (diff.TotalDays < 1) return "Today";
-            if (diff.TotalDays < 2) return "Yesterday";
-            if (diff.TotalDays < 7) return $"{(int)diff.TotalDays} days ago";
-            if (diff.TotalDays < 30) return $"{(int)(diff.TotalDays / 7)} week(s) ago";
-            return date.ToString("MMM dd, yyyy");
         }
     }
 }

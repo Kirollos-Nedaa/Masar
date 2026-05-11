@@ -25,6 +25,7 @@ namespace Masar.Domain.Enums
         Government = 14,
         NonProfit = 15,
         Operations = 16,
-        Other = 17
+        ArtAndDesign = 17,
+        Other = 18
     }
 }

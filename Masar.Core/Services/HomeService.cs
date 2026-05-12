@@ -1,14 +1,10 @@
 ﻿using Masar.Core.IService;
 using Masar.Domain.Enums;
 using Masar.Domain.Helpers;
+using Masar.Domain.ViewModels;
 using Masar.Domain.ViewModels.HomeDtos;
 using Masar.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Masar.Core.Services
 {

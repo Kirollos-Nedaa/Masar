@@ -16,22 +16,27 @@
 @* ---------------- Hero Section ------------------ *@
 <section class="hero">
     <div class="hero-inner">
-        <div>
+        <div class="hero-content">
             <h1>
                 Find  <span class="accent">Internships</span> &amp;<br />
                 <span class="accent">Jobs</span> That Launch<br />
                 Your  <span class="accent">Career</span>
             </h1>
             <p>Masar connects ambitious students and professionals with top companies offering internships and full-time roles. Your path. Your Future.</p>
-            <form method="get" asp-controller="Jobs" asp-action="Index" class="hero-search">
-                <input type="text" name="search" placeholder="Job title, company, or keywords" aria-label="Search jobs" />
-                <button type="submit" class="btn hero-btn-primary">Search</button>
+
+            @* Search bar *@
+            <form method="get" asp-controller="Jobs" asp-action="Index">
+                <div class="jobs-search-wrap hero-search-wrap">
+                    <span class="iconify jobs-search-icon" data-icon="lucide:search"></span>
+                    <input type="text" name="search" class="jobs-search-input" placeholder="Search jobs, companies..." />
+                    <button type="submit" class="jobs-search-btn">Search</button>
+                </div>
             </form>
         </div>
 
         <div class="openings-panel">
             <div class="openings-header gap-2">
-                <span class="iconify" data-icon="lucide:rss" style="width:24px;height:24px;"></span>
+                <span class="iconify" data-icon="lucide:rss" style="width:24px;height:24px;color:var(--blue);"></span>
                 <span class="openings-title">Latest Openings</span>
             </div>
 
@@ -58,12 +63,12 @@
 
                         <div class="opening-info">
                             <div class="opening-title">@opening.Title</div>
-                            <div class="opening-meta">@opening.CompanyName
-
+                            <div class="opening-meta">
+                                <span class="company-name">@opening.CompanyName</span>
                                 @if (!string.IsNullOrEmpty(opening.SalaryDisplay))
                                 {
-                                    <span class="iconify" data-icon="lucide:dot" style="width:24px;height:24px;margin:0 -8px;"></span>
-                                    @opening.SalaryDisplay
+                                    <span class="iconify dot-icon" data-icon="lucide:dot"></span>
+                                    <span class="salary-text">@opening.SalaryDisplay</span>
                                 }
                             </div>
                         </div>

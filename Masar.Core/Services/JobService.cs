@@ -3,6 +3,7 @@ using Masar.Domain.Enums;
 using Masar.Domain.Helpers;
 using Masar.Domain.Models;
 using Masar.Domain.ViewModels.CompanyDtos;
+using Masar.Domain.ViewModels.HomeDtos;
 using Masar.Domain.ViewModels.Job;
 using Masar.Domain.ViewModels.JobDtos;
 using Masar.Infrastructure.Context;
@@ -287,8 +288,8 @@ namespace Masar.Core.Services
 
             query = filter.SortBy switch
             {
-                "salary_desc" => query.OrderByDescending(j => j.MaxSalary),
-                "salary_asc" => query.OrderBy(j => j.MinSalary),
+                "salary_desc" => query.OrderByDescending(j => j.MaxSalary ?? j.MinSalary),
+                "salary_asc" => query.OrderBy(j => j.MinSalary ?? j.MaxSalary),
                 _ => query.OrderByDescending(j => j.PostedDate)
             };
 
@@ -335,13 +336,24 @@ namespace Masar.Core.Services
             foreach (var job in jobs)
                 job.IsSaved = savedJobIds.Contains(job.Id);
 
+            var availableIndustries = IndustryMetadata.All()
+                .Select(industry => new IndustryItemDto
+                {
+                    Icon = IndustryMetadata.GetIcon(industry),
+                    DisplayName = IndustryMetadata.GetDisplayName(industry),
+                    FilterValue = industry.ToString()
+                })
+                .OrderBy(item => item.DisplayName)
+                .ToList();
+
             return new JobBrowseResultDto
             {
                 Jobs = jobs,
                 TotalCount = totalCount,
                 Page = filter.Page,
                 PageSize = filter.PageSize,
-                Filter = filter
+                Filter = filter,
+                AvailableIndustries = availableIndustries
             };
         }
 

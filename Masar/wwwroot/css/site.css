@@ -2939,6 +2939,7 @@ FORM INPUTS
     flex-shrink: 0;
     position: sticky;
     top: calc(var(--navbar-h) + 1.5rem);
+    z-index: 100;
 }
 
 .sidebar-filter-card {
@@ -2994,23 +2995,216 @@ FORM INPUTS
     margin-bottom: .75rem;
 }
 
-.filter-check-label {
+/* ── CUSTOM JOB TYPE FILTERS ── */
+.filter-list {
     display: flex;
-    align-items: center;
-    gap: .5rem;
-    font-size: .875rem;
-    color: var(--dark);
-    cursor: pointer;
-    padding: .25rem 0;
-    user-select: none;
+    flex-direction: column;
+    gap: 4px;
 }
 
-    .filter-check-label input[type="checkbox"] {
-        width: 15px;
-        height: 15px;
-        accent-color: var(--blue);
-        cursor: pointer;
-        flex-shrink: 0;
+.custom-filter-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: bold;
+    color: var(--dark);
+    border-radius: var(--radius-sm);
+    transition: all 0.2s;
+}
+
+    .custom-filter-item:hover {
+        background: var(--bg);
+    }
+
+    /* Highlighted Selected State */
+    .custom-filter-item.selected {
+        background: var(--blue-50);
+        color: var(--blue);
+        font-weight: 600;
+    }
+
+/* Pushes the checkmark to the right edge */
+.filter-name {
+    flex: 1;
+}
+
+/* Ensure the checkmark appears when selected */
+.custom-filter-item.selected .check-icon {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* ── CUSTOM DROPDOWN REFACTORED ── */
+.custom-dropdown {
+    position: relative;
+    width: 100%;
+    z-index: 100;
+}
+
+.custom-dropdown-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.875rem;
+    color: var(--dark);
+    transition: border-color 0.2s;
+}
+
+    .custom-dropdown-toggle:hover {
+        border-color: var(--blue);
+    }
+
+.icon-text-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+    .icon-text-wrap .iconify {
+        color: var(--blue);
+        font-size: 1.1rem;
+    }
+
+/* ── Menu Positioning (Fixes Z-Index and Mobile) ── */
+.custom-dropdown-menu {
+    display: none;
+    position: absolute;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 10px 40px rgba(15,23,42,0.15);
+    /* Default: Mobile View (Drops down below the button) */
+    top: calc(100% + 8px);
+    left: 0;
+    width: 100%;
+}
+
+    .custom-dropdown-menu.show {
+        display: block;
+    }
+
+/* Desktop View (Pops to the right side automatically) */
+@media (min-width: 1025px) {
+    .custom-dropdown-menu {
+        top: 50%;
+        left: calc(100% + 45px);
+        transform: translateY(-91%);
+        width: 220px;
+    }
+}
+
+.dropdown-scroll-area {
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* ── Dropdown Items & Highlighting ── */
+.custom-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: var(--dark);
+    border-radius: var(--radius-sm);
+    transition: all 0.2s;
+}
+
+    .custom-dropdown-item:hover {
+        background: var(--bg);
+    }
+
+    /* Highlighted Selected State */
+    .custom-dropdown-item.selected {
+        background: var(--blue-50);
+        color: var(--blue);
+        font-weight: 600;
+    }
+
+.ind-icon {
+    color: var(--muted);
+    font-size: 1.1rem;
+    transition: color 0.2s;
+}
+
+.custom-dropdown-item.selected .ind-icon {
+    color: var(--blue);
+}
+
+/* Pushes the checkmark and badge to the right edge */
+.ind-name {
+    flex: 1;
+}
+
+/* ── Hidden Checkbox & Right-Side Check Icon ── */
+.hidden-checkbox {
+    display: none;
+}
+
+.check-icon {
+    color: var(--blue);
+    font-size: 1.2rem;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Show checkmark when item is selected */
+.custom-dropdown-item.selected .check-icon,
+.hidden-checkbox:checked ~ .check-icon {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.job-count-badge {
+    font-size: 0.72rem;
+    color: var(--muted);
+    background: var(--white);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: 999px;
+}
+
+.custom-dropdown-item.selected .job-count-badge {
+    border-color: var(--blue-100);
+    color: var(--blue);
+}
+
+.dropdown-footer {
+    padding: 12px;
+    border-top: 1px solid var(--border);
+    background: #f8fafc;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+.btn-apply-filter {
+    width: 100%;
+    background: var(--blue);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+    .btn-apply-filter:hover {
+        background: var(--blue-hover);
     }
 
 .filter-location-input {
@@ -3054,40 +3248,43 @@ FORM INPUTS
     min-width: 0;
 }
 
+/* ── SEARCH BAR REFACTORED ── */
 .jobs-topbar {
-    display: flex;
-    align-items: center;
-    gap: .75rem;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
 }
 
 .jobs-search-wrap {
-    flex: 1;
-    position: relative;
     display: flex;
+    width: 100%;
+    position: relative;
+    box-shadow: var(--shadow-sm);
+    border-radius: var(--radius-md);
 }
 
 .jobs-search-icon {
     position: absolute;
-    left: .875rem;
+    left: 1rem;
     top: 50%;
     transform: translateY(-50%);
     color: var(--muted);
-    font-size: 1rem;
+    font-size: 1.1rem;
     pointer-events: none;
+    z-index: 2;
 }
 
 .jobs-search-input {
-    width: 100%;
+    flex: 1;
+    min-width: 0; /* Prevents overflow on mobile */
     background: var(--white);
-    border: 1.5px solid var(--border);
+    border: 1px solid var(--border);
+    border-right: none;
     border-radius: var(--radius-md) 0 0 var(--radius-md);
-    padding: .65rem .875rem .65rem 2.5rem;
-    font-size: .9rem;
-    font-family: 'DM Sans', sans-serif;
+    padding: 0.8rem 1rem 0.8rem 2.75rem;
+    font-size: 0.9375rem;
     color: var(--dark);
+    font-family: inherit;
     outline: none;
-    transition: border-color .15s;
+    transition: border-color 0.2s;
 }
 
     .jobs-search-input:focus {
@@ -3099,50 +3296,115 @@ FORM INPUTS
     color: var(--white);
     border: none;
     border-radius: 0 var(--radius-md) var(--radius-md) 0;
-    padding: .65rem 1.25rem;
-    font-family: 'DM Sans', sans-serif;
-    font-size: .9rem;
+    padding: 0 1.5rem;
+    font-family: inherit;
+    font-size: 0.9375rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background .15s;
-    white-space: nowrap;
+    transition: background 0.2s;
+    flex-shrink: 0;
 }
 
     .jobs-search-btn:hover {
         background: var(--blue-hover);
     }
 
+/* ── RESULTS BAR & SORT DROPDOWN ── */
 .jobs-results-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+    flex-wrap: wrap; /* Allows stacking on mobile */
 }
 
-.jobs-results-count {
-    font-size: .9rem;
-    color: var(--muted);
+.sort-dropdown-wrap {
+    position: relative;
+    min-width: 220px;
+    z-index: 90;
 }
 
-    .jobs-results-count strong {
-        color: var(--dark);
+.sort-dropdown-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.875rem;
+    color: var(--dark);
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+    .sort-dropdown-toggle:hover {
+        border-color: var(--blue);
     }
 
-.jobs-sort-select {
+.sort-dropdown-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    width: 100%;
+    min-width: 220px;
     background: var(--white);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: .4rem 2rem .4rem .75rem;
-    font-size: .85rem;
-    font-family: 'DM Sans', sans-serif;
-    color: var(--dark);
-    outline: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 10px 30px rgba(15,23,42,0.1);
+    padding: 6px;
+    z-index: 1000;
+}
+
+    .sort-dropdown-menu.show {
+        display: block;
+    }
+
+.sort-dropdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
     cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%2364748B' viewBox='0 0 20 20'%3E%3Cpath d='M5.5 7.5l4.5 4.5 4.5-4.5' stroke='%2364748B' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right .5rem center;
-    background-size: .9rem;
+    font-size: 0.875rem;
+    color: var(--dark);
+    border-radius: var(--radius-sm);
+    transition: all 0.2s;
+}
+
+    .sort-dropdown-item:hover {
+        background: var(--bg);
+    }
+
+    .sort-dropdown-item.selected {
+        background: var(--blue-50);
+        color: var(--blue);
+        font-weight: 600;
+    }
+
+    .sort-dropdown-item .check-icon {
+        color: var(--blue);
+        font-size: 1rem;
+        opacity: 0;
+        transform: scale(0.5);
+        transition: all 0.2s;
+    }
+
+    .sort-dropdown-item.selected .check-icon {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+/* ── RESPONSIVE MOBILE FIXES ── */
+@media (max-width: 640px) {
+    .jobs-results-bar {
+        align-items: center;
+    }
 }
 
 /* ── Job Card ────────────────────────────────────────────── */
@@ -3915,11 +4177,12 @@ RESPONSIVE / MEDIA QUERIES
     background: linear-gradient(135deg, var(--blue-50) 0%, var(--bg) 55%, #FFF7ED 100%);
     padding: 60px 20px 50px;
     border-bottom: 1px solid var(--border);
+    overflow: hidden;
 }
 
 @media (min-width: 768px) {
     .hero {
-        padding: 80px 24px 72px;
+        padding: 40px 24px 72px;
     }
 }
 
@@ -3930,6 +4193,10 @@ RESPONSIVE / MEDIA QUERIES
     gap: 64px;
     align-items: start;
 }
+
+    .hero-inner > div {
+        min-width: 0;
+    }
 
 @media (min-width: 768px) {
     .hero-inner {
@@ -3946,6 +4213,8 @@ RESPONSIVE / MEDIA QUERIES
     color: var(--dark);
     margin-bottom: 16px;
     letter-spacing: -0.02em;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
     .hero h1 .accent {
@@ -3970,36 +4239,9 @@ RESPONSIVE / MEDIA QUERIES
     .hero p {
         font-size: 1.0625rem;
         margin-bottom: 36px;
-        max-width: 480px;
+        max-width: 100%;
     }
 }
-
-.hero-search {
-    display: flex;
-    gap: 10px;
-    background: var(--white);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 6px 6px 6px 12px;
-    box-shadow: var(--shadow-md);
-    margin-bottom: 20px;
-    width: 100%;
-    max-width: 100%;
-}
-
-    .hero-search input {
-        flex: 1;
-        border: none;
-        outline: none;
-        font-family: 'DM Sans', sans-serif;
-        font-size: .875rem;
-        color: var(--dark);
-        background: transparent;
-    }
-
-        .hero-search input::placeholder {
-            color: var(--muted);
-        }
 
 .hero-btn-primary {
     background: var(--blue);
@@ -4035,6 +4277,41 @@ RESPONSIVE / MEDIA QUERIES
     }
 }
 
+@media (max-width: 480px) {
+    .hero {
+        padding: 40px 16px;
+    }
+
+        .hero h1 {
+            font-size: 2rem;
+        }
+
+    /* Shrink the search bar so it doesn't push off-screen */
+    .hero-search-wrap .jobs-search-input {
+        padding-left: 2.5rem;
+        font-size: 0.85rem;
+    }
+
+    .hero-search-wrap .jobs-search-input::placeholder {
+        font-size: 0.8rem;
+    }
+
+    .hero-search-wrap .jobs-search-btn {
+        padding: 0 1rem;
+        font-size: 0.85rem;
+    }
+
+    /* Shrink the panel and badges */
+    .openings-panel {
+        padding: 16px;
+    }
+
+    .badge {
+        font-size: 0.65rem;
+        padding: 4px 8px;
+    }
+}
+
 /* ── Latest Openings Panel ── */
 .openings-panel {
     background: var(--white);
@@ -4045,8 +4322,8 @@ RESPONSIVE / MEDIA QUERIES
 }
 
 .openings-header {
-    align-items: center;
     display: flex;
+    align-items: center;
     margin-bottom: 16px;
 }
 
@@ -4105,7 +4382,17 @@ RESPONSIVE / MEDIA QUERIES
 }
 
 .opening-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     font-size: .875rem;
+    color: var(--muted);
+}
+
+.dot-icon {
+    width: 18px;
+    height: 18px;
+    margin: 0 -2px;
     color: var(--muted);
 }
 

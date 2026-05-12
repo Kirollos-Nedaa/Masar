@@ -85,20 +85,12 @@
                         if (dept == Department.None) continue;
                         var deptLabel = dept switch
                         {
-                            Department.ComputerScience          => "Computer Science",
                             Department.InformationTechnology    => "Information Technology",
                             Department.SoftwareEngineering      => "Software Engineering",
-                            Department.ElectricalEngineering    => "Electrical Engineering",
-                            Department.MechanicalEngineering    => "Mechanical Engineering",
-                            Department.CivilEngineering         => "Civil Engineering",
-                            Department.BusinessAdministration   => "Business Administration",
                             Department.HumanResources           => "Human Resources",
                             Department.CustomerService          => "Customer Service",
-                            Department.ArtsAndDesign            => "Arts & Design",
 							Department.Marketing                => "Marketing",
 							Department.Finance                  => "Finance",
-							Department.Healthcare               => "Healthcare",
-							Department.Education                => "Education",
 							Department.Other                    => "Other",
                             _ => dept.ToString()
                         };

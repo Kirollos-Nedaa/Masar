@@ -4,13 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Masar.Domain.ViewModels.HomeDtos
+namespace Masar.Domain.ViewModels
 {
-    public class IndustryItemDto
+    public class DepartmentItemDto
     {
         public string Icon { get; set; } = "lucide:briefcase";
         public string DisplayName { get; set; } = string.Empty;
         public string FilterValue { get; set; } = string.Empty;
-        public int JobCount { get; set; }
     }
 }

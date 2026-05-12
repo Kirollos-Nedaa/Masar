@@ -2,6 +2,7 @@
 using Masar.Domain.Enums;
 using Masar.Domain.Helpers;
 using Masar.Domain.Models;
+using Masar.Domain.ViewModels;
 using Masar.Domain.ViewModels.CompanyDtos;
 using Masar.Domain.ViewModels.HomeDtos;
 using Masar.Domain.ViewModels.Job;
@@ -43,7 +44,7 @@ namespace Masar.Core.Services
                 CompanyProfileId = company.Id,
                 Title = dto.Title,
                 JobType = dto.JobType,
-                Department = dto.Department,
+                Department = dto.Department, // Saved cleanly as Department enum
                 Location = dto.Location,
                 WorkMode = dto.WorkMode,
                 MinSalary = dto.MinSalary,
@@ -252,7 +253,14 @@ namespace Masar.Core.Services
                     query = query.Where(j => types.Contains(j.JobType));
             }
 
-            if (filter.Industries.Any())
+            // 1. New Department Filter (Micro: Applies directly to the Job)
+            if (filter.Departments != null && filter.Departments.Any())
+            {
+                query = query.Where(j => filter.Departments.Contains(j.Department.ToString()));
+            }
+
+            // 2. Updated Industry Filter (Macro: Applies to the Company hosting the Job)
+            if (filter.Industries != null && filter.Industries.Any())
             {
                 query = query.Where(j =>
                     j.Company.Industry != null &&
@@ -261,7 +269,6 @@ namespace Masar.Core.Services
 
             if (!string.IsNullOrWhiteSpace(filter.SalaryRange))
             {
-                // 1. Handle the "150000+" scenario
                 if (filter.SalaryRange.EndsWith("+"))
                 {
                     var cleanValue = filter.SalaryRange.TrimEnd('+');
@@ -270,7 +277,6 @@ namespace Masar.Core.Services
                         query = query.Where(j => (j.MaxSalary ?? j.MinSalary) >= userMinBoundary);
                     }
                 }
-                // 2. Handle the "50000-100000" scenario
                 else if (filter.SalaryRange.Contains("-"))
                 {
                     var parts = filter.SalaryRange.Split('-');
@@ -336,12 +342,24 @@ namespace Masar.Core.Services
             foreach (var job in jobs)
                 job.IsSaved = savedJobIds.Contains(job.Id);
 
+            // Fetch available Industries
             var availableIndustries = IndustryMetadata.All()
                 .Select(industry => new IndustryItemDto
                 {
                     Icon = IndustryMetadata.GetIcon(industry),
                     DisplayName = IndustryMetadata.GetDisplayName(industry),
                     FilterValue = industry.ToString()
+                })
+                .OrderBy(item => item.DisplayName)
+                .ToList();
+
+            // Fetch available Departments (No Job Counts Included)
+            var availableDepartments = DepartmentMetadata.All()
+                .Select(dept => new DepartmentItemDto
+                {
+                    Icon = DepartmentMetadata.GetIcon(dept),
+                    DisplayName = DepartmentMetadata.GetDisplayName(dept),
+                    FilterValue = dept.ToString()
                 })
                 .OrderBy(item => item.DisplayName)
                 .ToList();
@@ -353,7 +371,8 @@ namespace Masar.Core.Services
                 Page = filter.Page,
                 PageSize = filter.PageSize,
                 Filter = filter,
-                AvailableIndustries = availableIndustries
+                AvailableIndustries = availableIndustries,
+                AvailableDepartments = availableDepartments
             };
         }
 
@@ -521,8 +540,8 @@ namespace Masar.Core.Services
         private static bool HasHistoricalQuestionChange(JobQuestion existingQuestion, string incomingQuestionText, QuestionType incomingType)
         {
             return !string.Equals(
-                existingQuestion.QuestionText.Trim(), 
-                incomingQuestionText.Trim(), 
+                existingQuestion.QuestionText.Trim(),
+                incomingQuestionText.Trim(),
                 StringComparison.Ordinal) || existingQuestion.Type != incomingType;
         }
 

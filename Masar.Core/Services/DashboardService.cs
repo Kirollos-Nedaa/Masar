@@ -1,7 +1,4 @@
-﻿// Masar.Core/Services/DashboardService.cs
-
-using Humanizer;
-using Masar.Core.IService;
+﻿using Masar.Core.IService;
 using Masar.Domain.Enums;
 using Masar.Domain.Helpers;
 using Masar.Domain.Models;
@@ -11,7 +8,6 @@ using Masar.Domain.ViewModels.CompanyDtos;
 using Masar.Domain.ViewModels.Job;
 using Masar.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Masar.Core.Services
 {

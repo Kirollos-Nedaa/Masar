@@ -24,12 +24,15 @@ namespace Masar.Core.Services
             // Close any expired jobs so counts are accurate
             await _jobLifecycleService.CloseExpiredJobsAsync();
 
-            // ── 1. Latest 5 active jobs ──────────────────────────────
+            // shifts the time to get the latest 24h
+            var cutoffTime = DateTime.UtcNow.AddHours(-24);
+
+            // ── 1. Latest 6 active jobs ──────────────────────────────
             var latestOpenings = await _context.Jobs
                 .Include(j => j.Company)
-                .Where(j => j.IsActive)
+                .Where(j => j.IsActive && j.PostedDate >= cutoffTime)
                 .OrderByDescending(j => j.PostedDate)
-                .Take(5)
+                .Take(6)
                 .Select(j => new LatestOpeningDto
                 {
                     Id = j.Id,
@@ -63,28 +66,61 @@ namespace Masar.Core.Services
                 HiringRateDisplay = $"{hiringRate}%"
             };
 
-            // ── 3. Industry job counts (single DB round-trip) ─────
-            var rawCounts = await _context.Jobs
+            // ── 3.1 Industry company counts (single DB round-trip) ─────
+            var industryCompanyCount = await _context.Jobs
                 .Where(j => j.IsActive && j.Company.Industry != null)
                 .GroupBy(j => j.Company.Industry)
-                .Select(g => new { Industry = g.Key, Count = g.Count() })
+                .Select(g => new { 
+                    Industry = g.Key,
+                    CompanyCount = g.Select(j => j.Company.Id).Distinct().Count()
+                })
                 .ToListAsync();
 
-            var countLookup = rawCounts
-                .Where(x => x.Industry != null)
-                .ToDictionary(x => x.Industry!, x => x.Count);
+            // ── 3.2 Department job counts (single DB round-trip) ─────
+            var departmentJobsCount = await _context.Jobs
+                .Where(j => j.IsActive && j.Department != null)
+                .GroupBy(j => j.Department)
+                .Select(g => new
+                {
+                    Department = g.Key,
+                    JobCount = g.Count()
+                })
+                .ToListAsync();
 
-            // ── 4. Build industry list from enum — fully automatic ─
+            var countLookup = industryCompanyCount
+                .Where(x => x.Industry != null)
+                .ToDictionary(x => x.Industry!, x => x.CompanyCount);
+
+            var deptCountLookup = departmentJobsCount
+                .Where(x => x.Department != null)
+                .ToDictionary(x => x.Department!, x => x.JobCount);
+
+            // ── 4. Build industry & Department list from enum — fully automatic ─
             var industries = IndustryMetadata.All()
                 .Select(industry =>
                 {
-                    var filterValue = industry.ToString(); // matches DB string
+                    var filterValue = industry.ToString();
                     return new IndustryItemDto
                     {
                         Icon = IndustryMetadata.GetIcon(industry),
                         DisplayName = IndustryMetadata.GetDisplayName(industry),
                         FilterValue = filterValue,
-                        JobCount = countLookup.GetValueOrDefault(filterValue, 0)
+                        CompanyCount = countLookup.GetValueOrDefault(filterValue, 0)
+                    };
+                })
+                .OrderBy(item => item.DisplayName)
+                .ToList();
+
+            var departments = DepartmentMetadata.All()
+                .Select(dept =>
+                {
+                    var filterValue = dept.ToString();
+                    return new DepartmentItemDto
+                    {
+                        Icon = DepartmentMetadata.GetIcon(dept),
+                        DisplayName = DepartmentMetadata.GetDisplayName(dept),
+                        FilterValue = filterValue,
+                        JobCount = deptCountLookup.GetValueOrDefault(dept, 0)
                     };
                 })
                 .OrderBy(item => item.DisplayName)
@@ -121,6 +157,7 @@ namespace Masar.Core.Services
                 LatestOpenings = latestOpenings,
                 SiteStats = stats,
                 Industries = industries,
+                Departments = departments,
                 FeaturedJobs = featuredJobs
             };
         }

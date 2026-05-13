@@ -18,13 +18,13 @@ namespace Masar.Domain.Helpers
             if (diff.TotalMinutes < 60)
             {
                 int minutes = (int)diff.TotalMinutes;
-                return $"{minutes} {(minutes == 1 ? "minute" : "minutes")} ago";
+                return $"{minutes} {(minutes > 1 ? "minute" : "minutes")} ago";
             }
 
             if (diff.TotalHours < 24)
             {
                 int hours = (int)diff.TotalHours;
-                return $"{hours} {(hours == 1 ? "hour" : "hours")} ago";
+                return $"{hours} {(hours > 1 ? "hour" : "hours")} ago";
             }
 
             if (diff.TotalDays < 7)
@@ -37,7 +37,7 @@ namespace Masar.Domain.Helpers
             if (diff.TotalDays < 30)
             {
                 int weeks = (int)(diff.TotalDays / 7);
-                return $"{weeks} {(weeks == 1 ? "week" : "weeks")} ago";
+                return $"{weeks} {(weeks > 1 ? "week" : "weeks")} ago";
             }
 
             return date.ToString("dd/MM/yyyy");

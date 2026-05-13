@@ -2,11 +2,6 @@
 using Masar.Domain.ViewModels.CandidateDtos;
 using Masar.Domain.ViewModels.CompanyDtos;
 using Masar.Domain.ViewModels.JobDtos;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Masar.Core.IService
 {

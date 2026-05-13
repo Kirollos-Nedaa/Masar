@@ -11,6 +11,6 @@ namespace Masar.Domain.ViewModels
         public string Icon { get; set; } = "lucide:briefcase";
         public string DisplayName { get; set; } = string.Empty;
         public string FilterValue { get; set; } = string.Empty;
-        public int JobCount { get; set; }
+        public int CompanyCount { get; set; }
     }
 }

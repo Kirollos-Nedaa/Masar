@@ -7,6 +7,9 @@
 
     string currentSearch = ViewBag.Search as string ?? string.Empty;
     string currentSort = ViewBag.SortBy as string ?? "recent";
+
+    var sortText = currentSort == "oldest" ? "Oldest First" :
+                   currentSort == "title" ? "Title (A–Z)" : "Recently Saved";
 }
 
 @section Sidebar {
@@ -25,64 +28,66 @@
     </div>
 </div>
 
-@* ── Search + Sort bar ────────────────────────────────────── *@
-<form method="get" asp-controller="Candidate" asp-action="SavedJobs" class="sj-filter-bar gap-2 mb-2">
+@* ── Search & Filters Form ────────────────────────────────── *@
+<form method="get" asp-controller="Candidate" asp-action="SavedJobs" id="filterForm">
 
-        @* Search input *@
-        <div class="sj-search-wrap">
-            <span class="iconify sj-search-icon" data-icon="lucide:search"></span>
+    @* Search bar *@
+    <div class="jobs-topbar">
+        <div class="jobs-search-wrap">
+            <span class="iconify jobs-search-icon" data-icon="lucide:search"></span>
             <input type="text"
-                    name="search"
-                    class="sj-search-input"
-                    placeholder="Search saved jobs..."
-                    value="@currentSearch" />
+                   name="search"
+                   class="jobs-search-input"
+                   placeholder="Search jobs, companies, or keywords..."
+                   value="@currentSearch" />
+            <button type="submit" class="jobs-search-btn">Search</button>
         </div>
-
-    <div class="sj-inputs-wrap gap-2">
-        @* Sort dropdown *@
-        <select name="sortBy"
-                class="epi-input epi-select sj-sort-select"
-                onchange="this.form.submit()">
-            <option value="recent" selected="@(currentSort == "recent" ? "selected" : null)">
-                Recently Saved
-            </option>
-            <option value="oldest" selected="@(currentSort == "oldest" ? "selected" : null)">
-                Oldest First
-            </option>
-            <option value="title" selected="@(currentSort == "title" ? "selected" : null)">
-                Title (A–Z)
-            </option>
-        </select>
-
-        @* Hidden search submit on Enter *@
-        <button type="submit" class="btn-primary-app sj-search-btn">
-            <span class="iconify" data-icon="lucide:search"></span>
-            Search
-        </button>
     </div>
 
-</form>
+    @* Results & Sort bar *@
+    <div class="jobs-results-bar" style="margin-top: 1rem; margin-bottom: 1.5rem;">
+        <div class="d-flex align-items-center gap-3">
+            <span class="jobs-results-count">
+                <strong>@Model.Count</strong> Saved Job@(Model.Count != 1 ? "s" : "")
+            </span>
 
-@* ── Results header + Clear All ───────────────────────────── *@
-<div class="sj-results-bar">
-    <span class="sj-results-count">
-        <strong>@Model.Count</strong> job@(Model.Count != 1 ? "s" : "") saved
-    </span>
+            @if (Model.Any())
+            {
+                <button type="button" class="sj-clear-btn" onclick="confirmClearAll()" style="background: none; border: none; color: var(--danger); font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 0.4rem;">
+                    <span class="iconify" data-icon="lucide:bookmark-x"></span>
+                    Clear All
+                </button>
+            }
+        </div>
 
-    @if (Model.Any())
-    {
-        <form asp-controller="Candidate" asp-action="ClearSavedJobs" method="post"
-              id="clearAllForm" style="display:inline;">
-            @Html.AntiForgeryToken()
-            <button type="button"
-                    class="sj-clear-btn"
-                    onclick="confirmClearAll()">
-                <span class="iconify" data-icon="lucide:bookmark-x"></span>
-                Clear All
+        <div class="sort-dropdown-wrap" id="sortDropdownWrap">
+            <input type="hidden" name="sortBy" id="sortByInput" value="@currentSort" />
+
+            <button type="button" class="sort-dropdown-toggle" onclick="toggleSortDropdown(event)">
+                <span class="icon-text-wrap">
+                    <span class="iconify" data-icon="lucide:arrow-up-down" style="color: var(--muted); font-size: 1rem;"></span>
+                    <span id="sortDropdownText">@sortText</span>
+                </span>
+                <span class="iconify chevron" data-icon="lucide:chevron-down"></span>
             </button>
-        </form>
-    }
-</div>
+
+            <div class="sort-dropdown-menu" id="sortDropdownMenu">
+                <div class="sort-dropdown-item @(currentSort == "recent" ? "selected" : "")" onclick="selectSortOption(event, 'recent', 'Recently Saved')">
+                    Recently Saved
+                    <span class="iconify check-icon" data-icon="lucide:check"></span>
+                </div>
+                <div class="sort-dropdown-item @(currentSort == "oldest" ? "selected" : "")" onclick="selectSortOption(event, 'oldest', 'Oldest First')">
+                    Oldest First
+                    <span class="iconify check-icon" data-icon="lucide:check"></span>
+                </div>
+                <div class="sort-dropdown-item @(currentSort == "title" ? "selected" : "")" onclick="selectSortOption(event, 'title', 'Title (A–Z)')">
+                    Title (A–Z)
+                    <span class="iconify check-icon" data-icon="lucide:check"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
 
 @* ── Job Cards ────────────────────────────────────────────── *@
 @if (Model.Any())
@@ -205,6 +210,11 @@ else
     </div>
 }
 
+@* Hidden form to execute "Clear All" action without nesting forms *@
+<form asp-controller="Candidate" asp-action="ClearSavedJobs" method="post" id="clearAllForm" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
 @* ── Confirmation modal for Clear All ────────────────────── *@
 <div class="modal fade" id="clearAllModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -245,6 +255,36 @@ else
 
 @section Scripts {
     <script>
+        // Custom Dropdown Interactions
+        function toggleSortDropdown(event) {
+            event.stopPropagation();
+            document.getElementById('sortDropdownMenu').classList.toggle('show');
+        }
+
+        function selectSortOption(event, value, text) {
+            event.stopPropagation();
+
+            // Update the hidden input & button text
+            document.getElementById('sortByInput').value = value;
+            document.getElementById('sortDropdownText').innerText = text;
+
+            // Move the 'selected' highlight
+            document.querySelectorAll('.sort-dropdown-item').forEach(el => el.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+
+            // Close menu and auto-submit
+            document.getElementById('sortDropdownMenu').classList.remove('show');
+            document.getElementById('filterForm').submit();
+        }
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function (event) {
+            if (!event.target.closest('#sortDropdownWrap')) {
+                const sortMenu = document.getElementById('sortDropdownMenu');
+                if (sortMenu && sortMenu.classList.contains('show')) sortMenu.classList.remove('show');
+            }
+        });
+
         function showToast(message, isError = false) {
             var container = document.getElementById('toastContainer');
             if (!container) return;
@@ -274,7 +314,7 @@ else
         @if (TempData["SavedJobsSuccess"] != null)
         {
             <text>
-                    showToast("@TempData["SavedJobsSuccess"]", false);
+                        showToast("@TempData["SavedJobsSuccess"]", false);
             </text>
         }
         });

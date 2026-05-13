@@ -58,15 +58,20 @@
                     </div>
                 </div>
 
-                @* Industry *@
+                @* Industry filter *@
                 <div class="filter-group">
-                    <div class="filter-group-label">Industry</div>
+                    <div class="filter-group-label">Industry & Department</div>
 
                     @{
                         var selectedValues = Model.Filter?.Industries ?? new List<string>();
                         var displayText = selectedValues.Count == 0 ? "All Industries" :
                         selectedValues.Count == 1 ? Model.AvailableIndustries?.FirstOrDefault(i => i.FilterValue == selectedValues[0])?.DisplayName ?? "1 Selected" :
                         $"{selectedValues.Count} Selected";
+
+                        var selectedDepts = Model.Filter?.Departments ?? new List<string>();
+                        var deptDisplayText = selectedDepts.Count == 0 ? "All Departments" :
+                        selectedDepts.Count == 1 ? Model.AvailableDepartments?.FirstOrDefault(i => i.FilterValue == selectedDepts[0])?.DisplayName ?? "1 Selected" :
+                        $"{selectedDepts.Count} Selected";
                     }
 
                     <div class="custom-dropdown" id="industryDropdownWrap">
@@ -93,13 +98,45 @@
                                             <input type="checkbox" name="Industries" value="@ind.FilterValue" class="hidden-checkbox" @(isChecked ? "checked" : "") />
 
                                             <span class="iconify ind-icon" data-icon="@ind.Icon"></span>
-
                                             <span class="ind-name">@ind.DisplayName</span>
 
-                                            @if (ind.JobCount > 0)
-                                            {
-                                                <span class="job-count-badge">@ind.JobCount</span>
-                                            }
+                                            <span class="iconify check-icon" data-icon="lucide:check"></span>
+                                        </label>
+                                    }
+                                }
+                            </div>
+
+                            <div class="dropdown-footer">
+                                <button type="submit" class="btn-apply-filter">Apply Filter</button>
+                            </div>
+                        </div>
+                    </div>
+
+                @* Department *@
+                    <div class="custom-dropdown" id="departmentDropdownWrap">
+                        <button type="button" class="custom-dropdown-toggle" onclick="toggleDepartmentDropdown(event)">
+                            <span class="icon-text-wrap">
+                                @if (selectedDepts.Count == 0)
+                                {
+                                    <span class="iconify" data-icon="lucide:briefcase"></span>
+                                }
+                                <span id="departmentDropdownText">@deptDisplayText</span>
+                            </span>
+                            <span class="iconify chevron" data-icon="lucide:chevron-right"></span>
+                        </button>
+
+                        <div class="custom-dropdown-menu" id="departmentDropdownMenu">
+                            <div class="dropdown-scroll-area">
+                                @if (Model.AvailableDepartments != null)
+                                {
+                                    @foreach (var dept in Model.AvailableDepartments)
+                                    {
+                                        var isChecked = selectedDepts.Contains(dept.FilterValue);
+                                        <label class="custom-dropdown-item @(isChecked ? "selected" : "")">
+                                            <input type="checkbox" name="Departments" value="@dept.FilterValue" class="hidden-checkbox" @(isChecked ? "checked" : "") />
+
+                                            <span class="iconify ind-icon" data-icon="@dept.Icon"></span>
+                                            <span class="ind-name">@dept.DisplayName</span>
 
                                             <span class="iconify check-icon" data-icon="lucide:check"></span>
                                         </label>
@@ -113,6 +150,7 @@
                         </div>
                     </div>
                 </div>
+
 
             @* Salary *@
                 @{
@@ -228,16 +266,35 @@
         {
             foreach (var job in Model.Jobs)
             {
-                var initials = job.CompanyName.Length > 0
-                    ? job.CompanyName.Substring(0, Math.Min(2, job.CompanyName.Length)).ToUpper()
-                    : "?";
+                    <div class="job-browse-card d-block" onclick="window.location='@Url.Action("Details", "Jobs", new { id = job.Id })'">
 
-                <div class="job-browse-card"
-                     onclick="window.location='@Url.Action("Details", "Jobs", new { id = job.Id })'">
-                    @* Body *@
-                    <div class="job-card-body">
-                        <div class="job-card-title-row">
-                            <span class="job-card-title">@job.Title</span>
+                        @* ── TOP ROW: Mimics job-header-top ── *@
+                        <div class="d-flex align-items-start gap-3 mb-3">
+
+                            @* 1. LOGO (Left) *@
+                            <div class="job-company-logo flex-shrink-0 m-0">
+                                @if (!string.IsNullOrEmpty(job.CompanyLogo))
+                                {
+                                    <img src="@job.CompanyLogo" alt="@job.CompanyName" />
+                                }
+                                else
+                                {
+                                    @(job.CompanyName.Length > 0 ? job.CompanyName.Substring(0, 1).ToUpper() : "?")
+                                }
+                            </div>
+
+                            @* 2. INFO (Middle - Expands to fill space) *@
+                            <div class="flex-grow-1" style="min-width: 0;">
+                                <div class="job-card-title mb-1" style="line-height: 1.2;">@job.Title</div>
+                                <div class="job-card-company d-flex align-items-center m-0">
+                                    <div>@job.CompanyName</div>
+                                    <span class="iconify mx-1" data-icon="lucide:dot" style="font-size: 1.2rem; color: var(--muted);"></span>
+                                    <div>@job.Industry</div>
+                                </div>
+                            </div>
+
+                            @* 3. ACTIONS (Right - Bookmark Button) *@
+                            <div class="flex-shrink-0">
                                 @{
                                     var returnUrl = Url.Action("Index", "Jobs", new
                                     {
@@ -248,24 +305,20 @@
                                         page = Model.Page
                                     });
                                 }
-
                                 <button type="button"
                                         class="btn-save-job @(job.IsSaved ? "saved" : "")"
                                         title="@(job.IsSaved ? "Saved" : "Save job")"
                                         data-job-id="@job.Id"
                                         data-return-url="@returnUrl"
                                         onclick="submitSaveJob(event, this)">
-                                    <span class="iconify"
-                                          data-icon="@(job.IsSaved ? "lucide:bookmark-check" : "lucide:bookmark")"></span>
+                                    <span class="iconify" data-icon="@(job.IsSaved ? "lucide:bookmark-check" : "lucide:bookmark")"></span>
                                 </button>
+                            </div>
+
                         </div>
 
-                        <div class="job-card-company">
-                            <span class="iconify" data-icon="lucide:building-2" style="font-size:.85rem;"></span>
-                            @job.CompanyName
-                        </div>
-
-                        <div class="job-card-meta-row">
+                        @* ── BOTTOM SECTION: Meta, Desc, Tags ── *@
+                        <div class="job-card-meta-row mt-0 mb-2">
                             <span>
                                 <span class="iconify" data-icon="lucide:map-pin"></span>
                                 @job.Location
@@ -283,13 +336,12 @@
                             }
                         </div>
 
-                        <div class="job-card-desc">@job.DescriptionSnippet</div>
+                        <div class="job-card-desc mb-3">@job.DescriptionSnippet</div>
 
                         <div class="job-card-tags">
                             <span class="job-tag">@job.JobType</span>
                         </div>
                     </div>
-                </div>
             }
 
             @* Pagination *@
@@ -427,11 +479,21 @@
         });
 
         // ── 4. Dropdown Toggles & Selection ────────────────────────────────
-
+        // Update the existing toggleIndustryDropdown to close department menu when opened
         function toggleIndustryDropdown(event) {
             event.stopPropagation();
+            const deptMenu = document.getElementById('departmentDropdownMenu');
+            if (deptMenu) deptMenu.classList.remove('show');
+
             document.getElementById('industryDropdownMenu').classList.toggle('show');
         }
+
+        function toggleDepartmentDropdown(event) {
+            event.stopPropagation();
+            document.getElementById('industryDropdownMenu').classList.remove('show');
+            document.getElementById('departmentDropdownMenu').classList.toggle('show');
+        }
+
 
         function toggleSortDropdown(event) {
             event.stopPropagation();
@@ -453,16 +515,19 @@
             document.getElementById('sortDropdownMenu').classList.remove('show');
 
             // ── AUTO-SUBMIT ──
-            // Instantly reload the page with the new sort order
             document.getElementById('filterForm').submit();
         }
 
         // ── 5. Global Menu Closer ──────────────────────────────────────────
-        // A single listener that closes any open custom dropdowns if you click outside them
         window.addEventListener('click', function(event) {
             if (!event.target.closest('#industryDropdownWrap')) {
                 const indMenu = document.getElementById('industryDropdownMenu');
                 if (indMenu && indMenu.classList.contains('show')) indMenu.classList.remove('show');
+            }
+
+            if (!event.target.closest('#departmentDropdownWrap')) {
+                const deptMenu = document.getElementById('departmentDropdownMenu');
+                if (deptMenu && deptMenu.classList.contains('show')) deptMenu.classList.remove('show');
             }
 
             if (!event.target.closest('#sortDropdownWrap')) {

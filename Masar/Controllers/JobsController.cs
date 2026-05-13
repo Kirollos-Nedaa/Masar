@@ -33,6 +33,7 @@ namespace Masar.Controllers
             string? location,
             [FromQuery(Name = "jobTypes")] List<string>? jobTypes,
             [FromQuery(Name = "industries")] List<string>? industries,
+            [FromQuery(Name = "Departments")] List<string>? departments,
             string? salaryRange,
             string sortBy = "recent",
             int page = 1)
@@ -43,6 +44,7 @@ namespace Masar.Controllers
                 Location = location,
                 JobTypes = jobTypes ?? new List<string>(),
                 Industries = industries ?? new List<string>(),
+                Departments = departments ?? new List<string>(),
                 SalaryRange = salaryRange,
                 SortBy = sortBy,
                 Page = page,

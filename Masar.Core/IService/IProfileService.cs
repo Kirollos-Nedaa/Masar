@@ -1,10 +1,7 @@
-﻿using Masar.Domain.Models;
-using Masar.Domain.ViewModels;
+﻿using Masar.Domain.ViewModels;
 using Masar.Domain.ViewModels.CandidateDtos;
 using Masar.Domain.ViewModels.CompanyDtos;
-using Masar.Domain.ViewModels;
 using Microsoft.AspNetCore.Http;
-using System.Threading.Tasks;
 
 namespace Masar.Core.IService
 {

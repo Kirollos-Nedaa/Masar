@@ -4,13 +4,11 @@ using Masar.Domain.Helpers;
 using Masar.Domain.Models;
 using Masar.Domain.ViewModels;
 using Masar.Domain.ViewModels.CompanyDtos;
-using Masar.Domain.ViewModels.HomeDtos;
 using Masar.Domain.ViewModels.Job;
 using Masar.Domain.ViewModels.JobDtos;
 using Masar.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 
 namespace Masar.Core.Services
 {
@@ -253,18 +251,34 @@ namespace Masar.Core.Services
                     query = query.Where(j => types.Contains(j.JobType));
             }
 
-            // 1. New Department Filter (Micro: Applies directly to the Job)
+            // 1. New Department Filter
             if (filter.Departments != null && filter.Departments.Any())
             {
-                query = query.Where(j => filter.Departments.Contains(j.Department.ToString()));
+                var parsedDepartments = filter.Departments
+                    .Select(d => Enum.TryParse<Department>(d, true, out var dept) ? (Department?)dept : null)
+                    .Where(d => d.HasValue)
+                    .Select(d => d!.Value)
+                    .ToList();
+
+                if (parsedDepartments.Any())
+                {
+                    query = query.Where(j => parsedDepartments.Contains(j.Department));
+                }
             }
 
             // 2. Updated Industry Filter (Macro: Applies to the Company hosting the Job)
             if (filter.Industries != null && filter.Industries.Any())
             {
-                query = query.Where(j =>
-                    j.Company.Industry != null &&
-                    filter.Industries.Contains(j.Company.Industry));
+                var parsedIndustries = filter.Industries
+                    .Select(i => Enum.TryParse<Industries>(i, true, out var ind) ? (Industries?)ind : null)
+                    .Where(i => i.HasValue)
+                    .Select(i => i!.Value)
+                    .ToList();
+
+                if (parsedIndustries.Any())
+                {
+                    query = query.Where(j => j.Company.Industry != null && filter.Industries.Contains(j.Company.Industry));
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(filter.SalaryRange))
@@ -348,7 +362,7 @@ namespace Masar.Core.Services
                 {
                     Icon = IndustryMetadata.GetIcon(industry),
                     DisplayName = IndustryMetadata.GetDisplayName(industry),
-                    FilterValue = industry.ToString()
+                    FilterValue = industry.ToString(),
                 })
                 .OrderBy(item => item.DisplayName)
                 .ToList();

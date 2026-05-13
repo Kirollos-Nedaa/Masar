@@ -1,0 +1,61 @@
+﻿@{
+    ViewData["Title"] = "Not Found";
+    Layout = "_Layout";
+}
+
+<div class="access-denied-page">
+
+    <!-- floating lock badge -->
+    <div class="floating-wifi">
+        <span class="iconify" data-icon="lucide:wifi-off"></span>
+    </div>
+
+    <!-- illustration circle -->
+    <div class="error-illustration-404">
+
+        <div class="big-404">404</div>
+
+        <div class="d-flex flex-column align-items-center justify-content-center">
+            <div class="center-shield-404">
+                <span class="iconify" data-icon="lucide:ban"></span>
+            </div>
+
+            <div class="small-404">404</div>
+        </div>
+
+    </div>
+
+    <!-- title -->
+    <h1 class="title">Page Not Found</h1>
+
+    <!-- subtitle -->
+    <p class="subtitle">
+        Oops! It looks like this road leads nowhere.
+    </p>
+
+    <!-- description -->
+    <p class="description">
+        The page you're looking for might have been moved, deleted, or never existed. Let's get you back on the right path.
+    </p>
+
+    <!-- actions -->
+    <div class="actions">
+
+        <button class="btn-outline-app" onclick="history.back()">
+            <span class="iconify" data-icon="lucide:arrow-left"></span>
+            Go Back
+        </button>
+
+        <a href="/" class="home-btn">
+            <span class="iconify" data-icon="lucide:house"></span>
+            Back to Home
+        </a>
+
+    </div>
+
+    <!-- error code -->
+    <div class="error-code-404">
+        Error code: <strong>404_NOT_FOUND</strong>
+    </div>
+
+</div>

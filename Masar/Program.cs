@@ -4,6 +4,7 @@ using Masar.Core.Services;
 using Masar.Domain.Models;
 using Masar.Infrastructure.Constants;
 using Masar.Infrastructure.Context;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -29,6 +30,7 @@ builder.Services.AddAuthentication()
         options.ClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
         options.ClientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET");
         options.SignInScheme = IdentityConstants.ExternalScheme;
+        options.ClaimActions.MapJsonKey("urn:google:picture", "picture", "url");
     });
 
 // ── Session ────────────────────────────────────────────────
@@ -42,6 +44,11 @@ builder.Services.AddSession(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.Cookie.Name = ".Masar.Session";
 });
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Auth/Login";
+    options.AccessDeniedPath = "/Error/AccessDenied";
+});
 
 // ── MVC ────────────────────────────────────────────────────
 builder.Services.AddControllersWithViews();
@@ -54,6 +61,7 @@ builder.Services.AddScoped<IJobService, JobService>();
 builder.Services.AddScoped<IApplicationService, ApplicationService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IJobLifecycleService, JobLifecycleService>();
+builder.Services.AddScoped<IHomeService, HomeService>();
 
 var app = builder.Build();
 
@@ -69,6 +77,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.UseStatusCodePagesWithReExecute("/Error/{0}");
 app.UseRouting();
 
 app.UseSession();

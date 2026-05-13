@@ -40,6 +40,12 @@
                 </a>
             </div>
 
+            @{
+                // Read the claim directly from the current user's cookie
+                var profileImage = User.Claims.FirstOrDefault(c => c.Type == "ProfilePicture")?.Value;
+                var initial = User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "U";
+            }
+
             <!-- Right side -->
             <div class="app-nav-right">
                 @if (User.Identity?.IsAuthenticated == true)
@@ -47,10 +53,19 @@
                     <!-- Authenticated: avatar dropdown -->
                     <div class="dropdown">
                         <button class="app-avatar-btn dropdown-toggle" type="button"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                            <span class="app-avatar-initials">
-                                @(User.Identity.Name?.Substring(0, 1).ToUpper() ?? "U")
-                            </span>
+                                data-bs-toggle="dropdown" aria-expanded="false"
+                                style="padding: 0; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+
+                            @if (!string.IsNullOrEmpty(profileImage))
+                            {
+                                <img src="@profileImage" alt="User Profile" style="width: 36px; height: 36px; object-fit: cover;" />
+                            }
+                            else
+                            {
+                                <span class="app-avatar-initials">
+                                    @initial
+                                </span>
+                            }
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end app-dropdown">
                             @if (User.IsInRole("Company"))

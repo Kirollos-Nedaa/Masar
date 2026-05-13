@@ -9,6 +9,8 @@ namespace Masar.Domain.ViewModels.JobDtos
     public class JobBrowseResultDto
     {
         public List<JobBrowseDto> Jobs { get; set; } = new();
+        public List<IndustryItemDto> AvailableIndustries { get; set; }
+        public List<DepartmentItemDto> AvailableDepartments { get; set; }
         public int TotalCount { get; set; }
         public int Page { get; set; }
         public int PageSize { get; set; }

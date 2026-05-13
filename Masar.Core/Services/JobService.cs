@@ -1,13 +1,14 @@
 ﻿using Masar.Core.IService;
 using Masar.Domain.Enums;
+using Masar.Domain.Helpers;
 using Masar.Domain.Models;
+using Masar.Domain.ViewModels;
 using Masar.Domain.ViewModels.CompanyDtos;
 using Masar.Domain.ViewModels.Job;
 using Masar.Domain.ViewModels.JobDtos;
 using Masar.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 
 namespace Masar.Core.Services
 {
@@ -41,7 +42,7 @@ namespace Masar.Core.Services
                 CompanyProfileId = company.Id,
                 Title = dto.Title,
                 JobType = dto.JobType,
-                Department = dto.Department,
+                Department = dto.Department, // Saved cleanly as Department enum
                 Location = dto.Location,
                 WorkMode = dto.WorkMode,
                 MinSalary = dto.MinSalary,
@@ -197,7 +198,7 @@ namespace Masar.Core.Services
                     ApplicantCount = j.JobApplications.Count,
                     PostedDate = j.PostedDate,
                     ApplicationDeadline = j.ApplicationDeadline,
-                    PostedDateDisplay = GetRelativeDate(j.PostedDate)
+                    PostedDateDisplay = j.PostedDate.ToRelativeDate()
                 })
                 .ToListAsync();
 
@@ -250,16 +251,38 @@ namespace Masar.Core.Services
                     query = query.Where(j => types.Contains(j.JobType));
             }
 
-            if (filter.Industries.Any())
+            // 1. New Department Filter
+            if (filter.Departments != null && filter.Departments.Any())
             {
-                query = query.Where(j =>
-                    j.Company.Industry != null &&
-                    filter.Industries.Contains(j.Company.Industry));
+                var parsedDepartments = filter.Departments
+                    .Select(d => Enum.TryParse<Department>(d, true, out var dept) ? (Department?)dept : null)
+                    .Where(d => d.HasValue)
+                    .Select(d => d!.Value)
+                    .ToList();
+
+                if (parsedDepartments.Any())
+                {
+                    query = query.Where(j => parsedDepartments.Contains(j.Department));
+                }
+            }
+
+            // 2. Updated Industry Filter (Macro: Applies to the Company hosting the Job)
+            if (filter.Industries != null && filter.Industries.Any())
+            {
+                var parsedIndustries = filter.Industries
+                    .Select(i => Enum.TryParse<Industries>(i, true, out var ind) ? (Industries?)ind : null)
+                    .Where(i => i.HasValue)
+                    .Select(i => i!.Value)
+                    .ToList();
+
+                if (parsedIndustries.Any())
+                {
+                    query = query.Where(j => j.Company.Industry != null && filter.Industries.Contains(j.Company.Industry));
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(filter.SalaryRange))
             {
-                // 1. Handle the "150000+" scenario
                 if (filter.SalaryRange.EndsWith("+"))
                 {
                     var cleanValue = filter.SalaryRange.TrimEnd('+');
@@ -268,7 +291,6 @@ namespace Masar.Core.Services
                         query = query.Where(j => (j.MaxSalary ?? j.MinSalary) >= userMinBoundary);
                     }
                 }
-                // 2. Handle the "50000-100000" scenario
                 else if (filter.SalaryRange.Contains("-"))
                 {
                     var parts = filter.SalaryRange.Split('-');
@@ -286,8 +308,8 @@ namespace Masar.Core.Services
 
             query = filter.SortBy switch
             {
-                "salary_desc" => query.OrderByDescending(j => j.MaxSalary),
-                "salary_asc" => query.OrderBy(j => j.MinSalary),
+                "salary_desc" => query.OrderByDescending(j => j.MaxSalary ?? j.MinSalary),
+                "salary_asc" => query.OrderBy(j => j.MinSalary ?? j.MaxSalary),
                 _ => query.OrderByDescending(j => j.PostedDate)
             };
 
@@ -323,10 +345,8 @@ namespace Masar.Core.Services
                     WorkMode = j.WorkMode.ToString(),
                     Department = j.Department.ToString(),
                     Industry = j.Company.Industry,
-                    PostedDateDisplay = GetRelativeDate(j.PostedDate),
-                    SalaryDisplay = j.MinSalary != null && j.MaxSalary != null
-                        ? $"${j.MinSalary:N0}–${j.MaxSalary:N0}"
-                        : j.MinSalary != null ? $"From ${j.MinSalary:N0}" : null,
+                    PostedDateDisplay = j.PostedDate.ToRelativeDate(),
+                    SalaryDisplay = j.MinSalary.ToSalaryDisplay(j.MaxSalary),
                     DescriptionSnippet = j.Description.Length > 150
                         ? j.Description.Substring(0, 150) + "..."
                         : j.Description
@@ -336,13 +356,37 @@ namespace Masar.Core.Services
             foreach (var job in jobs)
                 job.IsSaved = savedJobIds.Contains(job.Id);
 
+            // Fetch available Industries
+            var availableIndustries = IndustryMetadata.All()
+                .Select(industry => new IndustryItemDto
+                {
+                    Icon = IndustryMetadata.GetIcon(industry),
+                    DisplayName = IndustryMetadata.GetDisplayName(industry),
+                    FilterValue = industry.ToString(),
+                })
+                .OrderBy(item => item.DisplayName)
+                .ToList();
+
+            // Fetch available Departments (No Job Counts Included)
+            var availableDepartments = DepartmentMetadata.All()
+                .Select(dept => new DepartmentItemDto
+                {
+                    Icon = DepartmentMetadata.GetIcon(dept),
+                    DisplayName = DepartmentMetadata.GetDisplayName(dept),
+                    FilterValue = dept.ToString()
+                })
+                .OrderBy(item => item.DisplayName)
+                .ToList();
+
             return new JobBrowseResultDto
             {
                 Jobs = jobs,
                 TotalCount = totalCount,
                 Page = filter.Page,
                 PageSize = filter.PageSize,
-                Filter = filter
+                Filter = filter,
+                AvailableIndustries = availableIndustries,
+                AvailableDepartments = availableDepartments
             };
         }
 
@@ -387,10 +431,8 @@ namespace Masar.Core.Services
                 Description = job.Description,
                 Requirements = job.Requirements,
                 Benefits = job.Benefits,
-                PostedDateDisplay = GetRelativeDate(job.PostedDate),
-                SalaryDisplay = job.MinSalary != null && job.MaxSalary != null
-                    ? $"${job.MinSalary:N0}–${job.MaxSalary:N0}"
-                    : job.MinSalary != null ? $"From ${job.MinSalary:N0}" : null,
+                PostedDateDisplay = job.PostedDate.ToRelativeDate(),
+                SalaryDisplay = job.MinSalary.ToSalaryDisplay(job.MaxSalary),
                 ApplicantCount = job.JobApplications.Count,
                 NumberOfOpenings = job.NumberOfOpenings,
                 ApplicationDeadline = job.ApplicationDeadline,
@@ -512,8 +554,8 @@ namespace Masar.Core.Services
         private static bool HasHistoricalQuestionChange(JobQuestion existingQuestion, string incomingQuestionText, QuestionType incomingType)
         {
             return !string.Equals(
-                existingQuestion.QuestionText.Trim(), 
-                incomingQuestionText.Trim(), 
+                existingQuestion.QuestionText.Trim(),
+                incomingQuestionText.Trim(),
                 StringComparison.Ordinal) || existingQuestion.Type != incomingType;
         }
 
@@ -528,16 +570,6 @@ namespace Masar.Core.Services
         {
             if (applicationDeadline <= DateTime.UtcNow)
                 throw new ValidationException("Application deadline must be later than the current time.");
-        }
-
-        private static string GetRelativeDate(DateTime date)
-        {
-            var diff = DateTime.UtcNow - date;
-            if (diff.TotalDays < 1) return "Today";
-            if (diff.TotalDays < 2) return "Yesterday";
-            if (diff.TotalDays < 7) return $"{(int)diff.TotalDays} days ago";
-            if (diff.TotalDays < 30) return $"{(int)(diff.TotalDays / 7)} week(s) ago";
-            return date.ToString("MMM dd, yyyy");
         }
     }
 }

@@ -12,6 +12,7 @@ namespace Masar.Domain.ViewModels.JobDtos
         public string? Location { get; set; }
         public List<string> JobTypes { get; set; } = new();
         public List<string> Industries { get; set; } = new();
+        public List<string> Departments { get; set; } = new();
         public string? SalaryRange { get; set; }
         public string SortBy { get; set; } = "recent";
         public int Page { get; set; } = 1;

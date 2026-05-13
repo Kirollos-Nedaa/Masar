@@ -1,6 +1,7 @@
 ﻿@using Masar.Domain.ViewModels.CompanyDtos
 @using Masar.Domain.Enums
 @using Masar.Domain.ViewModels.Job
+@using Masar.Domain.Helpers
 @model PostJobDto
 
 @{
@@ -8,6 +9,23 @@
     ViewData["Title"] = isEdit ? "Edit Job" : "Post a New Job";
     ViewData["HasSidebar"] = true;
 }
+
+@* ── Style to force dropdowns downward securely ── *@
+<style>
+    .custom-dropdown {
+        position: relative !important;
+    }
+
+    .custom-dropdown-menu {
+        position: absolute !important;
+        top: calc(100% + 4px) !important;
+        left: 0 !important;
+        right: auto !important;
+        width: 100% !important;
+        z-index: 1050 !important;
+        overflow-y: auto;
+    }
+</style>
 
 @section Sidebar {
     <partial name="_CompanySidebar" />
@@ -31,10 +49,7 @@
     </div>
 }
 
-<form asp-controller="Company"
-      asp-action="@(isEdit ? "EditJob" : "PostJob")"
-      method="post"
-      id="postJobForm">
+<form asp-controller="Company" asp-action="@(isEdit ? "EditJob" : "PostJob")" method="post" id="postJobForm">
     @Html.AntiForgeryToken()
     @if (isEdit)
     {
@@ -57,54 +72,75 @@
         </div>
 
         <div class="row g-3 mb-3">
+            @* ── Job Type Dropdown ── *@
             <div class="col-12 col-sm-6">
                 <label class="epi-label">Job Type <span style="color:var(--red)">*</span></label>
-                <select asp-for="JobType" class="epi-input epi-select">
-                    <option value="">Select type</option>
-                    @foreach (JobType jt in Enum.GetValues(typeof(JobType)))
-                    {
-                        if (jt == JobType.None) continue;
-                        var jtLabel = jt switch
-                        {
-                            JobType.FullTime   => "Full-Time",
-                            JobType.PartTime   => "Part-Time",
-                            JobType.Internship => "Internship",
-                            _ => jt.ToString()
-                        };
-                        <option value="@((int)jt)" selected="@(Model.JobType == jt)">@jtLabel</option>
-                    }
-                </select>
+                @{
+                    var currentJtName = Model.JobType != JobType.None ? JobTypeMetadata.GetDisplayName(Model.JobType) : "Select job type";
+                    var currentJtIcon = Model.JobType != JobType.None ? JobTypeMetadata.GetIcon(Model.JobType) : "lucide:briefcase";
+                }
+                <div class="custom-dropdown position-relative w-100" id="jobTypeWrap">
+                    <input asp-for="JobType" type="hidden" />
+                    <button type="button" class="custom-dropdown-toggle epi-input d-flex align-items-center justify-content-between w-100 text-start" onclick="toggleCustomSelect(event, 'jobTypeMenu')">
+                        <span class="icon-text-wrap">
+                            <span class="iconify display-icon text-muted" data-icon="@currentJtIcon"></span>
+                            <span class="display-text">@currentJtName</span>
+                        </span>
+                        <span class="iconify chevron text-muted" data-icon="lucide:chevron-down"></span>
+                    </button>
+                    <div class="custom-dropdown-menu w-100" id="jobTypeMenu">
+                        <div class="dropdown-scroll-area">
+                            @foreach (var jt in JobTypeMetadata.All())
+                            {
+                                var name = JobTypeMetadata.GetDisplayName(jt);
+                                var icon = JobTypeMetadata.GetIcon(jt);
+
+                                <div class="custom-dropdown-item @(Model.JobType == jt ? "selected" : "")"
+                                     onclick="selectDropdownOption(event, 'jobTypeWrap', '@((int)jt)', '@name', '@icon')">
+                                    <span class="iconify ind-icon" data-icon="@icon"></span>
+                                    <span class="ind-name">@name</span>
+                                    <span class="iconify check-icon" data-icon="lucide:check"></span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
                 <span asp-validation-for="JobType" class="epi-error"></span>
             </div>
+
+            @* ── Department Dropdown ── *@
             <div class="col-12 col-sm-6">
                 <label class="epi-label">Department <span style="color:var(--red)">*</span></label>
-                <select asp-for="Department" class="epi-input epi-select">
-                    <option value="">Select department</option>
-                    @foreach (Department dept in Enum.GetValues(typeof(Department)))
-                    {
-                        if (dept == Department.None) continue;
-                        var deptLabel = dept switch
-                        {
-                            Department.ComputerScience          => "Computer Science",
-                            Department.InformationTechnology    => "Information Technology",
-                            Department.SoftwareEngineering      => "Software Engineering",
-                            Department.ElectricalEngineering    => "Electrical Engineering",
-                            Department.MechanicalEngineering    => "Mechanical Engineering",
-                            Department.CivilEngineering         => "Civil Engineering",
-                            Department.BusinessAdministration   => "Business Administration",
-                            Department.HumanResources           => "Human Resources",
-                            Department.CustomerService          => "Customer Service",
-                            Department.ArtsAndDesign            => "Arts & Design",
-							Department.Marketing                => "Marketing",
-							Department.Finance                  => "Finance",
-							Department.Healthcare               => "Healthcare",
-							Department.Education                => "Education",
-							Department.Other                    => "Other",
-                            _ => dept.ToString()
-                        };
-                        <option value="@((int)dept)" selected="@(Model.Department == dept)">@deptLabel</option>
-                    }
-                </select>
+                @{
+                    var currentDeptName = Model.Department != Department.None ? DepartmentMetadata.GetDisplayName(Model.Department) : "Select department";
+                    var currentDeptIcon = Model.Department != Department.None ? DepartmentMetadata.GetIcon(Model.Department) : "lucide:users";
+                }
+                <div class="custom-dropdown position-relative w-100" id="deptWrap">
+                    <input asp-for="Department" type="hidden" />
+                    <button type="button" class="custom-dropdown-toggle epi-input d-flex align-items-center justify-content-between w-100 text-start" onclick="toggleCustomSelect(event, 'deptMenu')">
+                        <span class="icon-text-wrap">
+                            <span class="iconify display-icon text-muted" data-icon="@currentDeptIcon"></span>
+                            <span class="display-text">@currentDeptName</span>
+                        </span>
+                        <span class="iconify chevron text-muted" data-icon="lucide:chevron-down"></span>
+                    </button>
+                    <div class="custom-dropdown-menu w-100" id="deptMenu">
+                        <div class="dropdown-scroll-area">
+                            @foreach (var dept in DepartmentMetadata.All())
+                            {
+                                var name = DepartmentMetadata.GetDisplayName(dept);
+                                var icon = DepartmentMetadata.GetIcon(dept);
+
+                                <div class="custom-dropdown-item @(Model.Department == dept ? "selected" : "")"
+                                     onclick="selectDropdownOption(event, 'deptWrap', '@((int)dept)', '@name', '@icon')">
+                                    <span class="iconify ind-icon" data-icon="@icon"></span>
+                                    <span class="ind-name">@name</span>
+                                    <span class="iconify check-icon" data-icon="lucide:check"></span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
                 <span asp-validation-for="Department" class="epi-error"></span>
             </div>
         </div>
@@ -121,16 +157,40 @@
                 </div>
                 <span asp-validation-for="Location" class="epi-error"></span>
             </div>
+
+            @* ── Work Mode Dropdown ── *@
             <div class="col-12 col-sm-6">
                 <label class="epi-label">Work Mode <span style="color:var(--red)">*</span></label>
-                <select asp-for="WorkMode" class="epi-input epi-select">
-                    <option value="">Select mode</option>
-                    @foreach (WorkMode wm in Enum.GetValues(typeof(WorkMode)))
-                    {
-                        if (wm == WorkMode.None) continue;
-                        <option value="@((int)wm)" selected="@(Model.WorkMode == wm)">@wm</option>
-                    }
-                </select>
+                @{
+                    var currentWmName = Model.WorkMode != WorkMode.None ? WorkModeMetadata.GetDisplayName(Model.WorkMode) : "Select mode";
+                    var currentWmIcon = Model.WorkMode != WorkMode.None ? WorkModeMetadata.GetIcon(Model.WorkMode) : "lucide:map-pin";
+                }
+                <div class="custom-dropdown position-relative w-100" id="workModeWrap">
+                    <input asp-for="WorkMode" type="hidden" />
+                    <button type="button" class="custom-dropdown-toggle epi-input d-flex align-items-center justify-content-between w-100 text-start" onclick="toggleCustomSelect(event, 'workModeMenu')">
+                        <span class="icon-text-wrap">
+                            <span class="iconify display-icon text-muted" data-icon="@currentWmIcon"></span>
+                            <span class="display-text">@currentWmName</span>
+                        </span>
+                        <span class="iconify chevron text-muted" data-icon="lucide:chevron-down"></span>
+                    </button>
+                    <div class="custom-dropdown-menu w-100" id="workModeMenu">
+                        <div class="dropdown-scroll-area">
+                            @foreach (var wm in WorkModeMetadata.All())
+                            {
+                                var name = WorkModeMetadata.GetDisplayName(wm);
+                                var icon = WorkModeMetadata.GetIcon(wm);
+
+                                <div class="custom-dropdown-item @(Model.WorkMode == wm ? "selected" : "")"
+                                     onclick="selectDropdownOption(event, 'workModeWrap', '@((int)wm)', '@name', '@icon')">
+                                    <span class="iconify ind-icon" data-icon="@icon"></span>
+                                    <span class="ind-name">@name</span>
+                                    <span class="iconify check-icon" data-icon="lucide:check"></span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
                 <span asp-validation-for="WorkMode" class="epi-error"></span>
             </div>
         </div>
@@ -150,8 +210,7 @@
                 <label class="epi-label">Minimum Salary</label>
                 <div class="salary-input-wrap">
                     <span class="salary-prefix">$</span>
-                    <input asp-for="MinSalary" type="number" class="epi-input salary-input"
-                           placeholder="50000" min="0" />
+                    <input asp-for="MinSalary" type="number" class="epi-input salary-input" placeholder="50000" min="0" />
                 </div>
                 <span asp-validation-for="MinSalary" class="epi-error"></span>
             </div>
@@ -159,8 +218,7 @@
                 <label class="epi-label">Maximum Salary</label>
                 <div class="salary-input-wrap">
                     <span class="salary-prefix">$</span>
-                    <input asp-for="MaxSalary" type="number" class="epi-input salary-input"
-                           placeholder="80000" min="0" />
+                    <input asp-for="MaxSalary" type="number" class="epi-input salary-input" placeholder="80000" min="0" />
                 </div>
                 <span asp-validation-for="MaxSalary" class="epi-error"></span>
             </div>
@@ -226,8 +284,7 @@
             </div>
             <div class="col-12 col-sm-6">
                 <label class="epi-label">Number of Positions <span style="color:var(--red)">*</span></label>
-                <input asp-for="NumberOfOpenings" type="number" class="epi-input"
-                       min="1" max="1000" placeholder="1" />
+                <input asp-for="NumberOfOpenings" type="number" class="epi-input" min="1" max="1000" placeholder="1" />
                 <span asp-validation-for="NumberOfOpenings" class="epi-error"></span>
             </div>
         </div>
@@ -236,13 +293,11 @@
             <div class="d-flex flex-column gap-2">
                 <label class="job-checkbox-label">
                     <input asp-for="RequireCv" type="checkbox" class="job-checkbox" />
-                    <span class="job-checkbox-box"></span>
-                    Require resume/CV
+                    <span class="job-checkbox-box"></span> Require resume/CV
                 </label>
                 <label class="job-checkbox-label">
                     <input asp-for="RequireCoverLetter" type="checkbox" class="job-checkbox" />
-                    <span class="job-checkbox-box"></span>
-                    Require cover letter
+                    <span class="job-checkbox-box"></span> Require cover letter
                 </label>
             </div>
         </div>
@@ -269,16 +324,37 @@
                     <input type="hidden" name="Questions[@i].Id" value="@q.Id" />
                     <div class="row g-2 align-items-start">
                         <div class="col-12 col-sm-6">
-                            <input type="text" name="Questions[@i].QuestionText"
-                                   class="epi-input" placeholder="e.g. When are you available to start?"
-                                   value="@q.QuestionText" />
+                            <input type="text" name="Questions[@i].QuestionText" class="epi-input" placeholder="e.g. When are you available to start?" value="@q.QuestionText" />
                         </div>
+
+                        @* ── Question Type Dropdown ── *@
                         <div class="col-12 col-sm-3">
-                            <select name="Questions[@i].Type" class="epi-input epi-select">
-                                <option value="Essay" selected="@(q.Type == "Essay")">Text answer</option>
-                                <option value="TorF" selected="@(q.Type == "TorF")">Yes / No</option>
-                            </select>
+                            @{
+                                var qTypeName = q.Type == "Essay" ? "Text answer" : "Yes / No";
+                            }
+                            <div class="custom-dropdown position-relative w-100" id="qTypeWrap_@i">
+                                <input type="hidden" name="Questions[@i].Type" value="@q.Type" />
+                                <button type="button" class="custom-dropdown-toggle epi-input d-flex align-items-center justify-content-between w-100 text-start" onclick="toggleCustomSelect(event, 'qTypeMenu_@i')">
+                                    <span class="icon-text-wrap"><span class="display-text">@qTypeName</span></span>
+                                    <span class="iconify chevron text-muted" data-icon="lucide:chevron-down"></span>
+                                </button>
+                                <div class="custom-dropdown-menu w-100" id="qTypeMenu_@i">
+                                    <div class="dropdown-scroll-area">
+                                        <div class="custom-dropdown-item @(q.Type == "Essay" ? "selected" : "")"
+                                             onclick="selectDropdownOption(event, 'qTypeWrap_@i', 'Essay', 'Text answer', '')">
+                                            <span class="ind-name">Text answer</span>
+                                            <span class="iconify check-icon" data-icon="lucide:check"></span>
+                                        </div>
+                                        <div class="custom-dropdown-item @(q.Type == "TorF" ? "selected" : "")"
+                                             onclick="selectDropdownOption(event, 'qTypeWrap_@i', 'TorF', 'Yes / No', '')">
+                                            <span class="ind-name">Yes / No</span>
+                                            <span class="iconify check-icon" data-icon="lucide:check"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+
                         <div class="col-2 col-sm-1 d-flex align-items-center" style="margin: 11px 0px 0px auto">
                             <button type="button" class="btn-icon-danger" onclick="removeQuestion(this)" title="Remove">
                                 <span class="iconify" data-icon="lucide:x"></span>
@@ -307,6 +383,49 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
+        // ── Universal Custom Single-Select Logic ─────────────────
+        function toggleCustomSelect(event, menuId) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            document.querySelectorAll('.custom-dropdown-menu.show').forEach(m => {
+                if (m.id !== menuId) m.classList.remove('show');
+            });
+
+            document.getElementById(menuId).classList.toggle('show');
+        }
+
+        function selectDropdownOption(event, wrapId, value, text, icon) {
+            event.stopPropagation();
+            const wrap = document.getElementById(wrapId);
+
+            const hiddenInput = wrap.querySelector('input[type="hidden"]');
+            hiddenInput.value = value;
+            hiddenInput.dispatchEvent(new Event('change'));
+
+            wrap.querySelector('.display-text').innerText = text;
+            const iconEl = wrap.querySelector('.display-icon');
+            if (iconEl && icon) {
+                iconEl.setAttribute('data-icon', icon);
+            }
+
+            wrap.querySelectorAll('.custom-dropdown-item').forEach(el => el.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+
+            wrap.querySelector('.custom-dropdown-menu').classList.remove('show');
+
+            if (typeof Iconify !== 'undefined') {
+                Iconify.scan(wrap);
+            }
+        }
+
+        window.addEventListener('click', function(e) {
+            if (!e.target.closest('.custom-dropdown')) {
+                document.querySelectorAll('.custom-dropdown-menu.show').forEach(m => m.classList.remove('show'));
+            }
+        });
+
+        // ── Standard UI Logic ────────────────────────────────────
         function updateCount(el, id) {
             document.getElementById(id).textContent = `${el.value.length} / ${el.maxLength}`;
         }
@@ -327,6 +446,7 @@
             document.getElementById('Location').value = value;
             const s = document.getElementById('locationSuggestions');
             if (!value.trim() || value.length < 2) { s.style.display = 'none'; return; }
+
             locationDebounce = setTimeout(async () => {
                 try {
                     const res = await fetch(
@@ -373,24 +493,34 @@
             const row = document.createElement('div');
             row.className = 'question-row';
             row.dataset.index = i;
+
+            // Cleaned JS Template mimicking the HTML block above
             row.innerHTML = `
                 <div class="row g-2 align-items-start">
                     <div class="col-12 col-sm-6">
-                        <input type="text" name="Questions[${i}].QuestionText"
-                               class="epi-input" placeholder="e.g. When are you available to start?" />
+                        <input type="text" name="Questions[${i}].QuestionText" class="epi-input" placeholder="e.g. When are you available to start?" />
                     </div>
+
                     <div class="col-6 col-sm-3">
-                        <select name="Questions[${i}].Type" class="epi-input epi-select">
-                            <option value="Essay">Text answer</option>
-                            <option value="TorF">Yes / No</option>
-                        </select>
-                    </div>
-                    <div class="col-4 col-sm-2">
-                        <label class="job-checkbox-label mt-1">
-                            <input type="checkbox" name="Questions[${i}].IsRequired" class="job-checkbox" checked />
-                            <span class="job-checkbox-box"></span>
-                            Required
-                        </label>
+                        <div class="custom-dropdown position-relative w-100" id="qTypeWrap_${i}">
+                            <input type="hidden" name="Questions[${i}].Type" value="Essay" />
+                            <button type="button" class="custom-dropdown-toggle epi-input d-flex align-items-center justify-content-between w-100 text-start" onclick="toggleCustomSelect(event, 'qTypeMenu_${i}')">
+                                <span class="icon-text-wrap"><span class="display-text">Text answer</span></span>
+                                <span class="iconify chevron text-muted" data-icon="lucide:chevron-down"></span>
+                            </button>
+                            <div class="custom-dropdown-menu w-100" id="qTypeMenu_${i}">
+                                <div class="dropdown-scroll-area">
+                                    <div class="custom-dropdown-item selected" onclick="selectDropdownOption(event, 'qTypeWrap_${i}', 'Essay', 'Text answer', '')">
+                                        <span class="ind-name">Text answer</span>
+                                        <span class="iconify check-icon" data-icon="lucide:check"></span>
+                                    </div>
+                                    <div class="custom-dropdown-item" onclick="selectDropdownOption(event, 'qTypeWrap_${i}', 'TorF', 'Yes / No', '')">
+                                        <span class="ind-name">Yes / No</span>
+                                        <span class="iconify check-icon" data-icon="lucide:check"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-2 col-sm-1 d-flex align-items-center">
                         <button type="button" class="btn-icon-danger" onclick="removeQuestion(this)" title="Remove">
@@ -398,8 +528,9 @@
                         </button>
                     </div>
                 </div>`;
+
             document.getElementById('questionsContainer').appendChild(row);
-            Iconify.scan(row);
+            if (typeof Iconify !== 'undefined') Iconify.scan(row);
             reindexQuestions();
         }
 
@@ -411,25 +542,34 @@
         function reindexQuestions() {
             document.querySelectorAll('#questionsContainer .question-row').forEach((row, i) => {
                 row.dataset.index = i;
+
                 row.querySelectorAll('[name]').forEach(el => {
                     el.name = el.name.replace(/Questions\[\d+\]/, `Questions[${i}]`);
                 });
+
+                const wrap = row.querySelector('.custom-dropdown');
+                if (wrap) {
+                    wrap.id = `qTypeWrap_${i}`;
+                    const toggleBtn = wrap.querySelector('.custom-dropdown-toggle');
+                    if (toggleBtn) toggleBtn.setAttribute('onclick', `toggleCustomSelect(event, 'qTypeMenu_${i}')`);
+
+                    const menu = wrap.querySelector('.custom-dropdown-menu');
+                    if (menu) menu.id = `qTypeMenu_${i}`;
+
+                    wrap.querySelectorAll('.custom-dropdown-item').forEach(item => {
+                        const onclickStr = item.getAttribute('onclick');
+                        if(onclickStr) item.setAttribute('onclick', onclickStr.replace(/qTypeWrap_\d+/, `qTypeWrap_${i}`));
+                    });
+                }
             });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             const input = document.getElementById('ApplicationDeadline');
-
             if (input) {
                 const now = new Date();
-
-                // Format to YYYY-MM-DDTHH:mm
                 const pad = n => n.toString().padStart(2, '0');
-                const formatted =
-                    `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}` +
-                    `T${pad(now.getHours())}:${pad(now.getMinutes())}`;
-
-                input.min = formatted;
+                input.min = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
             }
         });
     </script>

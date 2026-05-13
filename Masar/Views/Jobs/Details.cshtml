@@ -36,7 +36,11 @@
 
             <div class="job-header-info">
                 <div class="job-header-title">@Model.Title</div>
-                <div class="job-header-company">@Model.CompanyName</div>
+                <div class="job-header-company d-flex">
+                    <div>@Model.CompanyName</div>
+                    <span class="iconify" data-icon="lucide:dot" style="width:20px; height:20px;"></span>
+                    <div>@Model.CompanyIndustry</div>
+                </div>
             </div>
 
             <div class="job-header-actions">
@@ -97,9 +101,9 @@
                     @(Model.WorkMode == "OnSite" ? "On-Site" : Model.WorkMode)
                 </span>
             }
-            @if (!string.IsNullOrEmpty(Model.CompanyIndustry))
+            @if (!string.IsNullOrEmpty(Model.Department))
             {
-                <span class="job-header-tag">@Model.CompanyIndustry</span>
+                <span class="job-header-tag">@Model.Department</span>
             }
         </div>
 

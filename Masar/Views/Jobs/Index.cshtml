@@ -8,82 +8,149 @@
 }
 
 @section Footer {
-    <partial name="_Footer" />
+<partial name="_Footer" />
 }
 
 <form method="get" asp-controller="Jobs" asp-action="Index" id="filterForm">
-<div class="jobs-layout">
+    <div class="jobs-layout">
 
-    @* ── Sidebar ──────────────────────────────────────────── *@
-    <aside class="jobs-sidebar">
-        <div class="sidebar-filter-card">
-            <div class="filter-header">
-                <span class="filter-title">Filters</span>
-                <a asp-controller="Jobs" asp-action="Index" class="filter-clear">Clear All</a>
-            </div>
+        @* ── Sidebar ──────────────────────────────────────────── *@
+        <aside class="jobs-sidebar">
+            <div class="sidebar-filter-card">
+                <div class="filter-header">
+                    <span class="filter-title">Filters</span>
+                    <a asp-controller="Jobs" asp-action="Index" class="filter-clear">Clear All</a>
+                </div>
 
-            @* Location *@
-            <div class="filter-group">
-                <div class="filter-group-label">Location</div>
-                <input type="text"
-                       name="location"
-                       class="filter-location-input"
-                       placeholder="City, state, or zip"
-                       value="@f.Location" />
-            </div>
+                @* Location *@
+                <div class="filter-group">
+                    <div class="filter-group-label">Location</div>
+                    <input type="text"
+                    name="location"
+                    class="filter-location-input"
+                    placeholder="City, state, or zip"
+                    value="@f.Location" />
+                </div>
 
-            @* Job Type *@
-            <div class="filter-group">
-                <div class="filter-group-label">Job Type</div>
-                @foreach (var (val, label) in new[] {
-                    ("Internship", "Internship"),
-                    ("FullTime",   "Full-time"),
-                    ("PartTime",   "Part-time")
-                })
-                {
-                    <label class="filter-check-label">
-                        <input type="checkbox"
-                               name="jobTypes"
-                               value="@val"
-                               @(f.JobTypes.Contains(val) ? "checked" : "")
-                               onchange="this.form.submit()" />
-                        @label
-                    </label>
-                }
-            </div>
+                @* Job Type *@
+                <div class="filter-group">
+                    <div class="filter-group-label">Job Type</div>
+                    <div class="filter-list">
+                        @foreach (var (val, label) in new[] {
+                        ("Internship", "Internship"),
+                        ("FullTime",   "Full-time"),
+                        ("PartTime",   "Part-time")
+                        })
+                        {
+                            var isChecked = f.JobTypes.Contains(val);
 
-            @* Industry *@
-            <div class="filter-group">
-                <div class="filter-group-label">Industry</div>
-                @foreach (var ind in new[] {
-                    "Finance",
-                    "Healthcare",
-                    "Education",
-                    "Manufacturing",
-                    "Retail",
-                    "Energy",
-                    "Transportation",
-                    "Hospitality",
-                    "Construction",
-                    "Agriculture",
-                    "Media",
-                    "Telecommunications",
-                    "Government",
-                    "NonProfit",
-                    "Other"
-                })
-                {
-                    var label = ind == "DataScience" ? "Data Science" : ind;
-                    <label class="filter-check-label">
-                        <input type="checkbox"
-                               name="industries"
-                               value="@ind"
-                               @(f.Industries.Contains(ind) ? "checked" : "")
-                               onchange="this.form.submit()" />
-                        @label
-                    </label>
-                }
-            </div>
+                            <label class="custom-filter-item @(isChecked ? "selected" : "")">
+                                <input type="checkbox"
+                                       name="jobTypes"
+                                       value="@val"
+                                       class="hidden-checkbox"
+                                @(isChecked ? "checked" : "") />
+
+                                <span class="filter-name">@label</span>
+                                <span class="iconify check-icon" data-icon="lucide:check"></span>
+                            </label>
+                        }
+                    </div>
+                </div>
+
+                @* Industry filter *@
+                <div class="filter-group">
+                    <div class="filter-group-label">Industry & Department</div>
+
+                    @{
+                        var selectedValues = Model.Filter?.Industries ?? new List<string>();
+                        var displayText = selectedValues.Count == 0 ? "All Industries" :
+                        selectedValues.Count == 1 ? Model.AvailableIndustries?.FirstOrDefault(i => i.FilterValue == selectedValues[0])?.DisplayName ?? "1 Selected" :
+                        $"{selectedValues.Count} Selected";
+
+                        var selectedDepts = Model.Filter?.Departments ?? new List<string>();
+                        var deptDisplayText = selectedDepts.Count == 0 ? "All Departments" :
+                        selectedDepts.Count == 1 ? Model.AvailableDepartments?.FirstOrDefault(i => i.FilterValue == selectedDepts[0])?.DisplayName ?? "1 Selected" :
+                        $"{selectedDepts.Count} Selected";
+                    }
+
+                    <div class="custom-dropdown" id="industryDropdownWrap">
+                        <button type="button" class="custom-dropdown-toggle" onclick="toggleIndustryDropdown(event)">
+                            <span class="icon-text-wrap">
+                                @if (selectedValues.Count == 0)
+                                {
+                                    <span class="iconify" data-icon="lucide:layers"></span>
+                                }
+                                <span id="industryDropdownText">@displayText</span>
+                            </span>
+                            <span class="iconify chevron" data-icon="lucide:chevron-right"></span>
+                        </button>
+
+                        <div class="custom-dropdown-menu" id="industryDropdownMenu">
+                            <div class="dropdown-scroll-area">
+                                @if (Model.AvailableIndustries != null)
+                                {
+                                    @foreach (var ind in Model.AvailableIndustries)
+                                    {
+                                        var isChecked = selectedValues.Contains(ind.FilterValue);
+
+                                        <label class="custom-dropdown-item @(isChecked ? "selected" : "")">
+                                            <input type="checkbox" name="Industries" value="@ind.FilterValue" class="hidden-checkbox" @(isChecked ? "checked" : "") />
+
+                                            <span class="iconify ind-icon" data-icon="@ind.Icon"></span>
+                                            <span class="ind-name">@ind.DisplayName</span>
+
+                                            <span class="iconify check-icon" data-icon="lucide:check"></span>
+                                        </label>
+                                    }
+                                }
+                            </div>
+
+                            <div class="dropdown-footer">
+                                <button type="submit" class="btn-apply-filter">Apply Filter</button>
+                            </div>
+                        </div>
+                    </div>
+
+                @* Department *@
+                    <div class="custom-dropdown" id="departmentDropdownWrap">
+                        <button type="button" class="custom-dropdown-toggle" onclick="toggleDepartmentDropdown(event)">
+                            <span class="icon-text-wrap">
+                                @if (selectedDepts.Count == 0)
+                                {
+                                    <span class="iconify" data-icon="lucide:briefcase"></span>
+                                }
+                                <span id="departmentDropdownText">@deptDisplayText</span>
+                            </span>
+                            <span class="iconify chevron" data-icon="lucide:chevron-right"></span>
+                        </button>
+
+                        <div class="custom-dropdown-menu" id="departmentDropdownMenu">
+                            <div class="dropdown-scroll-area">
+                                @if (Model.AvailableDepartments != null)
+                                {
+                                    @foreach (var dept in Model.AvailableDepartments)
+                                    {
+                                        var isChecked = selectedDepts.Contains(dept.FilterValue);
+                                        <label class="custom-dropdown-item @(isChecked ? "selected" : "")">
+                                            <input type="checkbox" name="Departments" value="@dept.FilterValue" class="hidden-checkbox" @(isChecked ? "checked" : "") />
+
+                                            <span class="iconify ind-icon" data-icon="@dept.Icon"></span>
+                                            <span class="ind-name">@dept.DisplayName</span>
+
+                                            <span class="iconify check-icon" data-icon="lucide:check"></span>
+                                        </label>
+                                    }
+                                }
+                            </div>
+
+                            <div class="dropdown-footer">
+                                <button type="submit" class="btn-apply-filter">Apply Filter</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
 
             @* Salary *@
                 @{
@@ -101,7 +168,7 @@
                     else if (currentRange.EndsWith("+"))
                     {
                         int.TryParse(currentRange.Replace("+", ""), out minVal);
-                        maxVal = 200000;
+                        maxVal = 250000;
                     }
                 }
 
@@ -121,10 +188,10 @@
 
                         <!-- Overlapping native range inputs -->
                         <input type="range" id="minSalary" class="dual-slider-input"
-                               min="0" max="200000" step="5000" value="@minVal">
+                               min="0" max="250000" step="5000" value="@minVal">
 
                         <input type="range" id="maxSalary" class="dual-slider-input"
-                               min="0" max="200000" step="5000" value="@maxVal">
+                               min="0" max="250000" step="5000" value="@maxVal">
 
                         <!-- Hidden input to hold the actual string value submitted to the backend -->
                         <input type="hidden" name="salaryRange" id="salaryRangeInput" value="@f.SalaryRange">
@@ -140,73 +207,118 @@
     @* ── Main ─────────────────────────────────────────────── *@
     <div class="jobs-main">
 
-        @* Search bar *@
-        <div class="jobs-topbar">
-            <div class="jobs-search-wrap">
-                <span class="iconify jobs-search-icon" data-icon="lucide:search"></span>
-                <input type="text"
-                       name="search"
-                       class="jobs-search-input"
-                       placeholder="Search jobs, companies, or keywords..."
-                       value="@f.Search" />
-                <button type="submit" class="jobs-search-btn">Search</button>
+            @* Search bar *@
+            <div class="jobs-topbar">
+                <div class="jobs-search-wrap">
+                    <span class="iconify jobs-search-icon" data-icon="lucide:search"></span>
+                    <input type="text"
+                           name="search"
+                           class="jobs-search-input"
+                           placeholder="Search jobs, companies, or keywords..."
+                           value="@f.Search" />
+                    <button type="submit" class="jobs-search-btn">Search</button>
+                </div>
             </div>
-        </div>
 
-        @* Results bar *@
-        <div class="jobs-results-bar">
-            <span class="jobs-results-count">
-                <strong>@Model.TotalCount</strong> job@(Model.TotalCount != 1 ? "s" : "") found
-            </span>
-            <select name="sortBy" class="epi-input epi-select jobs-sort-select" onchange="this.form.submit()">
-                    <option value="recent" selected="@(f.SortBy == "recent" ? "selected" : null)">Most Recent</option>
-                    <option value="salary_desc" selected="@(f.SortBy == "salary_desc" ? "selected" : null)">Highest Salary</option>
-                    <option value="salary_asc" selected="@(f.SortBy == "salary_asc" ? "selected" : null)">Lowest Salary</option>
-            </select>
-        </div>
+            @* Results bar *@
+            <div class="jobs-results-bar">
+                <span class="jobs-results-count">
+                    <strong>@Model.TotalCount</strong> job@(Model.TotalCount != 1 ? "s" : "") found
+                </span>
+
+                @{
+                    // Determine the current sort state for the custom UI
+                    var currentSort = string.IsNullOrEmpty(f.SortBy) ? "recent" : f.SortBy;
+                    var sortText = currentSort == "salary_desc" ? "Highest Salary" :
+                    currentSort == "salary_asc" ? "Lowest Salary" : "Most Recent";
+                }
+
+                <div class="sort-dropdown-wrap" id="sortDropdownWrap">
+                    <input type="hidden" name="sortBy" id="sortByInput" value="@currentSort" />
+
+                    <button type="button" class="sort-dropdown-toggle" onclick="toggleSortDropdown(event)">
+                        <span class="icon-text-wrap">
+                            <span class="iconify" data-icon="lucide:arrow-up-down" style="color: var(--muted); font-size: 1rem;"></span>
+                            <span id="sortDropdownText">@sortText</span>
+                        </span>
+                        <span class="iconify chevron" data-icon="lucide:chevron-down"></span>
+                    </button>
+
+                    <div class="sort-dropdown-menu" id="sortDropdownMenu">
+                        <div class="sort-dropdown-item @(currentSort == "recent" ? "selected" : "")" onclick="selectSortOption(event, 'recent', 'Most Recent')">
+                            Most Recent
+                            <span class="iconify check-icon" data-icon="lucide:check"></span>
+                        </div>
+                        <div class="sort-dropdown-item @(currentSort == "salary_desc" ? "selected" : "")" onclick="selectSortOption(event, 'salary_desc', 'Highest Salary')">
+                            Highest Salary
+                            <span class="iconify check-icon" data-icon="lucide:check"></span>
+                        </div>
+                        <div class="sort-dropdown-item @(currentSort == "salary_asc" ? "selected" : "")" onclick="selectSortOption(event, 'salary_asc', 'Lowest Salary')">
+                            Lowest Salary
+                            <span class="iconify check-icon" data-icon="lucide:check"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
         @* Job Cards *@
         @if (Model.Jobs.Any())
         {
             foreach (var job in Model.Jobs)
             {
-                var initials = job.CompanyName.Length > 0
-                    ? job.CompanyName.Substring(0, Math.Min(2, job.CompanyName.Length)).ToUpper()
-                    : "?";
+                    <div class="job-browse-card d-block" onclick="window.location='@Url.Action("Details", "Jobs", new { id = job.Id })'">
 
-                <div class="job-browse-card"
-                     onclick="window.location='@Url.Action("Details", "Jobs", new { id = job.Id })'">
-                    @* Body *@
-                    <div class="job-card-body">
-                        <div class="job-card-title-row">
-                            <span class="job-card-title">@job.Title</span>
-                                <form asp-controller="Candidate" asp-action="ToggleSaveJob" method="post"
-                                      style="display:inline;" onclick="event.stopPropagation()">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="jobId" value="@job.Id" />
-                                    <input type="hidden" name="returnUrl"
-                                           value="@Url.Action("Index", "Jobs", new {
-                                        search     = f.Search,
-                                        location   = f.Location,
+                        @* ── TOP ROW: Mimics job-header-top ── *@
+                        <div class="d-flex align-items-start gap-3 mb-3">
+
+                            @* 1. LOGO (Left) *@
+                            <div class="job-company-logo flex-shrink-0 m-0">
+                                @if (!string.IsNullOrEmpty(job.CompanyLogo))
+                                {
+                                    <img src="@job.CompanyLogo" alt="@job.CompanyName" />
+                                }
+                                else
+                                {
+                                    @(job.CompanyName.Length > 0 ? job.CompanyName.Substring(0, 1).ToUpper() : "?")
+                                }
+                            </div>
+
+                            @* 2. INFO (Middle - Expands to fill space) *@
+                            <div class="flex-grow-1" style="min-width: 0;">
+                                <div class="job-card-title mb-1" style="line-height: 1.2;">@job.Title</div>
+                                <div class="job-card-company d-flex align-items-center m-0">
+                                    <div>@job.CompanyName</div>
+                                    <span class="iconify mx-1" data-icon="lucide:dot" style="font-size: 1.2rem; color: var(--muted);"></span>
+                                    <div>@job.Industry</div>
+                                </div>
+                            </div>
+
+                            @* 3. ACTIONS (Right - Bookmark Button) *@
+                            <div class="flex-shrink-0">
+                                @{
+                                    var returnUrl = Url.Action("Index", "Jobs", new
+                                    {
+                                        search = f.Search,
+                                        location = f.Location,
                                         salaryRange = f.SalaryRange,
-                                        sortBy     = f.SortBy,
-                                        page       = Model.Page
-                                    })" />
-                                    <button type="submit"
-                                            class="btn-save-job @(job.IsSaved ? "saved" : "")"
-                                            title="@(job.IsSaved ? "Saved" : "Save job")">
-                                        <span class="iconify"
-                                              data-icon="@(job.IsSaved ? "lucide:bookmark-check" : "lucide:bookmark")"></span>
-                                    </button>
-                                </form>
+                                        sortBy = f.SortBy,
+                                        page = Model.Page
+                                    });
+                                }
+                                <button type="button"
+                                        class="btn-save-job @(job.IsSaved ? "saved" : "")"
+                                        title="@(job.IsSaved ? "Saved" : "Save job")"
+                                        data-job-id="@job.Id"
+                                        data-return-url="@returnUrl"
+                                        onclick="submitSaveJob(event, this)">
+                                    <span class="iconify" data-icon="@(job.IsSaved ? "lucide:bookmark-check" : "lucide:bookmark")"></span>
+                                </button>
+                            </div>
+
                         </div>
 
-                        <div class="job-card-company">
-                            <span class="iconify" data-icon="lucide:building-2" style="font-size:.85rem;"></span>
-                            @job.CompanyName
-                        </div>
-
-                        <div class="job-card-meta-row">
+                        @* ── BOTTOM SECTION: Meta, Desc, Tags ── *@
+                        <div class="job-card-meta-row mt-0 mb-2">
                             <span>
                                 <span class="iconify" data-icon="lucide:map-pin"></span>
                                 @job.Location
@@ -224,13 +336,12 @@
                             }
                         </div>
 
-                        <div class="job-card-desc">@job.DescriptionSnippet</div>
+                        <div class="job-card-desc mb-3">@job.DescriptionSnippet</div>
 
                         <div class="job-card-tags">
                             <span class="job-tag">@job.JobType</span>
                         </div>
                     </div>
-                </div>
             }
 
             @* Pagination *@
@@ -277,89 +388,167 @@
 </div>
 </form>
 
+<form id="globalSaveForm" method="post" asp-controller="Candidate" asp-action="ToggleSaveJob" style="display:none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="jobId" id="globalSaveJobId" />
+    <input type="hidden" name="returnUrl" id="globalSaveReturnUrl" />
+</form>
 
 @section Scripts {
-<script>
-    // Preserve checkbox state in pagination links — resubmit the full form
-    document.querySelectorAll('.jobs-pagination a:not(.disabled)').forEach(link => {
-        link.addEventListener('click', e => {
-            e.preventDefault();
-            const url = new URL(link.href);
-            const form = document.getElementById('filterForm');
-            // Update the page param and submit
-            let pageInput = form.querySelector('input[name="page"]');
-            if (!pageInput) {
-                pageInput = document.createElement('input');
-                pageInput.type = 'hidden';
-                pageInput.name = 'page';
-                form.appendChild(pageInput);
-            }
-            pageInput.value = url.searchParams.get('page') ?? 1;
-            form.submit();
-        });
-    });
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
 
-    document.addEventListener("DOMContentLoaded", function() {
-        const minSlider = document.getElementById('minSalary');
-        const maxSlider = document.getElementById('maxSalary');
-        const sliderFill = document.getElementById('sliderFill');
-        const salaryDisplay = document.getElementById('salaryDisplay');
-        const hiddenInput = document.getElementById('salaryRangeInput');
+            // ── 1. Pagination ───────────────────────────────────────────────
+            // Preserves all filter states when clicking next/prev pages
+            document.querySelectorAll('.jobs-pagination a:not(.disabled)').forEach(link => {
+                link.addEventListener('click', e => {
+                    e.preventDefault();
+                    const url = new URL(link.href);
+                    const form = document.getElementById('filterForm');
 
-        // The absolute max value of your slider
-        const absoluteMax = parseInt(maxSlider.max);
+                    let pageInput = form.querySelector('input[name="page"]');
+                    if (!pageInput) {
+                        pageInput = document.createElement('input');
+                        pageInput.type = 'hidden';
+                        pageInput.name = 'page';
+                        form.appendChild(pageInput);
+                    }
+                    pageInput.value = url.searchParams.get('page') ?? 1;
+                    form.submit();
+                });
+            });
 
-        function updateSliderUI() {
-            let minVal = parseInt(minSlider.value);
-            let maxVal = parseInt(maxSlider.value);
+            // ── 2. Salary Dual Slider ────────────────────────────────────────
+            const minSlider = document.getElementById('minSalary');
+            const maxSlider = document.getElementById('maxSalary');
+            const sliderFill = document.getElementById('sliderFill');
+            const salaryDisplay = document.getElementById('salaryDisplay');
+            const hiddenInput = document.getElementById('salaryRangeInput');
 
-            // Prevent thumbs from crossing over each other
-            if (minVal >= maxVal) {
-                // Depending on which one is being dragged, push the other one
-                if (this === minSlider) {
-                    minSlider.value = maxVal - 5000;
-                    minVal = parseInt(minSlider.value);
-                } else {
-                    maxSlider.value = minVal + 5000;
-                    maxVal = parseInt(maxSlider.value);
+            if (minSlider && maxSlider) {
+                const absoluteMax = parseInt(maxSlider.max);
+
+                function updateSliderUI() {
+                    let minVal = parseInt(minSlider.value);
+                    let maxVal = parseInt(maxSlider.value);
+
+                    // Prevent thumbs from crossing over each other
+                    if (minVal >= maxVal) {
+                        if (this === minSlider) {
+                            minSlider.value = maxVal - 5000;
+                            minVal = parseInt(minSlider.value);
+                        } else {
+                            maxSlider.value = minVal + 5000;
+                            maxVal = parseInt(maxSlider.value);
+                        }
+                    }
+
+                    // Calculate percentages for the blue fill bar
+                    const minPercent = (minVal / absoluteMax) * 100;
+                    const maxPercent = (maxVal / absoluteMax) * 100;
+                    sliderFill.style.left = minPercent + "%";
+                    sliderFill.style.width = (maxPercent - minPercent) + "%";
+
+                    // Update the display text & hidden input (No auto-submit)
+                    if (maxVal === absoluteMax) {
+                        salaryDisplay.textContent = `$${minVal / 1000}k+`;
+                        hiddenInput.value = `${minVal}+`;
+                    } else {
+                        salaryDisplay.textContent = `$${minVal / 1000}k - $${maxVal / 1000}k`;
+                        hiddenInput.value = `${minVal}-${maxVal}`;
+                    }
                 }
+
+                // Run once on load, then attach to input events
+                updateSliderUI.call(minSlider);
+                minSlider.addEventListener('input', updateSliderUI);
+                maxSlider.addEventListener('input', updateSliderUI);
             }
 
-            // Calculate percentages for the blue fill bar
-            const minPercent = (minVal / absoluteMax) * 100;
-            const maxPercent = (maxVal / absoluteMax) * 100;
+            // ── 3. Filter Checkbox Highlighting ──────────────────────────────
+            // Automatically adds/removes the 'selected' class for ANY hidden checkbox
+            document.querySelectorAll('.hidden-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        this.parentElement.classList.add('selected');
+                    } else {
+                        this.parentElement.classList.remove('selected');
+                    }
+                });
+            });
+        });
 
-            sliderFill.style.left = minPercent + "%";
-            sliderFill.style.width = (maxPercent - minPercent) + "%";
+        // ── 4. Dropdown Toggles & Selection ────────────────────────────────
+        // Update the existing toggleIndustryDropdown to close department menu when opened
+        function toggleIndustryDropdown(event) {
+            event.stopPropagation();
+            const deptMenu = document.getElementById('departmentDropdownMenu');
+            if (deptMenu) deptMenu.classList.remove('show');
 
-            // Update the display text (e.g., "$5k - $15k" or "$150k+")
-            if (maxVal === absoluteMax) {
-                salaryDisplay.textContent = `$${minVal / 1000}k+`;
-                hiddenInput.value = `${minVal}+`;
-            } else {
-                salaryDisplay.textContent = `$${minVal / 1000}k - $${maxVal / 1000}k`;
-                hiddenInput.value = `${minVal}-${maxVal}`;
+            document.getElementById('industryDropdownMenu').classList.toggle('show');
+        }
+
+        function toggleDepartmentDropdown(event) {
+            event.stopPropagation();
+            document.getElementById('industryDropdownMenu').classList.remove('show');
+            document.getElementById('departmentDropdownMenu').classList.toggle('show');
+        }
+
+
+        function toggleSortDropdown(event) {
+            event.stopPropagation();
+            document.getElementById('sortDropdownMenu').classList.toggle('show');
+        }
+
+            function selectSortOption(event, value, text) {
+            event.stopPropagation();
+
+            // Update the hidden input & button text
+            document.getElementById('sortByInput').value = value;
+            document.getElementById('sortDropdownText').innerText = text;
+
+            // Move the 'selected' highlight to the new choice
+            document.querySelectorAll('.sort-dropdown-item').forEach(el => el.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+
+            // Close the menu
+            document.getElementById('sortDropdownMenu').classList.remove('show');
+
+            // ── AUTO-SUBMIT ──
+            document.getElementById('filterForm').submit();
+        }
+
+        // ── 5. Global Menu Closer ──────────────────────────────────────────
+        window.addEventListener('click', function(event) {
+            if (!event.target.closest('#industryDropdownWrap')) {
+                const indMenu = document.getElementById('industryDropdownMenu');
+                if (indMenu && indMenu.classList.contains('show')) indMenu.classList.remove('show');
             }
+
+            if (!event.target.closest('#departmentDropdownWrap')) {
+                const deptMenu = document.getElementById('departmentDropdownMenu');
+                if (deptMenu && deptMenu.classList.contains('show')) deptMenu.classList.remove('show');
+            }
+
+            if (!event.target.closest('#sortDropdownWrap')) {
+                const sortMenu = document.getElementById('sortDropdownMenu');
+                if (sortMenu && sortMenu.classList.contains('show')) sortMenu.classList.remove('show');
+            }
+        });
+
+        function submitSaveJob(event, btnElement) {
+            event.stopPropagation(); // Stops the click from opening the job details page
+
+            // Grab the data from the button
+            const jobId = btnElement.getAttribute('data-job-id');
+            const returnUrl = btnElement.getAttribute('data-return-url');
+
+            // Inject into the hidden form
+            document.getElementById('globalSaveJobId').value = jobId;
+            document.getElementById('globalSaveReturnUrl').value = returnUrl;
+
+            // Submit the form (This will correctly trigger the [Authorize] login redirect!)
+            document.getElementById('globalSaveForm').submit();
         }
-
-        // Function to handle the actual form submission
-        function submitFilterForm() {
-            // Trigger the closest form submission
-            hiddenInput.closest('form').submit();
-        }
-
-        // Run once on load to set initial fill position
-        if (minSlider && maxSlider) {
-            updateSliderUI.call(minSlider);
-
-            // 'input' fires continuously while dragging for smooth UI updates
-            minSlider.addEventListener('input', updateSliderUI);
-            maxSlider.addEventListener('input', updateSliderUI);
-
-            // 'change' fires only when the user releases the click
-            minSlider.addEventListener('change', submitFilterForm);
-            maxSlider.addEventListener('change', submitFilterForm);
-        }
-    });
-</script>
+    </script>
 }

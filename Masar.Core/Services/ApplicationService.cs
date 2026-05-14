@@ -1,5 +1,6 @@
 ﻿using Masar.Core.IService;
 using Masar.Domain.Enums;
+using Masar.Domain.Helpers;
 using Masar.Domain.Models;
 using Masar.Domain.ViewModels;
 using Masar.Domain.ViewModels.CandidateDtos;
@@ -174,120 +175,13 @@ namespace Masar.Core.Services
                     CompanyLogo = a.Job.Company.LogoUrl,
                     Location = a.Job.Location,
                     JobType = a.Job.JobType.ToString(),
-                    SalaryDisplay = a.Job.MinSalary != null && a.Job.MaxSalary != null
-                        ? $"${a.Job.MinSalary:N0}–${a.Job.MaxSalary:N0}"
-                        : null,
+                    SalaryDisplay = a.Job.MinSalary.ToSalaryDisplay(a.Job.MaxSalary),
                     Status = a.Status,
                     StatusDisplay = GetStatusDisplay(a.Status),
                     AppliedDate = a.AppliedDate,
-                    AppliedDateDisplay = GetRelativeDate(a.AppliedDate)
+                    AppliedDateDisplay = a.AppliedDate.ToRelativeDate()
                 })
                 .ToListAsync();
-        }
-
-        public async Task<List<SavedJobDto>> GetSavedJobsAsync(string userId, string? search = null, string? sortBy = null)
-        {
-            await _jobLifecycleService.CloseExpiredJobsAsync();
-
-            var profile = await _context.CandidateProfiles
-                .FirstOrDefaultAsync(p => p.UserId == userId);
-
-            if (profile == null) return new List<SavedJobDto>();
-
-            var query = _context.SavedJobs
-                .Where(s => s.CandidateProfileId == profile.Id)
-                .AsQueryable();
-
-            // ── Search ────────────────────────────────────────
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                var s = search.Trim().ToLower();
-                query = query.Where(sj =>
-                    sj.Job.Title.ToLower().Contains(s) ||
-                    sj.Job.Company.Name.ToLower().Contains(s) ||
-                    sj.Job.Location.ToLower().Contains(s));
-            }
-
-            // ── Sort ──────────────────────────────────────────
-            query = sortBy switch
-            {
-                "oldest" => query.OrderBy(sj => sj.SavedAt),
-                "title" => query.OrderBy(sj => sj.Job.Title),
-                _ => query.OrderByDescending(sj => sj.SavedAt)
-            };
-
-            return await query
-                .Select(s => new SavedJobDto
-                {
-                    SavedJobId = s.Id,
-                    JobId = s.JobId,
-                    JobTitle = s.Job.Title,
-                    CompanyName = s.Job.Company.Name,
-                    CompanyLogo = s.Job.Company.LogoUrl,
-                    Location = s.Job.Location,
-                    JobType = s.Job.JobType.ToString(),
-                    SalaryDisplay = s.Job.MinSalary != null && s.Job.MaxSalary != null
-                                              ? $"${s.Job.MinSalary:N0}–${s.Job.MaxSalary:N0}"
-                                              : s.Job.MinSalary != null
-                                                  ? $"From ${s.Job.MinSalary:N0}"
-                                                  : null,
-                    PostedDateDisplay = GetRelativeDate(s.Job.PostedDate),
-                    DescriptionSnippet = s.Job.Description.Length > 120
-                                              ? s.Job.Description.Substring(0, 120) + "..."
-                                              : s.Job.Description,
-                    IsActive = s.Job.IsActive
-                })
-                .ToListAsync();
-        }
-
-        public async Task<(bool Success, string? Error)> ClearSavedJobsAsync(string userId)
-        {
-            var profile = await _context.CandidateProfiles
-                .FirstOrDefaultAsync(p => p.UserId == userId);
-
-            if (profile == null)
-                return (false, "Profile not found.");
-
-            var savedJobs = await _context.SavedJobs
-                .Where(s => s.CandidateProfileId == profile.Id)
-                .ToListAsync();
-
-            if (savedJobs.Any())
-            {
-                _context.SavedJobs.RemoveRange(savedJobs);
-                await _context.SaveChangesAsync();
-            }
-
-            return (true, null);
-        }
-
-        public async Task<(bool Success, string? Error)> ToggleSaveJobAsync(int jobId, string userId)
-        {
-            var profile = await _context.CandidateProfiles
-                .FirstOrDefaultAsync(p => p.UserId == userId);
-
-            if (profile == null)
-                return (false, "Profile not found.");
-
-            var existing = await _context.SavedJobs
-                .FirstOrDefaultAsync(s => s.CandidateProfileId == profile.Id && s.JobId == jobId);
-
-            if (existing != null)
-            {
-                _context.SavedJobs.Remove(existing);
-                await _context.SaveChangesAsync();
-                return (true, null);
-            }
-
-            _context.SavedJobs.Add(new SavedJob
-            {
-                CandidateProfileId = profile.Id,
-                JobId = jobId,
-                SavedAt = DateTime.UtcNow
-            });
-
-            await _context.SaveChangesAsync();
-            return (true, null);
         }
 
         // ─────────────────────────────────────────────────────
@@ -548,15 +442,5 @@ namespace Masar.Core.Services
             ApplicationStatus.Rejected => "Rejected",
             _ => "Unknown"
         };
-
-        private static string GetRelativeDate(DateTime date)
-        {
-            var diff = DateTime.UtcNow - date;
-            if (diff.TotalDays < 1) return "Today";
-            if (diff.TotalDays < 2) return "Yesterday";
-            if (diff.TotalDays < 7) return $"{(int)diff.TotalDays} days ago";
-            if (diff.TotalDays < 30) return $"{(int)(diff.TotalDays / 7)} week(s) ago";
-            return date.ToString("MMM dd, yyyy");
-        }
     }
 }

@@ -1,0 +1,162 @@
+@using Masar.Domain.ViewModels.AdminDtos
+@model AdminDashboardDto
+
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    ViewData["HasSidebar"] = true;
+}
+
+@section Sidebar {
+    <partial name="_AdminSidebar" />
+}
+
+@* ── Page header ──────────────────────────────────────────── *@
+<div class="page-header d-flex align-items-start justify-content-between">
+    <div>
+        <h1 class="page-title">Admin Dashboard</h1>
+        <p class="page-subtitle">Platform-wide statistics at a glance</p>
+    </div>
+</div>
+
+@* ── Stats grid (5 items in a single row on extra-large screens) ── *@
+<div class="row row-cols-1 row-cols-md-3 row-cols-xl-5 g-3 mb-4">
+
+    @* Total Users *@
+    <div class="col">
+        <div class="stat-card h-100">
+            <div>
+                <div class="stat-card-label">Total Users</div>
+                <div class="stat-card-value">@Model.TotalUsers</div>
+            </div>
+            <div class="stat-card-icon stat-icon-blue">
+                <span class="iconify stat-icon" data-icon="lucide:users"></span>
+            </div>
+        </div>
+    </div>
+
+    @* Candidates *@
+    <div class="col">
+        <div class="stat-card h-100">
+            <div>
+                <div class="stat-card-label">Candidates</div>
+                <div class="stat-card-value">@Model.TotalCandidates</div>
+            </div>
+            <div class="stat-card-icon stat-icon-blue">
+                <span class="iconify stat-icon" data-icon="lucide:user"></span>
+            </div>
+        </div>
+    </div>
+
+    @* Companies *@
+    <div class="col">
+        <div class="stat-card h-100">
+            <div>
+                <div class="stat-card-label">Companies</div>
+                <div class="stat-card-value">@Model.TotalCompanies</div>
+            </div>
+            <div class="stat-card-icon stat-icon-orange">
+                <span class="iconify stat-icon" data-icon="lucide:building-2"></span>
+            </div>
+        </div>
+    </div>
+
+    @* Active Jobs *@
+    <div class="col">
+        <div class="stat-card h-100">
+            <div>
+                <div class="stat-card-label">Active Jobs</div>
+                <div class="stat-card-value">@Model.ActiveJobs</div>
+            </div>
+            <div class="stat-card-icon stat-icon-green">
+                <span class="iconify stat-icon" data-icon="lucide:briefcase"></span>
+            </div>
+        </div>
+    </div>
+
+    @* Total Applications *@
+    <div class="col">
+        <div class="stat-card h-100">
+            <div>
+                <div class="stat-card-label">Total Apps</div>
+                <div class="stat-card-value">@Model.TotalApplications</div>
+            </div>
+            <div class="stat-card-icon stat-icon-green">
+                <span class="iconify stat-icon" data-icon="lucide:file-text"></span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@* ── Recent Activity Tables ───────────────────────────────── *@
+<div class="dashboard-activity-grid">
+
+    @* Recent Users *@
+    <div class="activity-card">
+        <div class="activity-card-header">
+            <h2>Recent Users</h2>
+            <button class="btn-view-all">View All &rarr;</button>
+        </div>
+
+        <div class="activity-list">
+            @if (Model.RecentUsers?.Any() == true)
+            {
+                foreach (var user in Model.RecentUsers)
+                {
+                    <div class="activity-row">
+                        <div class="activity-info">
+                            <h3>@user.Name</h3>
+                            <p>@user.Email</p>
+                            <p>@user.CreatedAt</p>
+                        </div>
+                        <button class="btn-outline-action">Manage</button>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="activity-empty">No recent users found.</div>
+            }
+        </div>
+    </div>
+
+    @* Recent Posts *@
+    <div class="activity-card">
+        <div class="activity-card-header">
+            <h2>Recent Job Posts</h2>
+            <button class="btn-view-all">View All &rarr;</button>
+        </div>
+
+        <div class="activity-list">
+            @if (Model.RecentPosts?.Any() == true)
+            {
+                foreach (var job in Model.RecentPosts)
+                {
+                    <div class="activity-row">
+                        <div class="activity-info">
+                            <h3>@job.Title</h3>
+                            <p>@job.CompanyName</p>
+                            <span class="activity-date">Posted @job.PostedDate</span>
+                        </div>
+                        <div class="activity-actions">
+                            @if (job.Status == "Active")
+                            {
+                                <span class="badge badge-accepted">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-rejected">Closed</span>
+                            }
+                            <button class="btn-outline-action">Review</button>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="activity-empty">No recent posts found.</div>
+            }
+        </div>
+    </div>
+
+</div>

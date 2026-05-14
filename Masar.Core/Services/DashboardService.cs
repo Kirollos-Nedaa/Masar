@@ -3,10 +3,13 @@ using Masar.Domain.Enums;
 using Masar.Domain.Helpers;
 using Masar.Domain.Models;
 using Masar.Domain.ViewModels;
+using Masar.Domain.ViewModels.AdminDtos;
 using Masar.Domain.ViewModels.CandidateDtos;
 using Masar.Domain.ViewModels.CompanyDtos;
 using Masar.Domain.ViewModels.Job;
+using Masar.Infrastructure.Constants;
 using Masar.Infrastructure.Context;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Masar.Core.Services
@@ -16,15 +19,18 @@ namespace Masar.Core.Services
         private readonly AppDbContext _context;
         private readonly IProfileService _profileService;
         private readonly IJobLifecycleService _jobLifecycleService;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
         public DashboardService(
             AppDbContext context,
             IProfileService profileService,
-            IJobLifecycleService jobLifecycleService)
+            IJobLifecycleService jobLifecycleService,
+            RoleManager<IdentityRole> roleManager)
         {
             _context = context;
             _profileService = profileService;
             _jobLifecycleService = jobLifecycleService;
+            _roleManager = roleManager;
         }
 
 
@@ -202,6 +208,70 @@ namespace Masar.Core.Services
                 PostedJobs = postedJobs,
                 RecentApplicants = recentApplicants,
                 JobItems = jobList
+            };
+        }
+
+        // ─────────────────────────────── ADMIN DASHBOARD -────────────────────────────────────────────
+        public async Task<AdminDashboardDto> GetAdminDashboardAsync()
+        {
+            // ── Role IDs ──────────────────────────────────────────
+            var candidateRole = await _roleManager.FindByNameAsync(Roles.Candidate);
+            var companyRole = await _roleManager.FindByNameAsync(Roles.Company);
+
+            var candidateRoleId = candidateRole?.Id;
+            var companyRoleId = companyRole?.Id;
+
+            // ── Counts ────────────────────────────────────────────
+            var totalUsers = await _context.Users.CountAsync();
+
+            var totalCandidates = await _context.UserRoles.CountAsync(ur => ur.RoleId == candidateRoleId);
+
+            var totalCompanies = await _context.UserRoles.CountAsync(ur => ur.RoleId == companyRoleId);
+
+            var activeJobs = await _context.Jobs.CountAsync(j => j.IsActive);
+
+            var totalApplications = await _context.JobApplications.CountAsync();
+
+            // ── Recent Users (latest 6) ─────────────────────────────
+            var recentUsers = await _context.Users
+                .OrderByDescending(u => u.Id)
+                .Take(5)
+                .Select(u => new AdminRecentUserDto
+                {
+                    Id = u.Id,
+                    Name = u.FirstName + " " + u.LastName,
+                    Email = u.Email ?? string.Empty,
+                    CreatedAt = u.CreatedAt.ToRelativeDate(),
+                    Role = _context.UserRoles
+                                .Where(ur => ur.UserId == u.Id)
+                                .Join(_context.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name)
+                                .FirstOrDefault() ?? string.Empty
+                })
+                .ToListAsync();
+
+            // ── Recent Jobs (latest 6) ─────────────────────────────
+            var recentPosts = await _context.Jobs
+                .OrderByDescending(j => j.PostedDate)
+                .Take(6)
+                .Select(j => new AdminRecentJobDto
+                {
+                    Id = j.Id,
+                    Title = j.Title,
+                    CompanyName = j.Company.Name ?? string.Empty,
+                    PostedDate = j.PostedDate.ToRelativeDate(),
+                    Status = j.IsActive ? "Active" : "Closed"
+                })
+                .ToListAsync();
+
+            return new AdminDashboardDto
+            {
+                TotalUsers = totalUsers,
+                TotalCandidates = totalCandidates,
+                TotalCompanies = totalCompanies,
+                ActiveJobs = activeJobs,
+                TotalApplications = totalApplications,
+                RecentUsers = recentUsers,
+                RecentPosts = recentPosts
             };
         }
 

@@ -252,7 +252,7 @@ namespace Masar.Controllers
         public async Task<IActionResult> SavedJobs(string? search = null, string? sortBy = null)
         {
             var userId = _userManager.GetUserId(User);
-            var saved = await _applicationService.GetSavedJobsAsync(userId, search, sortBy);
+            var saved = await _profileService.GetSavedJobsAsync(userId, search, sortBy);
 
             ViewBag.Search = search;
             ViewBag.SortBy = sortBy ?? "recent";
@@ -264,7 +264,7 @@ namespace Masar.Controllers
         public async Task<IActionResult> ToggleSaveJob(int jobId, string? returnUrl = null)
         {
             var userId = _userManager.GetUserId(User);
-            await _applicationService.ToggleSaveJobAsync(jobId, userId);
+            await _profileService.ToggleSaveJobAsync(jobId, userId);
 
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 return Redirect(returnUrl);
@@ -276,7 +276,7 @@ namespace Masar.Controllers
         public async Task<IActionResult> ClearSavedJobs()
         {
             var userId = _userManager.GetUserId(User);
-            await _applicationService.ClearSavedJobsAsync(userId);
+            await _profileService.ClearSavedJobsAsync(userId);
             TempData["SavedJobsSuccess"] = "All saved jobs have been cleared.";
             return RedirectToAction(nameof(SavedJobs));
         }

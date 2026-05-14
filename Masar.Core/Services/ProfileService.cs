@@ -1,4 +1,5 @@
 ﻿using Masar.Core.IService;
+using Masar.Domain.Helpers;
 using Masar.Domain.Models;
 using Masar.Domain.ViewModels;
 using Masar.Domain.ViewModels.CandidateDtos;
@@ -15,15 +16,18 @@ namespace Masar.Core.Services
         private readonly AppDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IFileService _fileService;
+        private readonly IJobLifecycleService _jobLifecycleService;
 
         public ProfileService(
             AppDbContext context,
             UserManager<ApplicationUser> userManager,
-            IFileService fileService)
+            IFileService fileService,
+            IJobLifecycleService jobLifecycleService)
         {
             _context = context;
             _userManager = userManager;
             _fileService = fileService;
+            _jobLifecycleService = jobLifecycleService;
         }
 
         // ── GET ───────────────────────────────────────────────────
@@ -288,6 +292,108 @@ namespace Masar.Core.Services
             {
                 return (false, "An unexpected error occurred while saving your profile picture.");
             }
+        }
+
+        // ── SAVED JOBS — Candidate ─────────────────────────────────
+        public async Task<List<SavedJobDto>> GetSavedJobsAsync(string userId, string? search = null, string? sortBy = null)
+        {
+            await _jobLifecycleService.CloseExpiredJobsAsync();
+
+            var profile = await _context.CandidateProfiles
+                .FirstOrDefaultAsync(p => p.UserId == userId);
+
+            if (profile == null) return new List<SavedJobDto>();
+
+            var query = _context.SavedJobs
+                .Where(s => s.CandidateProfileId == profile.Id)
+                .AsQueryable();
+
+            // ── Search ────────────────────────────────────────
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.Trim().ToLower();
+                query = query.Where(sj =>
+                    sj.Job.Title.ToLower().Contains(s) ||
+                    sj.Job.Company.Name.ToLower().Contains(s) ||
+                    sj.Job.Location.ToLower().Contains(s));
+            }
+
+            // ── Sort ──────────────────────────────────────────
+            query = sortBy switch
+            {
+                "oldest" => query.OrderBy(sj => sj.SavedAt),
+                "title" => query.OrderBy(sj => sj.Job.Title),
+                _ => query.OrderByDescending(sj => sj.SavedAt)
+            };
+
+            return await query
+                .Select(s => new SavedJobDto
+                {
+                    SavedJobId = s.Id,
+                    JobId = s.JobId,
+                    JobTitle = s.Job.Title,
+                    CompanyName = s.Job.Company.Name,
+                    CompanyLogo = s.Job.Company.LogoUrl,
+                    Location = s.Job.Location,
+                    JobType = s.Job.JobType.ToString(),
+                    SalaryDisplay = s.Job.MinSalary.ToSalaryDisplay(s.Job.MaxSalary),
+                    PostedDateDisplay = s.Job.PostedDate.ToRelativeDate(),
+                    DescriptionSnippet = s.Job.Description.Length > 120
+                                              ? s.Job.Description.Substring(0, 120) + "..."
+                                              : s.Job.Description,
+                    IsActive = s.Job.IsActive
+                })
+                .ToListAsync();
+        }
+
+        public async Task<(bool Success, string? Error)> ClearSavedJobsAsync(string userId)
+        {
+            var profile = await _context.CandidateProfiles
+                .FirstOrDefaultAsync(p => p.UserId == userId);
+
+            if (profile == null)
+                return (false, "Profile not found.");
+
+            var savedJobs = await _context.SavedJobs
+                .Where(s => s.CandidateProfileId == profile.Id)
+                .ToListAsync();
+
+            if (savedJobs.Any())
+            {
+                _context.SavedJobs.RemoveRange(savedJobs);
+                await _context.SaveChangesAsync();
+            }
+
+            return (true, null);
+        }
+
+        public async Task<(bool Success, string? Error)> ToggleSaveJobAsync(int jobId, string userId)
+        {
+            var profile = await _context.CandidateProfiles
+                .FirstOrDefaultAsync(p => p.UserId == userId);
+
+            if (profile == null)
+                return (false, "Profile not found.");
+
+            var existing = await _context.SavedJobs
+                .FirstOrDefaultAsync(s => s.CandidateProfileId == profile.Id && s.JobId == jobId);
+
+            if (existing != null)
+            {
+                _context.SavedJobs.Remove(existing);
+                await _context.SaveChangesAsync();
+                return (true, null);
+            }
+
+            _context.SavedJobs.Add(new SavedJob
+            {
+                CandidateProfileId = profile.Id,
+                JobId = jobId,
+                SavedAt = DateTime.UtcNow
+            });
+
+            await _context.SaveChangesAsync();
+            return (true, null);
         }
 
         // ── EDIT — Company ────────────────────────────────────────

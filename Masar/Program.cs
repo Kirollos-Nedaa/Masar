@@ -100,6 +100,7 @@ async Task SeedDatabaseAsync(IServiceProvider services)
     {
         var context = serviceProvider.GetRequiredService<AppDbContext>();
         var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
         await context.Database.MigrateAsync();
 
@@ -108,6 +109,43 @@ async Task SeedDatabaseAsync(IServiceProvider services)
         {
             if (!await roleManager.RoleExistsAsync(role))
                 await roleManager.CreateAsync(new IdentityRole(role));
+        }
+
+        var adminEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL");
+        var adminPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD");
+        var existingAdmin = await userManager.FindByEmailAsync(adminEmail);
+
+        if (existingAdmin == null)
+        {
+            var adminUser = new ApplicationUser
+            {
+                UserName = adminEmail,
+                Email = adminEmail,
+                EmailConfirmed = true,
+                FirstName = "Super",
+                LastName = "Admin"
+            };
+
+            var result = await userManager.CreateAsync(adminUser, adminPassword);
+
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(adminUser, Roles.Admin);
+            }
+            else
+            {
+                var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+                logger.LogWarning("Failed to create admin user: {Errors}",
+                    string.Join(", ", result.Errors.Select(e => e.Description)));
+            }
+        }
+        else
+        {
+            // The user exists! Let's make sure they actually have the Admin role.
+            if (!await userManager.IsInRoleAsync(existingAdmin, Roles.Admin))
+            {
+                await userManager.AddToRoleAsync(existingAdmin, Roles.Admin);
+            }
         }
     }
     catch (Exception ex)

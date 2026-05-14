@@ -71,13 +71,6 @@ namespace Masar.Core.Services
                     _context.CandidateProfiles.Add(candidateProfile);
                 }
 
-                // Saves the Profile pucture url in the coockies for the UI
-                if (!string.IsNullOrEmpty(profilePictureUrl))
-                {
-                    // We use a clean, universal name so the UI doesn't care if it's a "Logo" or an "Avatar"
-                    await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim("ProfilePicture", profilePictureUrl));
-                }
-
                 // Cleanup: Remove the temporary Google profile picture claim
                 var claims = await _userManager.GetClaimsAsync(user);
                 var pictureClaim = claims.FirstOrDefault(c => c.Type == "GoogleProfilePicture");

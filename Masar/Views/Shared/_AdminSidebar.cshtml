@@ -1,0 +1,11 @@
+@{
+    var ctrl   = ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+}
+
+<div class="sidebar-section-label">Main</div>
+
+<a asp-controller="Admin" asp-action="Dashboard"
+   class="sidebar-link @(ctrl == "Admin" && action == "Dashboard" ? "active" : "")">
+    <span class="iconify stat-icon" data-icon="lucide:layout-panel-left"></span> Dashboard
+</a>

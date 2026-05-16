@@ -5052,18 +5052,11 @@ body.app-body {
     margin-bottom: 2rem;
 }
 
-/* Breakpoint for side-by-side layout on large screens */
-@media (min-width: 1200px) {
-    .dashboard-activity-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
 /* ── Activity Cards ──────────────────────────────────────────────── */
 
 .activity-card {
     background-color: #ffffff;
-    border: 1px solid #e2e8f0; /* Tailwind Slate-200 */
+    border: 1px solid var(--border);
     border-radius: 0.5rem;
     padding: 1.5rem;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
@@ -5082,23 +5075,8 @@ body.app-body {
     .activity-card-header h2 {
         font-size: 1.25rem;
         font-weight: 600;
-        color: #0f172a; /* Tailwind Slate-900 */
+        color: #0f172a;
         margin: 0;
-    }
-
-.btn-view-all {
-    background: transparent;
-    border: none;
-    color: #64748b; /* Tailwind Slate-500 */
-    font-size: 0.875rem;
-    font-weight: 500;
-    padding: 0;
-    cursor: pointer;
-    transition: color 0.2s ease;
-}
-
-    .btn-view-all:hover {
-        color: #0f172a; /* Tailwind Slate-900 */
     }
 
 /* ── Activity Rows ───────────────────────────────────────────────── */
@@ -5115,8 +5093,6 @@ body.app-body {
     padding: 0.75rem 0;
     border-bottom: 1px solid #e2e8f0;
 }
-
-    /* Remove border from the last item so it looks clean against the card padding */
     .activity-row:last-child {
         border-bottom: none;
         padding-bottom: 0;
@@ -5125,24 +5101,22 @@ body.app-body {
 .activity-info h3 {
     font-size: 1rem;
     font-weight: 500;
-    color: #0f172a; /* Tailwind Slate-900 */
+    color: #0f172a;
     margin: 0 0 0.25rem 0;
 }
 
 .activity-info p {
     font-size: 0.875rem;
-    color: #475569; /* Tailwind Slate-600 */
+    color: #475569;
     margin: 0;
 }
 
 .activity-info .activity-date {
     display: block;
     font-size: 0.75rem;
-    color: #64748b; /* Tailwind Slate-500 */
+    color: #64748b;
     margin-top: 0.125rem;
 }
-
-/* ── Buttons and Badges ──────────────────────────────────────────── */
 
 .activity-empty {
     text-align: center;

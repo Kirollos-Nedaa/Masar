@@ -1,4 +1,5 @@
 ﻿using Masar.Core.IService;
+using Masar.Domain.Enums;
 using Masar.Domain.Helpers;
 using Masar.Domain.Models;
 using Masar.Domain.ViewModels;
@@ -411,7 +412,7 @@ namespace Masar.Core.Services
             }
 
             profile.Name = dto.CompanyName;
-            profile.Industry = dto.Industry;
+            profile.Industry = dto.Industry == Industries.None ? null : dto.Industry.ToString();
             profile.Size = dto.Size;
             profile.Description = dto.Description ?? string.Empty;
 

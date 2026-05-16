@@ -32,23 +32,57 @@
 
         <div id="linksContainer"></div>
 
+        @* ── Add Link Row ─────────────────────────────────── *@
         <div class="add-link-row mt-3">
-            <div class="link-type-wrap">
-                <div class="link-type-icon-btn" id="addLinkIconSlot">
-                    <span class="iconify"
-                          data-icon="simple-icons:linkedin"
-                          style="color:#0A66C2;width:1.1rem;height:1.1rem;"></span>
+
+            @* ── Custom Dropdown for Link Type ── *@
+            <div class="link-type-wrap" style="flex: 0 0 160px;">
+                <div class="custom-dropdown position-relative w-100" id="linkTypeWrap">
+                    <input type="hidden" id="addLinkType" value="1" onchange="updateAddIcon()" />
+                    <button type="button" class="custom-dropdown-toggle epi-input d-flex align-items-center justify-content-between w-100 text-start" onclick="toggleCustomSelect(event, 'linkTypeMenu')">
+                        <span class="icon-text-wrap d-flex align-items-center gap-2">
+                            <span class="iconify display-icon" data-icon="simple-icons:linkedin" style="color:#0A66C2;"></span>
+                            <span class="display-text" style="font-size:0.875rem;">LinkedIn</span>
+                        </span>
+                        <span class="iconify chevron text-muted" data-icon="lucide:chevron-down"></span>
+                    </button>
+                    <div class="custom-dropdown-menu w-100" id="linkTypeMenu">
+                        <div class="dropdown-scroll-area p-1">
+                            <div class="custom-dropdown-item selected" onclick="selectLinkTypeOption(event, 1, 'LinkedIn', 'simple-icons:linkedin', '#0A66C2')">
+                                <span class="iconify ind-icon" data-icon="simple-icons:linkedin" style="color:#0A66C2;"></span>
+                                <span class="ind-name">LinkedIn</span>
+                            </div>
+                            <div class="custom-dropdown-item" onclick="selectLinkTypeOption(event, 2, 'GitHub', 'simple-icons:github', '#24292E')">
+                                <span class="iconify ind-icon" data-icon="simple-icons:github" style="color:#24292E;"></span>
+                                <span class="ind-name">GitHub</span>
+                            </div>
+                            <div class="custom-dropdown-item" onclick="selectLinkTypeOption(event, 3, 'Portfolio', 'lucide:globe', '#2563EB')">
+                                <span class="iconify ind-icon" data-icon="lucide:globe" style="color:#2563EB;"></span>
+                                <span class="ind-name">Portfolio</span>
+                            </div>
+                            @if (ViewData["Title"].ToString() == "Company Links")
+                            {
+                                <div class="custom-dropdown-item" onclick="selectLinkTypeOption(event, 4, 'Website', 'lucide:building-2', '#64748B')">
+                                    <span class="iconify ind-icon" data-icon="lucide:building-2" style="color:#64748B;"></span>
+                                    <span class="ind-name">Website</span>
+                                </div>
+                                <div class="custom-dropdown-item" onclick="selectLinkTypeOption(event, 5, 'Other', 'lucide:link', '#64748B')">
+                                    <span class="iconify ind-icon" data-icon="lucide:link" style="color:#64748B;"></span>
+                                    <span class="ind-name">Other</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="custom-dropdown-item" onclick="selectLinkTypeOption(event, 4, 'Other', 'lucide:link', '#64748B')">
+                                    <span class="iconify ind-icon" data-icon="lucide:link" style="color:#64748B;"></span>
+                                    <span class="ind-name">Other</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
                 </div>
-                <select id="addLinkType"
-                        class="epi-input epi-select link-type-select"
-                        onchange="updateAddIcon()">
-                    <option value="1">LinkedIn</option>
-                    <option value="2">GitHub</option>
-                    <option value="3">Portfolio</option>
-                    <option value="4">Company Website</option>
-                    <option value="5">Other</option>
-                </select>
             </div>
+
             <input type="text" id="addLinkUrl" class="epi-input" placeholder="https://..." />
             <button type="button" class="btn-primary-app" onclick="addLink()">
                 <span class="iconify" data-icon="lucide:plus"></span> Add
@@ -151,5 +185,40 @@
         });
 
         renderLinks();
+
+            // ── Custom Dropdown Logic ─────────────────────────────────
+            function toggleCustomSelect(event, menuId) {
+                event.preventDefault();
+                event.stopPropagation();
+                document.querySelectorAll('.custom-dropdown-menu.show').forEach(m => {
+                    if (m.id !== menuId) m.classList.remove('show');
+                });
+                document.getElementById(menuId).classList.toggle('show');
+            }
+
+            function selectLinkTypeOption(event, value, text, icon, color) {
+                event.stopPropagation();
+                const wrap = document.getElementById('linkTypeWrap');
+
+                const hiddenInput = document.getElementById('addLinkType');
+                hiddenInput.value = value;
+
+                wrap.querySelector('.display-text').innerText = text;
+                const iconEl = wrap.querySelector('.display-icon');
+                iconEl.setAttribute('data-icon', icon);
+                iconEl.style.color = color;
+
+                wrap.querySelectorAll('.custom-dropdown-item').forEach(el => el.classList.remove('selected'));
+                event.currentTarget.classList.add('selected');
+
+                wrap.querySelector('.custom-dropdown-menu').classList.remove('show');
+                if (typeof Iconify !== 'undefined') Iconify.scan(wrap);
+            }
+
+            window.addEventListener('click', function(e) {
+                if (!e.target.closest('.custom-dropdown')) {
+                    document.querySelectorAll('.custom-dropdown-menu.show').forEach(m => m.classList.remove('show'));
+                }
+            });
     </script>
 }

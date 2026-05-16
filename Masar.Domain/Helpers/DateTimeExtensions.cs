@@ -42,5 +42,18 @@ namespace Masar.Domain.Helpers
 
             return date.ToString("dd/MM/yyyy");
         }
+
+        public static string ToDetailedDisplayDate(this DateTime date)
+        {
+            var relative = date.ToRelativeDate();
+            var exact = date.ToString("dd/MM/yyyy @ hh:mm tt");
+
+            if (relative.Contains("/"))
+            {
+                return exact;
+            }
+
+            return $"{relative} ({exact})";
+        }
     }
 }

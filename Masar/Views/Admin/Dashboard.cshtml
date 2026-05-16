@@ -54,7 +54,7 @@
                 <div class="stat-card-label">Companies</div>
                 <div class="stat-card-value">@Model.TotalCompanies</div>
             </div>
-            <div class="stat-card-icon stat-icon-orange">
+            <div class="stat-card-icon stat-icon-blue">
                 <span class="iconify stat-icon" data-icon="lucide:building-2"></span>
             </div>
         </div>
@@ -67,7 +67,7 @@
                 <div class="stat-card-label">Active Jobs</div>
                 <div class="stat-card-value">@Model.ActiveJobs</div>
             </div>
-            <div class="stat-card-icon stat-icon-green">
+            <div class="stat-card-icon stat-icon-blue">
                 <span class="iconify stat-icon" data-icon="lucide:briefcase"></span>
             </div>
         </div>
@@ -80,7 +80,7 @@
                 <div class="stat-card-label">Total Apps</div>
                 <div class="stat-card-value">@Model.TotalApplications</div>
             </div>
-            <div class="stat-card-icon stat-icon-green">
+            <div class="stat-card-icon stat-icon-blue">
                 <span class="iconify stat-icon" data-icon="lucide:file-text"></span>
             </div>
         </div>
@@ -93,68 +93,77 @@
 
     @* Recent Users *@
     <div class="activity-card">
-        <div class="activity-card-header">
-            <h2>Recent Users</h2>
-            <button class="btn-view-all">View All &rarr;</button>
+        <div class="activity-card-header d-flex align-items-center justify-content-between mb-4">
+            <h2 class="card-section-title">Recent Users</h2>
+            <a href="#" class="card-view-all">
+                View All <span class="iconify" data-icon="lucide:arrow-right"></span>
+            </a>
         </div>
 
         <div class="activity-list">
             @if (Model.RecentUsers?.Any() == true)
             {
-                foreach (var user in Model.RecentUsers)
+                for (int i = 0; i < Model.RecentUsers.Count; i++)
                 {
-                    <div class="activity-row">
+                    var user = Model.RecentUsers[i];
+                    var borderStyle = (i == Model.RecentUsers.Count - 1) ? "" : "border-bottom: 1px solid #e5e7eb;";
+
+                    <div class="activity-row d-flex align-items-center justify-content-between" style="@borderStyle">
                         <div class="activity-info">
-                            <h3>@user.Name</h3>
-                            <p>@user.Email</p>
-                            <p>@user.CreatedAt</p>
+                            <h3 class="job-table-title">@user.Name</h3>
+                            <p class="table-meta-text mb-1">@user.Email &bull; @user.Role</p>
+                            <p class="table-meta-text">Joined @user.CreatedAt</p>
                         </div>
-                        <button class="btn-outline-action">Manage</button>
                     </div>
                 }
             }
             else
             {
-                <div class="activity-empty">No recent users found.</div>
+                <div class="activity-empty text-muted">No recent users found.</div>
             }
         </div>
     </div>
 
     @* Recent Posts *@
     <div class="activity-card">
-        <div class="activity-card-header">
-            <h2>Recent Job Posts</h2>
-            <button class="btn-view-all">View All &rarr;</button>
+        <div class="activity-card-header d-flex align-items-center justify-content-between mb-4">
+            <h2 class="card-section-title">Recent Job Posts</h2>
+            <a href="#" class="card-view-all">
+                View All <span class="iconify" data-icon="lucide:arrow-right"></span>
+            </a>
         </div>
 
         <div class="activity-list">
             @if (Model.RecentPosts?.Any() == true)
             {
-                foreach (var job in Model.RecentPosts)
+                for (int i = 0; i < Model.RecentPosts.Count; i++)
                 {
-                    <div class="activity-row">
+                    var job = Model.RecentPosts[i];
+                    var borderStyle = (i == Model.RecentPosts.Count - 1) ? "" : "border-bottom: 1px solid #e5e7eb;";
+
+                    <div class="activity-row d-flex align-items-center justify-content-between" style="@borderStyle">
                         <div class="activity-info">
-                            <h3>@job.Title</h3>
-                            <p>@job.CompanyName</p>
-                            <span class="activity-date">Posted @job.PostedDate</span>
+                            <h3 class="job-table-title">@job.Title</h3>
+                            <p class="table-meta-text mb-1">@job.CompanyName</p>
+                            <p class="table-meta-text">Posted @job.PostedDate</p>
                         </div>
-                        <div class="activity-actions">
+                        <div class="activity-actions d-flex align-items-center gap-3">
                             @if (job.Status == "Active")
                             {
-                                <span class="badge badge-accepted">Active</span>
+                                <span class="status-badge badge-accepted">Active</span>
                             }
                             else
                             {
-                                <span class="badge badge-rejected">Closed</span>
+                                <span class="status-badge badge-rejected">Closed</span>
                             }
-                            <button class="btn-outline-action">Review</button>
+                            <a asp-controller="Jobs" asp-action="Details" asp-route-id="@job.Id" class="btn-table-action"> View </a>
                         </div>
                     </div>
                 }
             }
             else
             {
-                <div class="activity-empty">No recent posts found.</div>
+                <div class="activity-empty text-muted">No recent posts found.</div>
             }
         </div>
     </div>

@@ -217,12 +217,14 @@ namespace Masar.Core.Services
             // ── Role IDs ──────────────────────────────────────────
             var candidateRole = await _roleManager.FindByNameAsync(Roles.Candidate);
             var companyRole = await _roleManager.FindByNameAsync(Roles.Company);
+            var adminRole = await _roleManager.FindByNameAsync(Roles.Admin);
 
             var candidateRoleId = candidateRole?.Id;
             var companyRoleId = companyRole?.Id;
+            var adminRoleId = adminRole?.Id;
 
             // ── Counts ────────────────────────────────────────────
-            var totalUsers = await _context.Users.CountAsync();
+            var totalUsers = await _context.Users.CountAsync(u => !_context.UserRoles.Any(ur => ur.UserId == u.Id && ur.RoleId == adminRoleId));
 
             var totalCandidates = await _context.UserRoles.CountAsync(ur => ur.RoleId == candidateRoleId);
 
@@ -234,14 +236,15 @@ namespace Masar.Core.Services
 
             // ── Recent Users (latest 6) ─────────────────────────────
             var recentUsers = await _context.Users
-                .OrderByDescending(u => u.Id)
+                .Where(u => !_context.UserRoles.Any(ur => ur.UserId == u.Id && ur.RoleId == adminRoleId))
+                .OrderByDescending(u => u.CreatedAt)
                 .Take(5)
                 .Select(u => new AdminRecentUserDto
                 {
                     Id = u.Id,
                     Name = u.FirstName + " " + u.LastName,
                     Email = u.Email ?? string.Empty,
-                    CreatedAt = u.CreatedAt.ToRelativeDate(),
+                    CreatedAt = u.CreatedAt.ToDetailedDisplayDate(),
                     Role = _context.UserRoles
                                 .Where(ur => ur.UserId == u.Id)
                                 .Join(_context.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name)
@@ -258,7 +261,7 @@ namespace Masar.Core.Services
                     Id = j.Id,
                     Title = j.Title,
                     CompanyName = j.Company.Name ?? string.Empty,
-                    PostedDate = j.PostedDate.ToRelativeDate(),
+                    PostedDate = j.PostedDate.ToDetailedDisplayDate(),
                     Status = j.IsActive ? "Active" : "Closed"
                 })
                 .ToListAsync();

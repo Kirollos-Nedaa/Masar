@@ -1,3 +1,33 @@
+@using Masar.Infrastructure.Context
+@using Masar.Domain.Models
+@using Microsoft.AspNetCore.Identity
+@inject AppDbContext _context
+@inject UserManager<ApplicationUser> _userManager
+@{
+    string? profileImage = null;
+    var initial = User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "U";
+
+    if (User.Identity?.IsAuthenticated == true)
+    {
+        var userId = _userManager.GetUserId(User);
+
+        if (User.IsInRole("Candidate"))
+        {
+            profileImage = _context.CandidateProfiles
+            .Where(p => p.UserId == userId)
+            .Select(p => p.AvatarUrl)
+            .FirstOrDefault();
+        }
+        else if (User.IsInRole("Company"))
+        {
+            profileImage = _context.CompanyProfiles
+            .Where(p => p.UserId == userId)
+            .Select(p => p.LogoUrl)
+            .FirstOrDefault();
+        }
+    }
+}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -35,16 +65,10 @@
                     </button>
                 }
                 <a asp-controller="Home" asp-action="Index" class="app-brand d-flex align-content-center justify-content-center gap-2">
-                <img src="~/Logo.png" alt="Masar Logo" class="footer-logo">
+                    <img src="~/Logo.png" alt="Masar Logo" class="footer-logo">
                     MASAR<span class="dot">.</span>
                 </a>
             </div>
-
-            @{
-                // Read the claim directly from the current user's cookie
-                var profileImage = User.Claims.FirstOrDefault(c => c.Type == "ProfilePicture")?.Value;
-                var initial = User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "U";
-            }
 
             <!-- Right side -->
             <div class="app-nav-right">
@@ -53,8 +77,8 @@
                     <!-- Authenticated: avatar dropdown -->
                     <div class="dropdown">
                         <button class="app-avatar-btn dropdown-toggle" type="button"
-                                data-bs-toggle="dropdown" aria-expanded="false"
-                                style="padding: 0; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                        data-bs-toggle="dropdown" aria-expanded="false"
+                        style="padding: 0; overflow: hidden; display: flex; align-items: center; justify-content: center;">
 
                             @if (!string.IsNullOrEmpty(profileImage))
                             {
@@ -72,13 +96,13 @@
                             {
                                 <li>
                                     <a class="dropdown-item app-dropdown-item"
-                                       asp-controller="Company" asp-action="Profile">
+                                    asp-controller="Company" asp-action="Profile">
                                         <span class="iconify me-1" data-icon="lucide:building"></span> My Profile
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item app-dropdown-item"
-                                       asp-controller="Company" asp-action="Dashboard">
+                                    asp-controller="Company" asp-action="Dashboard">
                                         <span class="iconify me-1" data-icon="lucide:layout-panel-left"></span> Dashboard
                                     </a>
                                 </li>
@@ -87,13 +111,22 @@
                             {
                                 <li>
                                     <a class="dropdown-item app-dropdown-item"
-                                       asp-controller="Candidate" asp-action="Profile">
+                                    asp-controller="Candidate" asp-action="Profile">
                                         <span class="iconify me-1" data-icon="lucide:user"></span> My Profile
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item app-dropdown-item"
-                                       asp-controller="Candidate" asp-action="Dashboard">
+                                    asp-controller="Candidate" asp-action="Dashboard">
+                                        <span class="iconify me-1" data-icon="lucide:layout-panel-left"></span> Dashboard
+                                    </a>
+                                </li>
+                            }
+                            else if (User.IsInRole("Admin"))
+                            {
+                                <li>
+                                    <a class="dropdown-item app-dropdown-item"
+                                       asp-controller="Admin" asp-action="Dashboard">
                                         <span class="iconify me-1" data-icon="lucide:layout-panel-left"></span> Dashboard
                                     </a>
                                 </li>

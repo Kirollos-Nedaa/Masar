@@ -99,7 +99,7 @@ namespace Masar.Controllers
             var dto = new CompanyInfoDto
             {
                 CompanyName = profile.CompanyName,
-                Industry = profile.Industry,
+                Industry = Enum.TryParse<Industries>(profile.Industry, true, out var ind) ? ind : Industries.None,
                 Size = profile.Size,
                 Description = profile.Description,
                 ContactEmail = profile.ContactEmail,
@@ -122,7 +122,15 @@ namespace Masar.Controllers
             return RedirectToAction(nameof(Profile));
         }
 
-        // ── Update Links ──────────────────────────────────────
+        // ── Edit Links ──────────────────────────────────────
+
+        [HttpGet]
+        public async Task<IActionResult> EditLinks()
+        {
+            var userId = _userManager.GetUserId(User);
+            var dto = await _profileService.GetMyCompanyProfileAsync(userId);
+            return View(dto);
+        }
 
         [HttpPost]
         public async Task<IActionResult> UpdateLinks(List<ProfessionalLinkDto> links)

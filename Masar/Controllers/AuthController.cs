@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Masar.Domain.Models;
 using Masar.Domain.ViewModels.AuthDtos;
 using Masar.Infrastructure.Context;
+using Masar.Infrastructure.Constants;
 
 namespace Masar.Controllers
 {
@@ -128,6 +129,8 @@ namespace Masar.Controllers
         [HttpGet]
         public IActionResult SelectRole()
         {
+            if (User.IsInRole("Admin"))
+                return RedirectToAction("Dashboard", "Admin");
             if (User.IsInRole("Candidate"))
                 return RedirectToAction("Dashboard", "Candidate");
             if (User.IsInRole("Company"))
@@ -262,7 +265,8 @@ namespace Masar.Controllers
         {
             HttpContext.Session.SetString("UserId", userId);
 
-            var role = User.IsInRole("Candidate") ? "Candidate"
+            var role = User.IsInRole("Admin") ? "Admin"
+                     : User.IsInRole("Candidate") ? "Candidate"
                      : User.IsInRole("Company") ? "Company"
                      : string.Empty;
 
@@ -272,22 +276,14 @@ namespace Masar.Controllers
 
         private IActionResult RedirectToDashboard()
         {
-            if (User.IsInRole("Candidate"))
+            if (User.IsInRole(Roles.Admin))
+                return RedirectToAction("Dashboard", "Admin");
+            if (User.IsInRole(Roles.Candidate))
                 return RedirectToAction("Dashboard", "Candidate");
-            if (User.IsInRole("Company"))
+            if (User.IsInRole(Roles.Company))
                 return RedirectToAction("Dashboard", "Company");
 
             return RedirectToAction(nameof(SelectRole));
-        }
-
-        private string GetDashboardUrl()
-        {
-            if (User.IsInRole("Candidate"))
-                return Url.Action("Dashboard", "Candidate")!;
-            if (User.IsInRole("Company"))
-                return Url.Action("Dashboard", "Company")!;
-
-            return Url.Action(nameof(SelectRole), "Auth")!;
         }
     }
 }

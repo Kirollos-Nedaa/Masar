@@ -9,7 +9,7 @@ namespace Masar.Domain.ViewModels.CompanyDtos
         [Required(ErrorMessage = "Company name is required.")]
         public string? CompanyName { get; set; }
 
-        public string? Industry { get; set; }
+        public Industries Industry { get; set; }
         public CompanySize? Size { get; set; }
 
         [Required(ErrorMessage = "Description is required.")]

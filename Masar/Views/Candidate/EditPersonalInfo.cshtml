@@ -1,4 +1,4 @@
-@model Masar.Domain.ViewModels.CandidateDtos.PersonalInfoDto
+﻿@model Masar.Domain.ViewModels.CandidateDtos.PersonalInfoDto
 
 @{
     ViewData["Title"] = "Edit Personal Info";
@@ -90,11 +90,37 @@
         <div class="row g-3 mb-3">
             <div class="col-12 col-sm-4">
                 <label class="epi-label">Gender</label>
-                <select asp-for="Gender"
-                        asp-items="@(new SelectList(Enum.GetValues(typeof(Masar.Domain.Enums.Gender)).Cast<Masar.Domain.Enums.Gender>()))"
-                        class="epi-input epi-select">
-                    <option value="">Select gender</option>
-                </select>
+                @{
+                    var currentGenderName = Model.Gender != Masar.Domain.Enums.Gender.None ? Model.Gender.ToString() : "Select gender";
+                    var currentGenderIcon = Model.Gender == Masar.Domain.Enums.Gender.Male ? "lucide:mars" :
+                    Model.Gender == Masar.Domain.Enums.Gender.Female ? "lucide:venus" : "lucide:users";
+                }
+                <div class="custom-dropdown position-relative w-100" id="genderWrap">
+                    <input asp-for="Gender" type="hidden" />
+                    <button type="button" class="custom-dropdown-toggle epi-input d-flex align-items-center justify-content-between w-100 text-start" onclick="toggleCustomSelect(event, 'genderMenu')">
+                        <span class="icon-text-wrap">
+                            <span class="iconify display-icon text-muted" data-icon="@currentGenderIcon"></span>
+                            <span class="display-text">@currentGenderName</span>
+                        </span>
+                        <span class="iconify chevron text-muted" data-icon="lucide:chevron-down"></span>
+                    </button>
+                    <div class="custom-dropdown-menu w-100" id="genderMenu">
+                        <div class="dropdown-scroll-area">
+                            <div class="custom-dropdown-item @(Model.Gender == Masar.Domain.Enums.Gender.Male ? "selected" : "")"
+                                 onclick="selectDropdownOption(event, 'genderWrap', '@((int)Masar.Domain.Enums.Gender.Male)', 'Male', 'lucide:mars')">
+                                <span class="iconify ind-icon" data-icon="lucide:mars"></span>
+                                <span class="ind-name">Male</span>
+                                <span class="iconify check-icon" data-icon="lucide:check"></span>
+                            </div>
+                            <div class="custom-dropdown-item @(Model.Gender == Masar.Domain.Enums.Gender.Female ? "selected" : "")"
+                                 onclick="selectDropdownOption(event, 'genderWrap', '@((int)Masar.Domain.Enums.Gender.Female)', 'Female', 'lucide:venus')">
+                                <span class="iconify ind-icon" data-icon="lucide:venus"></span>
+                                <span class="ind-name">Female</span>
+                                <span class="iconify check-icon" data-icon="lucide:check"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <span asp-validation-for="Gender" class="epi-error"></span>
             </div>
             <div class="col-12 col-sm-4">
@@ -250,6 +276,41 @@
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.position-relative')) {
                 document.getElementById('locationSuggestions').style.display = 'none';
+            }
+        });
+
+        // ── Custom Dropdown Logic ─────────────────────────────────
+        function toggleCustomSelect(event, menuId) {
+            event.preventDefault();
+            event.stopPropagation();
+            document.querySelectorAll('.custom-dropdown-menu.show').forEach(m => {
+                if (m.id !== menuId) m.classList.remove('show');
+            });
+            document.getElementById(menuId).classList.toggle('show');
+        }
+
+        function selectDropdownOption(event, wrapId, value, text, icon) {
+            event.stopPropagation();
+            const wrap = document.getElementById(wrapId);
+
+            const hiddenInput = wrap.querySelector('input[type="hidden"]');
+            hiddenInput.value = value;
+            hiddenInput.dispatchEvent(new Event('change'));
+
+            wrap.querySelector('.display-text').innerText = text;
+            const iconEl = wrap.querySelector('.display-icon');
+            if (iconEl && icon) iconEl.setAttribute('data-icon', icon);
+
+            wrap.querySelectorAll('.custom-dropdown-item').forEach(el => el.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+
+            wrap.querySelector('.custom-dropdown-menu').classList.remove('show');
+            if (typeof Iconify !== 'undefined') Iconify.scan(wrap);
+        }
+
+        window.addEventListener('click', function(e) {
+            if (!e.target.closest('.custom-dropdown')) {
+                document.querySelectorAll('.custom-dropdown-menu.show').forEach(m => m.classList.remove('show'));
             }
         });
     </script>

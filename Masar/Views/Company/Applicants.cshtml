@@ -76,35 +76,84 @@
 </div>
 
 @* ── Filter bar ───────────────────────────────────────────────────────────── *@
-<form method="get" asp-action="Applicants" asp-controller="Company"
-      class="applicants-filter-bar">
+<form method="get" asp-action="Applicants" asp-controller="Company" id="applicantsFilterForm" class="applicants-filter-bar w-100">
     <input type="hidden" name="jobId" value="@Model.JobId" />
 
-    <select name="status" class="epi-input epi-select" style="max-width:200px;">
-        <option value="" selected="@(string.IsNullOrWhiteSpace(Model.StatusFilter) ? "selected" : null)">All Applicants</option>
-        <option value="Applied" selected="@(Model.StatusFilter == "Applied" ? "selected" : null)">Applied</option>
-        <option value="UnderReview" selected="@(Model.StatusFilter == "UnderReview" ? "selected" : null)">Under Review</option>
-        <option value="Accepted" selected="@(Model.StatusFilter == "Accepted" ? "selected" : null)">Accepted</option>
-        <option value="Rejected" selected="@(Model.StatusFilter == "Rejected" ? "selected" : null)">Rejected</option>
-    </select>
+    <div class="d-flex flex-wrap align-items-center gap-2 w-100">
 
-    <select name="sort" class="epi-input epi-select" style="max-width:180px;">
-        <option value="oldest" selected="@(Model.SortFilter == "oldest" ? "selected" : null)">Oldest First</option>
-        <option value="recent" selected="@(Model.SortFilter != "oldest" ? "selected" : null)">Most Recent</option>
-    </select>
+        @* ── Dropdowns Container (Forces exactly 50/50 Side-by-Side on all platforms) ── *@
+        <div class="d-flex flex-nowrap gap-2 flex-grow-1">
 
-    <button type="submit" class="btn-outline-app">
-        <span class="iconify" data-icon="lucide:filter"></span>
-        Filter
-    </button>
+            @* Status Dropdown *@
+            <div class="custom-dropdown position-relative w-100" id="statusWrap">
+                <input type="hidden" name="status" id="statusInput" value="@Model.StatusFilter" />
+                <button type="button" class="custom-dropdown-toggle epi-input d-flex align-items-center justify-content-between w-100 text-start px-2" onclick="toggleCustomSelect(event, 'statusMenu')">
+                    <span class="icon-text-wrap d-flex align-items-center gap-2 overflow-hidden">
+                        <span class="iconify display-icon text-muted flex-shrink-0" data-icon="lucide:filter"></span>
+                        <span class="display-text text-truncate">
+                            @(string.IsNullOrWhiteSpace(Model.StatusFilter) ? "All" :
+                                Model.StatusFilter == "UnderReview" ? "Review" : Model.StatusFilter)
+                        </span>
+                    </span>
+                    <span class="iconify chevron text-muted flex-shrink-0" data-icon="lucide:chevron-down"></span>
+                </button>
+                <div class="custom-dropdown-menu w-100" id="statusMenu" style="top: calc(100% + 4px); left: 0; transform: none;">
+                    <div class="dropdown-scroll-area p-1">
+                        <div class="custom-dropdown-item @(string.IsNullOrWhiteSpace(Model.StatusFilter) ? "selected" : "")" onclick="selectFilterOption(event, 'statusWrap', '', 'All')">
+                            <span class="ind-name">All Applicants</span>
+                        </div>
+                        <div class="custom-dropdown-item @(Model.StatusFilter == "Applied" ? "selected" : "")" onclick="selectFilterOption(event, 'statusWrap', 'Applied', 'Applied')">
+                            <span class="ind-name">Applied</span>
+                        </div>
+                        <div class="custom-dropdown-item @(Model.StatusFilter == "UnderReview" ? "selected" : "")" onclick="selectFilterOption(event, 'statusWrap', 'UnderReview', 'Review')">
+                            <span class="ind-name">Under Review</span>
+                        </div>
+                        <div class="custom-dropdown-item @(Model.StatusFilter == "Accepted" ? "selected" : "")" onclick="selectFilterOption(event, 'statusWrap', 'Accepted', 'Accepted')">
+                            <span class="ind-name">Accepted</span>
+                        </div>
+                        <div class="custom-dropdown-item @(Model.StatusFilter == "Rejected" ? "selected" : "")" onclick="selectFilterOption(event, 'statusWrap', 'Rejected', 'Rejected')">
+                            <span class="ind-name">Rejected</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    @if (!string.IsNullOrWhiteSpace(Model.StatusFilter) || Model.SortFilter == "oldest")
-    {
-        <a asp-action="Applicants" asp-controller="Company" asp-route-jobId="@Model.JobId" class="btn-outline-app">
-            <span class="iconify" data-icon="lucide:x"></span>
-            Clear
-        </a>
-    }
+            @* Sort Dropdown *@
+            <div class="custom-dropdown position-relative w-100" id="sortWrap">
+                <input type="hidden" name="sort" id="sortInput" value="@Model.SortFilter" />
+                <button type="button" class="custom-dropdown-toggle epi-input d-flex align-items-center justify-content-between w-100 text-start px-2" onclick="toggleCustomSelect(event, 'sortMenu')">
+                    <span class="icon-text-wrap d-flex align-items-center gap-2 overflow-hidden">
+                        <span class="iconify text-muted flex-shrink-0" data-icon="lucide:arrow-up-down"></span>
+                        <span class="display-text text-truncate">@(Model.SortFilter == "oldest" ? "Oldest First" : "Most Recent")</span>
+                    </span>
+                    <span class="iconify chevron text-muted flex-shrink-0" data-icon="lucide:chevron-down"></span>
+                </button>
+                <div class="custom-dropdown-menu w-100" id="sortMenu" style="top: calc(100% + 4px); left: 0; transform: none;">
+                    <div class="dropdown-scroll-area p-1">
+                        <div class="custom-dropdown-item @(Model.SortFilter != "oldest" ? "selected" : "")" onclick="selectFilterOption(event, 'sortWrap', 'recent', 'Most Recent')">
+                            <span class="ind-name">Most Recent</span>
+                        </div>
+                        <div class="custom-dropdown-item @(Model.SortFilter == "oldest" ? "selected" : "")" onclick="selectFilterOption(event, 'sortWrap', 'oldest', 'Oldest First')">
+                            <span class="ind-name">Oldest First</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        @* ── Actions Container ── *@
+        <div class="d-flex flex-nowrap align-items-center gap-2">
+            @if (!string.IsNullOrWhiteSpace(Model.StatusFilter) || Model.SortFilter == "oldest")
+            {
+                <a asp-action="Applicants" asp-controller="Company" asp-route-jobId="@Model.JobId" class="btn-outline-app">
+                    <span class="iconify" data-icon="lucide:x"></span>
+                    Clear
+                </a>
+            }
+        </div>
+
+    </div>
 </form>
 
 @* ── Cards ────────────────────────────────────────────────────────────────── *@
@@ -320,4 +369,34 @@ else
             </div>
         </div>
     }
+}
+
+@section Scripts {
+    <script>
+        function toggleCustomSelect(event, menuId) {
+            event.preventDefault();
+            event.stopPropagation();
+            document.querySelectorAll('.custom-dropdown-menu.show').forEach(m => {
+                if (m.id !== menuId) m.classList.remove('show');
+            });
+            document.getElementById(menuId).classList.toggle('show');
+        }
+
+        function selectFilterOption(event, wrapId, value, text) {
+            event.stopPropagation();
+            const wrap = document.getElementById(wrapId);
+
+            // Set hidden input value
+            wrap.querySelector('input[type="hidden"]').value = value;
+
+            // Auto-submit the filter form to refresh the data
+            document.getElementById('applicantsFilterForm').submit();
+        }
+
+        window.addEventListener('click', function(e) {
+            if (!e.target.closest('.custom-dropdown')) {
+                document.querySelectorAll('.custom-dropdown-menu.show').forEach(m => m.classList.remove('show'));
+            }
+        });
+    </script>
 }

@@ -1,4 +1,6 @@
-﻿@using Masar.Domain.ViewModels.JobDtos
+﻿@using Masar.Domain.Enums
+@using Masar.Domain.Helpers
+@using Masar.Domain.ViewModels.JobDtos
 @model JobDetailDto
 
 @{
@@ -39,7 +41,12 @@
                 <div class="job-header-company d-flex">
                     <div>@Model.CompanyName</div>
                     <span class="iconify" data-icon="lucide:dot" style="width:20px; height:20px;"></span>
-                    <div>@Model.CompanyIndustry</div>
+                    <div>
+                        @{
+                            var hasInd1 = Enum.TryParse<Industries>(Model.CompanyIndustry, out var indEnum1);
+                        }
+                        @(hasInd1 ? IndustryMetadata.GetDisplayName(indEnum1) : Model.CompanyIndustry)
+                    </div>
                 </div>
             </div>
 
@@ -94,14 +101,47 @@
         </div>
 
         <div class="job-header-tags">
-            <span class="job-header-tag">@Model.JobType</span>
-            @if (Model.WorkMode != "None")
+
+            @{
+                var hasJobType = Enum.TryParse<JobType>(Model.JobType, out var jtEnum);
+                var hasWorkMode = Enum.TryParse<WorkMode>(Model.WorkMode, out var wmEnum);
+                var hasDept = Enum.TryParse<Department>(Model.Department, out var deptEnum);
+            }
+
+            @if (hasJobType && jtEnum != JobType.None)
+            {
+                <span class="job-header-tag">
+                    <span class="iconify me-1" data-icon="@JobTypeMetadata.GetIcon(jtEnum)"></span>
+                    @JobTypeMetadata.GetDisplayName(jtEnum)
+                </span>
+            }
+            else if (!string.IsNullOrEmpty(Model.JobType))
+            {
+                <span class="job-header-tag">@Model.JobType</span>
+            }
+
+            @if (hasWorkMode && wmEnum != WorkMode.None)
+            {
+                <span class="job-header-tag">
+                    <span class="iconify me-1" data-icon="@WorkModeMetadata.GetIcon(wmEnum)"></span>
+                    @WorkModeMetadata.GetDisplayName(wmEnum)
+                </span>
+            }
+            else if (!string.IsNullOrEmpty(Model.WorkMode) && Model.WorkMode != "None")
             {
                 <span class="job-header-tag">
                     @(Model.WorkMode == "OnSite" ? "On-Site" : Model.WorkMode)
                 </span>
             }
-            @if (!string.IsNullOrEmpty(Model.Department))
+
+            @if (hasDept && deptEnum != Department.None)
+            {
+                <span class="job-header-tag">
+                    <span class="iconify me-1" data-icon="@DepartmentMetadata.GetIcon(deptEnum)"></span>
+                    @DepartmentMetadata.GetDisplayName(deptEnum)
+                </span>
+            }
+            else if (!string.IsNullOrEmpty(Model.Department) && Model.Department != "None")
             {
                 <span class="job-header-tag">@Model.Department</span>
             }
@@ -109,14 +149,17 @@
 
         @if (!Model.IsActive)
         {
-            <div class="status-badge badge-rejected mb-3">This job is no longer accepting applications</div>
+            <div class="btn-apply closed">
+                <span class="iconify me-1" data-icon="lucide:circle-minus"></span>
+                This job is no longer accepting applications
+            </div>
         }
         else if (Model.HasApplied)
         {
-            <a href="#" class="btn-apply applied">
-                <span class="iconify me-1" data-icon="lucide:check-circle"></span>
+            <div class="btn-apply applied">
+                <span class="iconify me-1" data-icon="lucide:circle-check"></span>
                 Already Applied
-            </a>
+            </div>
         }
         else if (User.Identity?.IsAuthenticated == true && User.IsInRole("Candidate"))
         {
@@ -210,7 +253,12 @@
                 {
                     <div>
                         <div class="company-meta-item-label">Industry</div>
-                        <div class="company-meta-item-value">@Model.CompanyIndustry</div>
+                        <div class="company-meta-item-value">
+                            @{
+                                var hasInd2 = Enum.TryParse<Industries>(Model.CompanyIndustry, out var indEnum2);
+                            }
+                            @(hasInd2 ? IndustryMetadata.GetDisplayName(indEnum2) : Model.CompanyIndustry)
+                        </div>
                     </div>
                 }
                 @if (!string.IsNullOrEmpty(Model.CreatedAt))

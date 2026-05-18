@@ -11,6 +11,7 @@
     --value-bg: #f3f3f5;
     --white: #ffffff;
     --green: #22C55E;
+    --green-50: #DCFCE7;
     --green-dark: #16a34a;
     --orange: #EB6B25;
     --red: #DC2626;
@@ -3818,8 +3819,14 @@ body.app-body {
     }
 
     .btn-apply.applied {
-        background: #DCFCE7;
+        background: var(--green-50);
         color: var(--green-dark);
+        cursor: default;
+    }
+
+    .btn-apply.closed {
+        background: var(--red-50);
+        color: var(--red);
         cursor: default;
     }
 

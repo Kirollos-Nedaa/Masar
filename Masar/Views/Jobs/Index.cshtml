@@ -1,4 +1,6 @@
-﻿@using Masar.Domain.ViewModels.JobDtos
+﻿@using Masar.Domain.Enums
+@using Masar.Domain.Helpers
+@using Masar.Domain.ViewModels.JobDtos
 @model JobBrowseResultDto
 
 @{
@@ -154,10 +156,9 @@
 
             @* Salary *@
                 @{
-                    // Parse the existing "Min-Max" string to set initial slider positions
                     var currentRange = f.SalaryRange ?? "";
                     var minVal = 0;
-                    var maxVal = 250000; // Define your absolute maximum here
+                    var maxVal = 250000;
 
                     if (currentRange.Contains("-"))
                     {
@@ -289,7 +290,12 @@
                                 <div class="job-card-company d-flex align-items-center m-0">
                                     <div>@job.CompanyName</div>
                                     <span class="iconify mx-1" data-icon="lucide:dot" style="font-size: 1.2rem; color: var(--muted);"></span>
-                                    <div>@job.Industry</div>
+                                    <div>
+                                        @{
+                                            var hasInd = Enum.TryParse<Industries>(job.Industry, out var indEnum);
+                                        }
+                                        @(hasInd ? IndustryMetadata.GetDisplayName(indEnum) : job.Industry)
+                                    </div>
                                 </div>
                             </div>
 

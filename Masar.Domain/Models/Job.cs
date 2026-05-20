@@ -37,7 +37,7 @@ namespace Masar.Domain.Models
 
         public bool IsActive { get; set; }
         public bool IsFeatured { get; set; }
-        public DateTime PostedDate { get; set; } = DateTime.UtcNow;
+        public DateTime PostedDate { get; set; } = DateTime.Now;
 
         public ICollection<JobApplication> JobApplications { get; set; } = new List<JobApplication>();
         public ICollection<SavedJob> SavedJobs { get; set; } = new List<SavedJob>();

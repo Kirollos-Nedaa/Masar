@@ -13,7 +13,7 @@ namespace Masar.Domain.Models
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public CandidateProfile? CandidateProfile { get; set; }
         public CompanyProfile? CompanyProfile { get; set; }

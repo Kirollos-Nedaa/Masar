@@ -226,7 +226,7 @@
             <span class="iconify resume-icon" data-icon="lucide:file-text"></span>
             <div class="resume-info">
                 <div class="resume-name">@Model.ResumeOriginalName</div>
-                <div class="resume-meta text-muted">Uploaded</div>
+                <div class="resume-meta text-muted">Uploaded @Model.ResumeUploadedAt</div>
             </div>
             <a href="@Model.ResumeUrl" target="_blank" class="btn-outline-app btn-sm-app">
                 <span class="iconify" data-icon="lucide:eye"></span> View
@@ -364,22 +364,7 @@
     </div>
 </div>
 
-<div id="toastContainer"></div>
-
 <script>
-    function showToast(message, isError = false) {
-        var container = document.getElementById('toastContainer');
-        var toast = document.createElement('div');
-        toast.className = 'masar-toast ' + (isError ? 'masar-toast-error' : 'masar-toast-success');
-        toast.innerHTML = `<span class="iconify" data-icon="${isError ? 'lucide:circle-x' : 'lucide:check-circle'}" style="font-size:1.5rem"></span> <div>${message}</div>`;
-        container.appendChild(toast);
-        Iconify.scan(toast);
-        setTimeout(() => toast.classList.add('show'), 10);
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
 
     function uploadResumeFile(file) {
         if (!file) return;

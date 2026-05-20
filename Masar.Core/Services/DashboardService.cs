@@ -126,7 +126,7 @@ namespace Masar.Core.Services
                 return new CompanyDashboardDto();
 
             var companyId = companyProfile.Id;
-            var cutoff24h = DateTime.UtcNow.AddHours(-24);
+            var cutoff24h = DateTime.Now.AddHours(-24);
 
             // ── Stats ──────────────────────────────────────────
             var activeJobs = await _context.Jobs

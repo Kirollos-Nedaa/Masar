@@ -28,15 +28,7 @@ namespace Masar.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(
-            string? search,
-            string? location,
-            [FromQuery(Name = "jobTypes")] List<string>? jobTypes,
-            [FromQuery(Name = "industries")] List<string>? industries,
-            [FromQuery(Name = "Departments")] List<string>? departments,
-            string? salaryRange,
-            string sortBy = "recent",
-            int page = 1)
+        public async Task<IActionResult> Index(string? search, string? location, [FromQuery(Name = "jobTypes")] List<string>? jobTypes, [FromQuery(Name = "industries")] List<string>? industries, [FromQuery(Name = "Departments")] List<string>? departments, string? salaryRange, string sortBy = "recent",int page = 1)
         {
             var filter = new JobFilterDto
             {
@@ -112,19 +104,63 @@ namespace Masar.Controllers
                 bool hasExisting = Form.UseExistingResume && !string.IsNullOrEmpty(Form.ExistingResumeUrl);
 
                 if (!hasUpload && !hasExisting)
-                    ModelState.AddModelError(string.Empty, "You must upload your Resume.");
+                {
+                    // Bind error specifically to "resumeFile" HTML name
+                    ModelState.AddModelError("resumeFile", "Please upload a resume or select your profile resume.");
+                }
+                else if (hasUpload)
+                {
+                    var allowedExtensions = new[] { ".pdf", ".doc", ".docx" };
+                    var ext = Path.GetExtension(uploadedFile.FileName).ToLowerInvariant();
+
+                    if (!allowedExtensions.Contains(ext))
+                        ModelState.AddModelError("resumeFile", "Invalid file type. Allowed formats: PDF, DOC, DOCX.");
+                    else if (uploadedFile.Length > 5 * 1024 * 1024)
+                        ModelState.AddModelError("resumeFile", "Resume file size exceeds the 5MB limit.");
+                }
             }
 
+            // 3. Validate Additional Questions (Server-Side)
+            if (vm.Questions != null && vm.Questions.Any())
+            {
+                for (int i = 0; i < vm.Questions.Count; i++)
+                {
+                    var q = vm.Questions[i];
+                    if (q.IsRequired)
+                    {
+                        var answer = Form.Answers?.FirstOrDefault(a => a.QuestionId == q.Id);
+                        if (answer == null || string.IsNullOrWhiteSpace(answer.AnswerText))
+                        {
+                            // Bind error exactly to the input name in the HTML view
+                            ModelState.AddModelError($"Form.Answers[{i}].AnswerText", $"Question '{q.QuestionText}' is required.");
+                        }
+                    }
+                }
+            }
+
+            // 4. Return combined errors to the AJAX Toast AND mapping for the red borders
             if (!ModelState.IsValid)
             {
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
-                    var errors = ModelState.Values
+                    // Flat list of strings for the toast popup
+                    var flatErrors = ModelState.Values
                         .SelectMany(v => v.Errors)
                         .Select(e => e.ErrorMessage)
                         .ToList();
-                    return Json(new { success = false, messages = errors });
+
+                    // Map of field names so the JavaScript knows exactly what to outline in red
+                    var fieldErrors = ModelState
+                        .Where(x => x.Value.Errors.Any())
+                        .Select(x => new {
+                            field = x.Key,
+                            messages = x.Value.Errors.Select(e => e.ErrorMessage).ToList()
+                        })
+                        .ToList();
+
+                    return Json(new { success = false, messages = flatErrors, fieldErrors = fieldErrors });
                 }
+
                 vm.Form = Form;
                 return View(vm);
             }
@@ -151,7 +187,7 @@ namespace Masar.Controllers
                 return View(vm);
             }
 
-            TempData["ApplySuccess"] = "Your application has been submitted successfully!";
+            TempData["SuccessMessage"] = "Your application has been submitted successfully!";
 
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 return Json(new { success = true, redirectUrl = Url.Action("Details", "Jobs", new { id = jobId }) });

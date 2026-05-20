@@ -16,7 +16,7 @@ namespace Masar.Core.Services
         public async Task CloseExpiredJobsAsync()
         {
             await _context.Jobs
-                .Where(j => j.IsActive && j.ApplicationDeadline <= DateTime.UtcNow)
+                .Where(j => j.IsActive && j.ApplicationDeadline <= DateTime.Now)
                 .ExecuteUpdateAsync(setters => setters
                     .SetProperty(j => j.IsActive, false));
         }

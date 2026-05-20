@@ -23,12 +23,13 @@ namespace Masar.Domain.Models
         public string? Location { get; set; }
         public DateOnly? DateOfBirth { get; set; }
         public string? Bio { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public ICollection<Education> Educations { get; set; } = new List<Education>();
 
         public string? ResumeUrl { get; set; }
         public string? ResumeOriginalName { get; set; }
+        public string? ResumeUploadedAt { get; set; }
 
         public ICollection<CandidateSkill> CandidateSkills { get; set; } = new List<CandidateSkill>();
 

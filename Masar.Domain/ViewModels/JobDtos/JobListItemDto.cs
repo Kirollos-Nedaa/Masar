@@ -20,6 +20,6 @@ namespace Masar.Domain.ViewModels.Job
         public DateTime PostedDate { get; set; }
         public DateTime ApplicationDeadline { get; set; }
         public string PostedDateDisplay { get; set; } = string.Empty;
-        public bool IsExpired => ApplicationDeadline < DateTime.UtcNow;
+        public bool IsExpired => ApplicationDeadline < DateTime.Now;
     }
 }

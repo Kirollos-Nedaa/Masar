@@ -145,7 +145,7 @@ namespace Masar.Core.Services
                 JobId = jobId,
                 CandidateProfileId = profile.Id,
                 Status = ApplicationStatus.Applied,
-                AppliedDate = DateTime.UtcNow,
+                AppliedDate = DateTime.Now,
                 ResumeUrl = finalResumeUrl,
                 CoverLetter = dto.CoverLetter
             };

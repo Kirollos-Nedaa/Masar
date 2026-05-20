@@ -11,7 +11,7 @@ namespace Masar.Domain.Validation
                 return ValidationResult.Success;
             }
 
-            if (dateTime <= DateTime.UtcNow)
+            if (dateTime <= DateTime.Now)
             {
                 var message = ErrorMessage ?? $"{validationContext.DisplayName} must be later than the current time.";
                 return new ValidationResult(message);

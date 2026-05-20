@@ -17,6 +17,6 @@ namespace Masar.Domain.Models
         public int JobId { get; set; }
         public Job Job { get; set; }
 
-        public DateTime SavedAt { get; set; } = DateTime.UtcNow;
+        public DateTime SavedAt { get; set; } = DateTime.Now;
     }
 }

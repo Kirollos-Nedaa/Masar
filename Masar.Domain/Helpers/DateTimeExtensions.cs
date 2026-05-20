@@ -10,7 +10,7 @@ namespace Masar.Domain.Helpers
     {
         public static string ToRelativeDate(this DateTime date)
         {
-            var diff = DateTime.UtcNow - date;
+            var diff = DateTime.Now - date;
 
             if (diff.TotalMinutes < 1)
                 return "Just now";

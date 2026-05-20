@@ -23,34 +23,6 @@
     <h1 class="apply-page-title">Apply for Position</h1>
     <p class="apply-page-sub">Complete the form below to submit your application</p>
 
-    @* ── Job Summary ──────────────────────────────────────── *@
-    <div class="apply-job-summary">
-        <div class="apply-job-logo">
-            @if (!string.IsNullOrEmpty(job.CompanyLogo))
-            {
-                <img src="@job.CompanyLogo" alt="@job.CompanyName" />
-            }
-            else
-            {
-                @(job.CompanyName.Length > 0
-                    ? job.CompanyName.Substring(0, Math.Min(2, job.CompanyName.Length)).ToUpper()
-                    : "?")
-            }
-        </div>
-        <div>
-            <div class="apply-job-title">@job.Title</div>
-            <div class="apply-job-company">@job.CompanyName</div>
-            <div class="apply-job-meta">
-                <span><span class="iconify" data-icon="lucide:map-pin"></span> @job.Location</span>
-                <span><span class="iconify" data-icon="lucide:briefcase"></span> @job.JobType</span>
-                @if (!string.IsNullOrEmpty(job.SalaryDisplay))
-                {
-                    <span><span class="iconify" data-icon="lucide:dollar-sign"></span> @job.SalaryDisplay</span>
-                }
-            </div>
-        </div>
-    </div>
-
     @if (!ViewData.ModelState.IsValid)
     {
         <div class="epi-alert-error mb-4">
@@ -60,7 +32,7 @@
     }
 
     <form asp-controller="Jobs" asp-action="Apply" asp-route-jobId="@job.Id"
-          method="post" enctype="multipart/form-data" id="applyForm">
+          method="post" enctype="multipart/form-data" id="applyForm" novalidate>
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="Form.JobId" value="@job.Id" />
         <input type="hidden" asp-for="Form.ExistingResumeUrl" />
@@ -73,19 +45,16 @@
                 <div class="col-12 col-sm-6">
                     <label class="epi-label">First Name <span style="color:var(--red)">*</span></label>
                     <input asp-for="Form.FirstName" class="epi-input" placeholder="John" />
-                    <span asp-validation-for="Form.FirstName" class="epi-error"></span>
                 </div>
                 <div class="col-12 col-sm-6">
                     <label class="epi-label">Last Name <span style="color:var(--red)">*</span></label>
                     <input asp-for="Form.LastName" class="epi-input" placeholder="Doe" />
-                    <span asp-validation-for="Form.LastName" class="epi-error"></span>
                 </div>
             </div>
 
             <div class="mb-3">
                 <label class="epi-label">Email Address <span style="color:var(--red)">*</span></label>
                 <input asp-for="Form.Email" type="email" class="epi-input" placeholder="john@example.com" />
-                <span asp-validation-for="Form.Email" class="epi-error"></span>
             </div>
 
             <div class="mb-3">
@@ -109,7 +78,6 @@
                     <input type="text" id="applicationPhoneLocal" class="epi-input phone-local-input" placeholder="010XXXXXXXX" inputmode="numeric" />
                 </div>
                 <span class="epi-hint">Include at least 11 digits. Leading zero is removed automatically.</span>
-                <span asp-validation-for="Form.PhoneNumber" class="epi-error"></span>
             </div>
 
             <div>
@@ -126,8 +94,7 @@
                     Resume/CV <span style="color:var(--red)">*</span>
                 </div>
 
-                @* Single hidden input replaces the radio group.
-           JS flips its value when the candidate switches modes. *@
+                @* Single hidden input replaces the radio group. JS flips its value when the candidate switches modes. *@
                 <input type="hidden"
                        name="Form.UseExistingResume"
                        id="useExistingHidden"
@@ -213,7 +180,6 @@
                 <textarea asp-for="Form.CoverLetter" rows="6" class="epi-input epi-textarea"
                           placeholder="Tell us about your interest in this role, relevant experience, and what makes you a great fit..."
                           maxlength="2000" oninput="updateCount(this, 'clCount')"></textarea>
-                <span asp-validation-for="Form.CoverLetter" class="epi-error"></span>
                 <p class="epi-hint">Minimum 100 characters</p>
             </div>
         }
@@ -240,7 +206,7 @@
                         {
                             <div class="apply-radio-group">
                                 <label class="apply-radio-label">
-                                    <input type="radio" name="Form.Answers[@i].AnswerText" value="Yes" @(q.IsRequired ? "required" : "") />
+                                    <input type="radio" name="Form.Answers[@i].AnswerText" value="Yes" />
                                     Yes
                                 </label>
                                 <label class="apply-radio-label">
@@ -251,7 +217,7 @@
                         }
                         else
                         {
-                            <input type="text" name="Form.Answers[@i].AnswerText" class="epi-input" placeholder="Your answer..." @(q.IsRequired ? "required" : "") />
+                            <input type="text" name="Form.Answers[@i].AnswerText" class="epi-input" placeholder="Your answer..." />
                         }
 
                         <input type="hidden" name="Form.Answers[@i].QuestionId" value="@q.Id" />
@@ -274,7 +240,6 @@
                     </div>
                 </div>
             </label>
-            <span asp-validation-for="Form.AgreeToTerms" class="epi-error"></span>
 
             <label class="terms-check-label align-items-center mt-3">
                 <input asp-for="Form.ConsentToDataProcessing" type="checkbox" data-val="false" />
@@ -288,7 +253,6 @@
                     </div>
                 </div>
             </label>
-            <span asp-validation-for="Form.ConsentToDataProcessing" class="epi-error"></span>
         </div>
 
         @* ── Actions ──────────────────────────────────────── *@
@@ -306,12 +270,7 @@
     </form>
 </div>
 
-<div id="toastContainer"></div>
-
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-
-
     <script>
         function updateCount(el, id) {
             document.getElementById(id).textContent = `${el.value.length} / ${el.maxLength}`;
@@ -345,32 +304,6 @@
             }
         });
 
-        // Toast logic
-        function showToast(message, isError = false) {
-            var container = document.getElementById('toastContainer');
-            var toast = document.createElement('div');
-            toast.className = 'masar-toast ' + (isError ? 'masar-toast-error' : 'masar-toast-success');
-
-            var icon = `<span class="iconify"
-                data-icon="${isError ? 'lucide:circle-x' : 'lucide:check-circle'}"
-                style="font-size:1.5rem;flex-shrink:0;"></span>`;
-
-            var body;
-            if (Array.isArray(message) && message.length > 1) {
-                var items = message.map(m => `<li>${m}</li>`).join('');
-                body = `<ul style="margin:0;padding-left:1.1rem;line-height:1.6;">${items}</ul>`;
-            } else {
-                var text = Array.isArray(message) ? message[0] : message;
-                body = `<div>${text}</div>`;
-            }
-
-            toast.innerHTML = `${icon} ${body}`;
-            container.appendChild(toast);
-            Iconify.scan(toast);
-            setTimeout(() => toast.classList.add('show'), 10);
-            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 5000);
-        }
-
         window.addEventListener('DOMContentLoaded', () => {
             const cl = document.querySelector('textarea[name="Form.CoverLetter"]');
             if (cl) updateCount(cl, 'clCount');
@@ -400,60 +333,41 @@
         document.getElementById('applyForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const form = this;
-            const fileInput = document.getElementById('resumeFile');
-            const requireCv = @job.RequireCv.ToString().ToLower();
-            const useExisting = document.getElementById('useExistingHidden')?.value === 'true';
 
-            // File Validation
-            if (requireCv && !useExisting) {
-                if (!fileInput || fileInput.files.length === 0) {
-                    showToast("Please upload a resume for this application.", true);
-                    return;
-                }
-                const file = fileInput.files[0];
-                const allowed = ['.pdf', '.doc', '.docx'];
-                const ext = '.' + file.name.split('.').pop().toLowerCase();
-                if (!allowed.includes(ext)) {
-                    showToast("Invalid file type. Allowed: PDF, DOC, DOCX", true);
-                    return;
-                }
-                if (file.size > 5 * 1024 * 1024) {
-                    showToast("File size exceeds 5MB limit.", true);
-                    return;
-                }
-            }
+            // 1. Clear ALL custom error highlights from previous submission attempts
+            const dz = document.querySelector('.resume-upload-zone');
+            if (dz) dz.style.border = "";
 
-            // Setup UI Feedback (Loading & Progress)
+            document.querySelectorAll('.apply-radio-group').forEach(el => {
+                el.style.border = "none";
+                el.style.padding = "0";
+            });
+
+            // Clear borders from Phone Wrap, Text Inputs, Textareas, and Checkbox text
+            const phoneWrap = document.getElementById('applicationPhoneWrap');
+            if (phoneWrap) phoneWrap.style.borderColor = "";
+
+            document.querySelectorAll('input, textarea').forEach(el => {
+                if (el.type !== 'radio' && el.type !== 'file' && el.type !== 'hidden') {
+                    el.style.borderColor = "";
+                }
+                if (el.type === 'checkbox') {
+                     // Clear color specifically from the title div
+                     const title = el.closest('label')?.querySelector('.terms-check-title');
+                     if (title) title.style.color = "";
+                }
+            });
+
+            // 2. Setup UI Feedback (Loading State)
             const btn = document.getElementById('submitAppBtn');
             const originalText = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = `<span class="iconify" data-icon="lucide:loader-2" class="spin"></span> Submitting... <span id="progressPct">0%</span>`;
+            btn.innerHTML = `<span class="iconify" data-icon="lucide:loader-2" class="spin"></span> Submitting...`;
 
-            let progressContainer = document.getElementById('applyProgressContainer');
-            if(!progressContainer) {
-                progressContainer = document.createElement('div');
-                progressContainer.id = 'applyProgressContainer';
-                progressContainer.className = 'masar-progress-container';
-                progressContainer.innerHTML = '<div class="masar-progress-bar" id="applyProgressBar"></div>';
-
-                // Append directly to the actions container so it spans nicely
-                document.querySelector('.apply-actions').appendChild(progressContainer);
-            }
-            progressContainer.style.display = 'block';
-
-            // Send via AJAX
+            // 3. Send via AJAX directly to the C# Server
             const xhr = new XMLHttpRequest();
             xhr.open(form.method, form.action, true);
             xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-
-            xhr.upload.onprogress = function(event) {
-                if (event.lengthComputable) {
-                    const percent = Math.round((event.loaded / event.total) * 100);
-                    document.getElementById('applyProgressBar').style.width = percent + '%';
-                    const pctLabel = document.getElementById('progressPct');
-                    if(pctLabel) pctLabel.textContent = percent + '%';
-                }
-            };
 
             xhr.onload = function() {
                 if (xhr.status >= 200 && xhr.status < 300) {
@@ -463,11 +377,54 @@
                             showToast("Application submitted successfully!");
                             setTimeout(() => window.location.href = res.redirectUrl, 1500);
                         } else {
+                            // Pop the error toast with the bulleted list
                             showToast(res.messages || res.message || "An error occurred during submission.", true);
+
+                            // Apply RED BORDERS based on the C# server response!
+                            if (res.fieldErrors) {
+                                res.fieldErrors.forEach(err => {
+                                    if (!err.field) return;
+
+                                    // Special Case 1: Upload Zone
+                                    if (err.field === 'resumeFile') {
+                                        const dropZone = document.querySelector('.resume-upload-zone');
+                                        if (dropZone) dropZone.style.border = "2px dashed var(--red)";
+                                        return;
+                                    }
+
+                                    // Special Case 2: Custom Phone Number Wrapper (since the actual input is hidden)
+                                    if (err.field === 'Form.PhoneNumber') {
+                                        const phoneWrap = document.getElementById('applicationPhoneWrap');
+                                        if (phoneWrap) {
+                                            phoneWrap.style.border = "1px solid var(--red)";
+                                        }
+                                        return;
+                                    }
+
+                                    // General Case: Text inputs, textareas, checkboxes, and radio groups
+                                    const elements = document.querySelectorAll(`[name="${err.field}"]`);
+                                    elements.forEach(el => {
+                                        if (el.type === 'radio') {
+                                            const group = el.closest('.apply-radio-group');
+                                            if (group) {
+                                                group.style.border = "1px solid var(--red)";
+                                                group.style.borderRadius = "8px";
+                                                group.style.padding = "4px 8px";
+                                            }
+                                        } else if (el.type === 'checkbox') {
+                                            // Turn the specific title div red
+                                            const title = el.closest('label')?.querySelector('.terms-check-title');
+                                            if (title) title.style.color = "var(--red)";
+                                        } else {
+                                            // Apply inline border explicitly to text boxes and textareas
+                                            el.style.border = "1px solid var(--red)";
+                                        }
+                                    });
+                                });
+                            }
                             resetBtn();
                         }
                     } catch {
-                        // If it's not JSON, it might be a View return with ModelState errors
                         document.open();
                         document.write(xhr.responseText);
                         document.close();
@@ -488,7 +445,6 @@
             function resetBtn() {
                 btn.disabled = false;
                 btn.innerHTML = originalText;
-                if(progressContainer) progressContainer.style.display = 'none';
             }
         });
     </script>

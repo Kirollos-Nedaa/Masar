@@ -242,12 +242,13 @@ namespace Masar.Core.Services
 
                 profile.ResumeUrl = url;
                 profile.ResumeOriginalName = file.FileName;
+                profile.ResumeUploadedAt = DateTime.Now.ToDetailedDisplayDate();
 
                 await _context.SaveChangesAsync();
                 return (true, null);
             }
             catch (InvalidOperationException ex) { return (false, ex.Message); }
-            catch { return (false, "An unexpected error occurred while saving your resume."); }
+            catch (Exception ex) { return (false, "An unexpected error occurred while saving your resume."); }
         }
 
         public async Task<(bool Success, string? Error)> DeleteResumeAsync(string userId)
@@ -390,7 +391,7 @@ namespace Masar.Core.Services
             {
                 CandidateProfileId = profile.Id,
                 JobId = jobId,
-                SavedAt = DateTime.UtcNow
+                SavedAt = DateTime.Now
             });
 
             await _context.SaveChangesAsync();
@@ -552,6 +553,7 @@ namespace Masar.Core.Services
             dto.Bio = profile.Bio;
             dto.ResumeOriginalName = profile.ResumeOriginalName;
             dto.ResumeUrl = profile.ResumeUrl;
+            dto.ResumeUploadedAt = profile.ResumeUploadedAt;
             dto.AvatarUrl = profile.AvatarUrl;
 
             dto.Education = profile.Educations.FirstOrDefault() is { } edu

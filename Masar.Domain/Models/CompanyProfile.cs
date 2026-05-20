@@ -23,7 +23,7 @@ namespace Masar.Domain.Models
         public string? Industry { get; set; }
         public CompanySize? Size { get; set; }
         public string? Description { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public CompanyContactInfo? ContactInfo { get; set; }
         public ICollection<ProfessionalLink> ProfessionalLinks { get; set; } = new List<ProfessionalLink>();

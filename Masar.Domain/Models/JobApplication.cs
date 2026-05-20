@@ -22,7 +22,7 @@ namespace Masar.Domain.Models
         public string? CoverLetter { get; set; }
 
         public ApplicationStatus Status { get; set; } = ApplicationStatus.Applied;
-        public DateTime AppliedDate { get; set; } = DateTime.UtcNow;
+        public DateTime AppliedDate { get; set; } = DateTime.Now;
 
         public ICollection<ApplicationAnswer> Answers { get; set; } = new List<ApplicationAnswer>();
     }

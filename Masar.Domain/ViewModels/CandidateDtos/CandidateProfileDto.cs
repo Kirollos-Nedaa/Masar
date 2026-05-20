@@ -31,6 +31,7 @@ namespace Masar.Domain.ViewModels.CandidateDtos
         // ── Resume ───────────────────────────────────────────
         public string? ResumeUrl { get; set; }
         public string? ResumeOriginalName { get; set; }
+        public string? ResumeUploadedAt { get; set; }
 
         // ── Professional Links ────────────────────────────────
         public List<ProfessionalLinkDto>? ProfessionalLinks { get; set; } = new();

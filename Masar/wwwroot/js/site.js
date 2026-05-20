@@ -252,3 +252,81 @@
         }
     };
 })(window);
+
+// --- Global Password Visibility Toggle ---
+window.togglePw = function (inputId, buttonElement) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    // Toggle input type
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+
+    // Replace the icon's HTML inside the button and force Iconify to rescan it
+    const newIcon = isPassword ? 'lucide:eye-off' : 'lucide:eye';
+    buttonElement.innerHTML = `<span class="iconify" data-icon="${newIcon}"></span>`;
+
+    if (window.Iconify && window.Iconify.scan) {
+        window.Iconify.scan(buttonElement);
+    }
+};
+
+// --- Global Toast Initialization ---
+document.addEventListener("DOMContentLoaded", function () {
+    var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+    var toastList = toastElList.map(function (toastEl) {
+        // Initialize toast with a 5 second delay before hiding
+        return new bootstrap.Toast(toastEl, { autohide: true, delay: 5000 });
+    });
+
+    // Show all active toasts
+    toastList.forEach(toast => toast.show());
+});
+
+
+// --- Global AJAX Toast Generator ---
+window.showToast = function (message, isError = false) {
+    // 1. Find the global toast container we added to the layouts
+    let container = document.querySelector('.toast-container');
+    if (!container) return; // Fallback if container is missing
+
+    // 2. Format the message (handles both strings and arrays of validation errors)
+    let bodyHtml = '';
+    if (Array.isArray(message) && message.length > 1) {
+        let items = message.map(m => `<li>${m}</li>`).join('');
+        bodyHtml = `<ul style="margin:0;padding-left:1.1rem;line-height:1.6;">${items}</ul>`;
+    } else {
+        bodyHtml = Array.isArray(message) ? message[0] : message;
+    }
+
+    // 3. Set styles based on success/error
+    const icon = isError ? 'lucide:alert-circle' : 'lucide:check-circle';
+    const bgClass = isError ? 'text-bg-danger' : 'text-bg-success';
+
+    // 4. Create the Bootstrap Toast HTML
+    const toastHtml = `
+        <div class="toast align-items-center ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <span class="iconify me-2" data-icon="${icon}"></span>
+                    ${bodyHtml}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    `;
+
+    // 5. Append to DOM
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = toastHtml.trim();
+    const toastEl = tempDiv.firstChild;
+    container.appendChild(toastEl);
+
+    // 6. Initialize Iconify and Bootstrap Toast
+    if (window.Iconify && window.Iconify.scan) window.Iconify.scan(toastEl);
+    const bsToast = new bootstrap.Toast(toastEl, { autohide: true, delay: 5000 });
+    bsToast.show();
+
+    // 7. Cleanup DOM after it hides
+    toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+};

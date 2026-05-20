@@ -30,8 +30,8 @@
         <label class="form-label">Password</label>
         <div class="pw-wrap">
             <input asp-for="Password" type="password" id="pw" class="form-control" placeholder="••••••••" autocomplete="current-password" />
-            <button type="button" class="btn-toggle-pw" onclick="togglePw('pw','eyePw')" tabindex="-1" aria-label="Toggle password">
-                <span class="iconify" data-icon="lucide:eye" id="eyePw"></span>
+            <button type="button" class="btn-toggle-pw" onclick="togglePw('pw', this)" tabindex="-1" aria-label="Toggle password">
+                <span class="iconify" data-icon="lucide:eye"></span>
             </button>
         </div>
         <span asp-validation-for="Password" class="text-danger"></span>

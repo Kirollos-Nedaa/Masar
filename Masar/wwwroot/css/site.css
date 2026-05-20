@@ -1454,9 +1454,6 @@ body.app-body {
     display: flex;
     align-items: center;
     gap: 1rem;
-    padding: .875rem 1rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
 }
 
 .resume-icon {
@@ -2488,11 +2485,6 @@ body.app-body {
     display: flex;
     align-items: center;
     gap: .875rem;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: .875rem 1rem;
-    margin-top: .625rem;
 }
 
 .resume-file-icon {
@@ -2997,43 +2989,63 @@ body.app-body {
     margin-bottom: 0;
 }
 
-/* ── Toast ───────────────────────────────────────────────── */
-#toastContainer {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 1055;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+/* ── Masar Global Toast Overrides ───────────────────────── */
+.toast-container {
+    padding: 1.5rem !important;
 }
 
-.masar-toast {
-    min-width: 250px;
-    padding: 15px;
-    border-radius: 8px;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    opacity: 0;
-    transform: translateY(10px);
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-    .masar-toast.show {
-        opacity: 1;
-        transform: translateY(0);
+    .toast-container .toast {
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+        font-family: 'DM Sans', sans-serif;
+        border: none;
+        padding: 0.25rem 0.5rem;
+        align-items: flex-start;
+        max-width: 800px !important;
+        width: max-content;
     }
 
-.masar-toast-success {
-    background-color: #10b981;
+    /* Success Styling - Soft Green */
+    .toast-container .toast.text-bg-success {
+        background-color: var(--green-50) !important;
+        color: var(--green) !important;
+        border: 1px solid var(--green) !important;
+    }
+
+    /* Error Styling - Soft Red */
+    .toast-container .toast.text-bg-danger {
+        background-color: var(--red-50) !important;
+        color: var(--red) !important;
+        border: 1px solid var(--red) !important;
+    }
+
+/* Toast Body & Typography */
+.toast-container .toast-body {
+    display: flex;
+    align-items: center;
+    font-size: 0.95rem;
+    font-weight: 500;
+    padding: 0.75rem;
+    line-height: 1.5;
 }
 
-.masar-toast-error {
-    background-color: #ef4444;
+    /* Match your old masar-toast icon size */
+    .toast-container .toast-body .iconify {
+        font-size: 1.5rem !important;
+        flex-shrink: 0;
+    }
+
+/* Fix the close button visibility on the light backgrounds */
+.toast-container .toast .btn-close {
+    filter: invert(1) grayscale(100%) brightness(50%) !important;
+    margin-top: 0.85rem !important;
+    margin-right: 0.5rem !important;
+    opacity: 0.5;
 }
+
+    .toast-container .toast .btn-close:hover {
+        opacity: 1;
+    }
 
 .masar-progress-container {
     width: 100%;

@@ -10,6 +10,7 @@ using Masar.Core.Services;
 using Masar.Domain.Enums;
 using Microsoft.AspNetCore.Components.RenderTree;
 using System.ComponentModel.DataAnnotations;
+using Masar.Domain.ViewModels.AuthDtos;
 
 namespace Masar.Controllers
 {
@@ -20,6 +21,7 @@ namespace Masar.Controllers
         private readonly IProfileService _profileService;
         private readonly IJobService _jobService;
         private readonly IApplicationService _applicationService;
+        private readonly IAuthService _authService;
         private readonly UserManager<ApplicationUser> _userManager;
 
         public CompanyController(
@@ -27,13 +29,15 @@ namespace Masar.Controllers
             IProfileService profileService,
             IJobService jobService,
             UserManager<ApplicationUser> userManager,
-            IApplicationService applicationService)
+            IApplicationService applicationService,
+            IAuthService authService)
         {
             _dashboardService = dashboardService;
             _profileService = profileService;
             _jobService = jobService;
             _userManager = userManager;
             _applicationService = applicationService;
+            _authService = authService;
         }
 
         // ── Dashboard ─────────────────────────────────────────
@@ -231,6 +235,40 @@ namespace Masar.Controllers
 
             TempData["Success"] = "Job updated successfully!";
             return RedirectToAction(nameof(Jobs));
+        }
+
+        // ── Change Password ─────────────────────────────────────────
+        [HttpGet]
+        public IActionResult ChangePassword()
+        {
+            ViewData["ReturnController"] = "Company";
+            return View(new ChangePasswordDto());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(ChangePasswordDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewData["ReturnController"] = "Company";
+                return View(dto);
+            }
+
+            var userId = _userManager.GetUserId(User);
+            var (success, errors) = await _authService.ChangePasswordAsync(userId!, dto);
+
+            if (!success)
+            {
+                foreach (var error in errors)
+                    ModelState.AddModelError(string.Empty, error);
+
+                ViewData["ReturnController"] = "Company";
+                return View(dto);
+            }
+
+            TempData["ProfileSuccess"] = "Password changed successfully.";
+            return RedirectToAction(nameof(Profile));
         }
 
         // ── Toggle Active/Closed ──────────────────────────────

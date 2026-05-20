@@ -147,7 +147,7 @@
 
     @if (Model.ProfessionalLinks.Any())
     {
-        <div>
+        <div class="d-flex flex-column gap-2">
             @foreach (var link in Model.ProfessionalLinks)
             {
                 string icon = (int)link.LinkName switch
@@ -175,7 +175,7 @@
                     _ => "Other"
                 };
 
-                <div class="saved-link-row">
+                <div class="d-flex align-items-center">
                     <div class="saved-link-icon-wrap">
                         <span class="iconify"
                               data-icon="@icon"
@@ -196,4 +196,24 @@
             <p class="text-muted mb-2" style="font-size:.875rem;">No links added yet.</p>
         </div>
     }
+</div>
+
+@* ── Security ────────────────────────────────────────────── *@
+<div class="app-card mb-4">
+    <div class="card-section-header">
+        <div class="card-section-title">
+            <span class="iconify" data-icon="lucide:lock-keyhole"></span>
+            Security
+        </div>
+        <a asp-controller="Company" asp-action="ChangePassword" class="btn-edit-section">
+            <span class="iconify" data-icon="lucide:square-pen"></span> Change
+        </a>
+    </div>
+
+    <div class="col-12">
+        <div class="profile-field-label">Current Password</div>
+        <div class="profile-field-value">
+            **************************
+        </div>
+    </div>
 </div>

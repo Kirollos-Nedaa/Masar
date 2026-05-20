@@ -100,13 +100,31 @@ namespace Masar.Controllers
             if (vm == null) return NotFound();
 
             if (vm.Job.RequireCoverLetter && string.IsNullOrWhiteSpace(Form.CoverLetter))
-                ModelState.AddModelError("Form.CoverLetter", "Cover letter is required for this position.");
+                ModelState.AddModelError("Form.CoverLetter", "You must fill out the Cover letter.");
 
             if (vm.Job.RequireCoverLetter && Form.CoverLetter?.Length < 100)
                 ModelState.AddModelError("Form.CoverLetter", "Cover letter must be at least 100 characters.");
 
+            if (vm.Job.RequireCv)
+            {
+                var uploadedFile = Request.Form.Files["resumeFile"];
+                bool hasUpload = uploadedFile != null && uploadedFile.Length > 0;
+                bool hasExisting = Form.UseExistingResume && !string.IsNullOrEmpty(Form.ExistingResumeUrl);
+
+                if (!hasUpload && !hasExisting)
+                    ModelState.AddModelError(string.Empty, "You must upload your Resume.");
+            }
+
             if (!ModelState.IsValid)
             {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+                    return Json(new { success = false, messages = errors });
+                }
                 vm.Form = Form;
                 return View(vm);
             }
@@ -117,9 +135,7 @@ namespace Masar.Controllers
             {
                 var resumeFile = Request.Form.Files["resumeFile"];
                 if (resumeFile != null && resumeFile.Length > 0)
-                {
                     uploadedResumeUrl = await _fileService.SaveResumeAsync(resumeFile, userId);
-                }
             }
 
             var (success, error) = await _applicationService.SubmitApplicationAsync(
@@ -127,6 +143,9 @@ namespace Masar.Controllers
 
             if (!success)
             {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return Json(new { success = false, messages = new[] { error ?? "An error occurred." } });
+
                 vm.Form = Form;
                 ModelState.AddModelError(string.Empty, error ?? "An error occurred.");
                 return View(vm);
@@ -135,9 +154,7 @@ namespace Masar.Controllers
             TempData["ApplySuccess"] = "Your application has been submitted successfully!";
 
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
                 return Json(new { success = true, redirectUrl = Url.Action("Details", "Jobs", new { id = jobId }) });
-            }
 
             return RedirectToAction("Details", "Jobs", new { id = jobId });
         }

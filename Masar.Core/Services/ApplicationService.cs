@@ -63,19 +63,20 @@ namespace Masar.Core.Services
                 Location = profile?.Location,
                 UseExistingResume = !string.IsNullOrEmpty(profile?.ResumeUrl),
                 ExistingResumeUrl = profile?.ResumeUrl,
-                ExistingResumeName = profile.ResumeOriginalName
+                ExistingResumeName = profile?.ResumeOriginalName
             };
 
             var jobDetail = new JobDetailDto
             {
                 Id = job.Id,
                 Title = job.Title,
-                JobType = job.JobType.ToString(),
+                JobType = job.JobType == JobType.FullTime ? "Full-time"
+                        : job.JobType == JobType.PartTime ? "Part-time"
+                        : job.JobType == JobType.Internship ? "Internship"
+                        : job.JobType.ToString(),
                 WorkMode = job.WorkMode.ToString(),
                 Location = job.Location,
-                SalaryDisplay = job.MinSalary != null && job.MaxSalary != null
-                    ? $"${job.MinSalary:N0}–${job.MaxSalary:N0}"
-                    : job.MinSalary != null ? $"From ${job.MinSalary:N0}" : null,
+                SalaryDisplay = job.MinSalary.ToSalaryDisplay(job.MaxSalary),
                 CompanyName = job.Company.Name,
                 CompanyLogo = job.Company.LogoUrl,
                 RequireCv = job.RequireCv,
@@ -107,7 +108,8 @@ namespace Masar.Core.Services
             };
         }
 
-        public async Task<(bool Success, string? Error)> SubmitApplicationAsync(int jobId, string userId, ApplyJobDto dto, string? resumeUrl)
+        public async Task<(bool Success, string? Error)> SubmitApplicationAsync(
+            int jobId, string userId, ApplyJobDto dto, string? uploadedResumeUrl)
         {
             await _jobLifecycleService.CloseExpiredJobsAsync();
 
@@ -127,13 +129,24 @@ namespace Masar.Core.Services
             if (job == null)
                 return (false, "This job is no longer accepting applications.");
 
+            string? finalResumeUrl = null;
+
+            if (uploadedResumeUrl != null)
+            {
+                finalResumeUrl = uploadedResumeUrl;
+            }
+            else if (dto.UseExistingResume && !string.IsNullOrEmpty(dto.ExistingResumeUrl))
+            {
+                finalResumeUrl = dto.ExistingResumeUrl;
+            }
+
             var application = new JobApplication
             {
                 JobId = jobId,
                 CandidateProfileId = profile.Id,
                 Status = ApplicationStatus.Applied,
                 AppliedDate = DateTime.UtcNow,
-                ResumeUrl = resumeUrl ?? dto.ExistingResumeUrl,
+                ResumeUrl = finalResumeUrl,
                 CoverLetter = dto.CoverLetter
             };
 
@@ -190,14 +203,12 @@ namespace Masar.Core.Services
 
         public async Task<ApplicantsViewDto?> GetApplicantsAsync(int jobId, string companyUserId, string? searchQuery = null, string? statusFilter = null, string? sortFilter = null, int page = 1, int pageSize = 6)
         {
-            // 1. Verify ownership
             var job = await _context.Jobs
                 .Include(j => j.Company)
                 .FirstOrDefaultAsync(j => j.Id == jobId && j.Company.UserId == companyUserId);
 
             if (job == null) return null;
 
-            // 2. Stat counts — always over ALL applicants, ignoring any active filter
             var allStatuses = await _context.JobApplications
                 .Where(a => a.JobId == jobId)
                 .Select(a => a.Status)
@@ -208,7 +219,6 @@ namespace Masar.Core.Services
             int underReview = allStatuses.Count(s => s == ApplicationStatus.UnderReview);
             int rejected = allStatuses.Count(s => s == ApplicationStatus.Rejected);
 
-            // 3. Filtered query for the card list
             var query = _context.JobApplications
                 .Where(a => a.JobId == jobId)
                 .AsQueryable();
@@ -228,11 +238,10 @@ namespace Masar.Core.Services
                 query = query.Where(a => a.Status == parsedStatus);
             }
 
-            // 4. Sort
             query = sortFilter switch
             {
                 "oldest" => query.OrderBy(a => a.AppliedDate),
-                _ => query.OrderByDescending(a => a.AppliedDate)   // default: most recent
+                _ => query.OrderByDescending(a => a.AppliedDate)
             };
 
             pageSize = pageSize <= 0 ? 6 : pageSize;
@@ -243,7 +252,6 @@ namespace Masar.Core.Services
                 ? Math.Min(Math.Max(page, 1), totalPages)
                 : 1;
 
-            // 5. Project to DTO
             var cards = await query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
@@ -258,22 +266,22 @@ namespace Masar.Core.Services
                     Status = a.Status.ToString(),
                     AppliedDate = a.AppliedDate,
                     Skills = a.Candidate.CandidateSkills
-                                            .Select(cs => cs.Skill.Name)
-                                            .Take(6)
-                                            .ToList(),
+                                    .Select(cs => cs.Skill.Name)
+                                    .Take(6)
+                                    .ToList(),
                     LatestEducation = a.Candidate.Educations
-                                            .OrderByDescending(e => e.ExpectedGraduation)
-                                            .Select(e => e.University + " - " + e.Degree + " " + e.Major)
-                                            .FirstOrDefault(),
-                    ResumeUrl = a.ResumeUrl ?? a.Candidate.ResumeUrl,
+                                    .OrderByDescending(e => e.ExpectedGraduation)
+                                    .Select(e => e.University + " - " + e.Degree + " " + e.Major)
+                                    .FirstOrDefault(),
+                    ResumeUrl = a.ResumeUrl,
                     professionalLinks = a.Candidate.ProfessionalLinks
-                                            .Select(pl => new ProfessionalLinkDto
-                                            {
-                                                Id = pl.Id,
-                                                Url = pl.Url,
-                                                LinkName = pl.LinksNames
-                                            })
-                                            .ToList()
+                                    .Select(pl => new ProfessionalLinkDto
+                                    {
+                                        Id = pl.Id,
+                                        Url = pl.Url,
+                                        LinkName = pl.LinksNames
+                                    })
+                                    .ToList()
                 })
                 .ToListAsync();
 
@@ -296,9 +304,9 @@ namespace Masar.Core.Services
             };
         }
 
-        public async Task<(bool Success, string? Error)> UpdateApplicationStatusAsync(string userId, int applicationId, ApplicationStatus newStatus)
+        public async Task<(bool Success, string? Error)> UpdateApplicationStatusAsync(
+            string userId, int applicationId, ApplicationStatus newStatus)
         {
-            // Load via company ownership check
             var application = await _context.JobApplications
                 .Include(a => a.Job)
                 .ThenInclude(j => j.Company)
@@ -333,16 +341,12 @@ namespace Masar.Core.Services
 
             if (application is null) return null;
 
-            // Advance status: Applied → UnderReview (never go backwards)
             if (application.Status == ApplicationStatus.Applied)
             {
                 application.Status = ApplicationStatus.UnderReview;
                 await _context.SaveChangesAsync();
             }
 
-            var links = application.Candidate.ProfessionalLinks;
-
-            // Build answer list matched to question text
             var answers = application.Job.JobQuestions
                 .Select(q =>
                 {
@@ -386,8 +390,8 @@ namespace Masar.Core.Services
                     })
                     .ToList(),
                 Answers = answers,
-                ResumeUrl = application.ResumeUrl ?? application.Candidate.ResumeUrl,
-                CoverLetter = application.CoverLetter.ToString(),
+                ResumeUrl = application.ResumeUrl,
+                CoverLetter = application.CoverLetter,
                 professionalLinks = application.Candidate.ProfessionalLinks
                     .Select(pl => new ProfessionalLinkDto
                     {
@@ -407,11 +411,9 @@ namespace Masar.Core.Services
                 .FirstOrDefaultAsync(a => a.Id == applicationId && a.Job.Company.UserId == companyUserId);
 
             if (application is null) return false;
-
             if (application.Status == ApplicationStatus.Accepted) return true;
 
             application.Status = ApplicationStatus.Accepted;
-
             await _context.SaveChangesAsync();
             return true;
         }

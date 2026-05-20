@@ -1594,6 +1594,7 @@ body.app-body {
     white-space: nowrap;
     flex-shrink: 0;
     min-width: 100px;
+    text-align: center;
 }
 
 .saved-link-url {
@@ -2395,9 +2396,9 @@ body.app-body {
 }
 
 .apply-job-logo {
-    width: 48px;
-    height: 48px;
-    border-radius: var(--radius-md);
+    width: 68px;
+    height: 68px;
+    border-radius: 999px;
     background: var(--blue-50);
     border: 1px solid var(--blue-100);
     display: flex;
@@ -2461,7 +2462,6 @@ body.app-body {
     color: var(--dark);
     margin-bottom: 1.25rem;
     padding-bottom: .75rem;
-    border-bottom: 1px solid var(--border);
 }
 
 .resume-option {
@@ -2612,6 +2612,65 @@ body.app-body {
     justify-content: flex-end;
     gap: .75rem;
     margin-top: 1.5rem;
+}
+
+/* ── Change Password ──────────────────────────────────────── */
+.btn-toggle-pw-epi {
+    position: absolute;
+    right: .75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    font-size: 1.15rem;
+    transition: color .15s;
+    z-index: 2;
+}
+
+    .btn-toggle-pw-epi:hover {
+        color: var(--blue);
+    }
+
+.pw-wrap .epi-input {
+    padding-right: 2.75rem;
+}
+
+.change-pw-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 1.25rem 0;
+}
+
+.pw-strength-wrap {
+    display: flex;
+    align-items: center;
+    gap: .625rem;
+}
+
+.pw-strength-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.pw-strength-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width .3s ease, background-color .3s ease;
+    width: 0%;
+}
+
+.pw-strength-label {
+    font-size: .75rem;
+    font-weight: 700;
+    min-width: 50px;
+    text-align: right;
 }
 
 /* ── Misc utilities ──────────────────────────────────────── */

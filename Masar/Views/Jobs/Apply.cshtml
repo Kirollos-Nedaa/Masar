@@ -126,53 +126,68 @@
                     Resume/CV <span style="color:var(--red)">*</span>
                 </div>
 
+                @* Single hidden input replaces the radio group.
+           JS flips its value when the candidate switches modes. *@
+                <input type="hidden"
+                       name="Form.UseExistingResume"
+                       id="useExistingHidden"
+                       value="@(!string.IsNullOrEmpty(f.ExistingResumeUrl) ? "true" : "false")" />
+
                 @if (!string.IsNullOrEmpty(f.ExistingResumeUrl))
                 {
-                    <label class="resume-option">
-                        <input type="radio" name="Form.UseExistingResume" value="true"
-                               id="useExisting" checked="@f.UseExistingResume"
-                               onchange="toggleResumeSection()" />
-                        Use my existing resume
-                    </label>
-
-                    <label class="resume-option">
-                        <input type="radio" name="Form.UseExistingResume" value="false"
-                               id="uploadNew" checked="@(!f.UseExistingResume)"
-                               onchange="toggleResumeSection()" />
-                        Upload a new resume
-                    </label>
-
-                    <div id="existingResumePanel" style="display:@(f.UseExistingResume ? "block" : "none");">
+                    @* ── Panel A: profile resume ── *@
+                    <div id="existingResumePanel">
                         <div class="resume-existing-file">
                             <div class="resume-file-icon">
                                 <span class="iconify" data-icon="lucide:file-text"></span>
                             </div>
                             <div>
                                 <div class="resume-file-name">@(f.ExistingResumeName ?? "My Resume")</div>
-                                <div class="resume-file-sub">Previously uploaded in profile</div>
+                                <div class="resume-file-sub">From your profile</div>
                             </div>
-                            <a href="@f.ExistingResumeUrl" target="_blank" class="resume-replace-btn">
-                                <span class="iconify" data-icon="lucide:eye"></span> View
-                            </a>
+                            <div class="ms-auto d-flex align-items-center gap-2 flex-shrink-0">
+                                <a href="@f.ExistingResumeUrl" target="_blank" class="resume-replace-btn">
+                                    <span class="iconify" data-icon="lucide:eye"></span> View
+                                </a>
+                                <button type="button" class="resume-replace-btn" onclick="switchToUpload()">
+                                    <span class="iconify" data-icon="lucide:upload-cloud"></span>
+                                    Use a different file
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <div id="uploadNewPanel" style="display:@(f.UseExistingResume ? "none" : "block");">
-                        <input type="file" name="resumeFile" id="resumeFile" accept=".pdf,.doc,.docx" class="d-none" />
-                        <div class="resume-upload-zone" onclick="document.getElementById('resumeFile').click()">
-                            <span class="iconify" style="font-size:2rem;display:block;margin:0 auto .5rem;color:var(--border);" data-icon="lucide:upload-cloud"></span>
+                    @* ── Panel B: upload zone ── *@
+                    <div id="uploadNewPanel" style="display:none;">
+                        <input type="file" name="resumeFile" id="resumeFile"
+                               accept=".pdf,.doc,.docx" class="d-none" />
+                        <div class="resume-upload-zone"
+                             onclick="document.getElementById('resumeFile').click()">
+                            <span class="iconify"
+                                  style="font-size:2rem;display:block;margin:0 auto .5rem;color:var(--border);"
+                                  data-icon="lucide:upload-cloud"></span>
                             <p class="mb-1" style="font-weight:600;">Click to upload or drag and drop</p>
                             <p class="text-muted mb-0" style="font-size:.8rem;">PDF, DOC, DOCX</p>
                         </div>
                         <p id="resumeFileName" class="resume-hint fw-bold text-success mt-2"></p>
+                        <button type="button"
+                                class="resume-replace-btn mt-2"
+                                onclick="switchToExisting()">
+                            <span class="iconify" data-icon="lucide:arrow-left"></span>
+                            Use my profile resume instead
+                        </button>
                     </div>
                 }
                 else
                 {
-                    <input type="hidden" name="Form.UseExistingResume" value="false" />
-                    <input type="file" name="resumeFile" id="resumeFile" accept=".pdf,.doc,.docx" class="d-none" />
-                    <div class="resume-upload-zone" onclick="document.getElementById('resumeFile').click()">
-                        <span class="iconify" style="font-size:2rem;display:block;margin:0 auto .5rem;color:var(--border);" data-icon="lucide:upload-cloud"></span>
+                    @* No profile resume — show upload zone directly, no toggle needed *@
+                    <input type="file" name="resumeFile" id="resumeFile"
+                           accept=".pdf,.doc,.docx" class="d-none" />
+                    <div class="resume-upload-zone"
+                         onclick="document.getElementById('resumeFile').click()">
+                        <span class="iconify"
+                              style="font-size:2rem;display:block;margin:0 auto .5rem;color:var(--border);"
+                              data-icon="lucide:upload-cloud"></span>
                         <p class="mb-1" style="font-weight:600;">Click to upload or drag and drop</p>
                         <p class="text-muted mb-0" style="font-size:.8rem;">PDF, DOC, DOCX</p>
                     </div>
@@ -247,7 +262,7 @@
 
         @* ── Section 5: Terms ────────────────────────────── *@
         <div class="apply-section">
-            <label class="terms-check-label">
+            <label class="terms-check-label align-items-center">
                 <input asp-for="Form.AgreeToTerms" type="checkbox" data-val="false" />
                 <div>
                     <div class="terms-check-title">
@@ -261,7 +276,7 @@
             </label>
             <span asp-validation-for="Form.AgreeToTerms" class="epi-error"></span>
 
-            <label class="terms-check-label mt-2">
+            <label class="terms-check-label align-items-center mt-3">
                 <input asp-for="Form.ConsentToDataProcessing" type="checkbox" data-val="false" />
                 <div>
                     <div class="terms-check-title">
@@ -291,81 +306,33 @@
     </form>
 </div>
 
+<div id="toastContainer"></div>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 
-    <style>
-        /* Toast & Progress Bar Styles */
-        #toastContainer {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1055;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .masar-toast {
-            min-width: 250px;
-            padding: 15px;
-            border-radius: 8px;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            opacity: 0;
-            transform: translateY(10px);
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-
-            .masar-toast.show {
-                opacity: 1;
-                transform: translateY(0);
-            }
-
-        .masar-toast-success {
-            background-color: #10b981;
-        }
-
-        .masar-toast-error {
-            background-color: #ef4444;
-        }
-
-        .masar-progress-container {
-            width: 100%;
-            height: 6px;
-            background: #e5e7eb;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-
-        .masar-progress-bar {
-            height: 100%;
-            background: var(--primary);
-            width: 0%;
-            transition: width 0.2s linear;
-        }
-    </style>
-
-    <div id="toastContainer"></div>
 
     <script>
         function updateCount(el, id) {
             document.getElementById(id).textContent = `${el.value.length} / ${el.maxLength}`;
         }
 
-        function toggleResumeSection() {
-            const useExistingRadio = document.querySelector('input[name="Form.UseExistingResume"]:checked');
-            const useExisting = useExistingRadio ? useExistingRadio.value === 'true' : false;
+        // ── Resume panel toggle ───────────────────────────────────────────────────
+        function switchToUpload() {
+            document.getElementById('existingResumePanel').style.display = 'none';
+            document.getElementById('uploadNewPanel').style.display   = 'block';
+            document.getElementById('useExistingHidden').value = 'false';
+        }
 
-            const existingPanel = document.getElementById('existingResumePanel');
-            const uploadPanel   = document.getElementById('uploadNewPanel');
-
-            if (existingPanel) existingPanel.style.display = useExisting ? 'block' : 'none';
-            if (uploadPanel)   uploadPanel.style.display   = useExisting ? 'none'  : 'block';
+        function switchToExisting() {
+            document.getElementById('existingResumePanel').style.display = 'block';
+            document.getElementById('uploadNewPanel').style.display   = 'none';
+            document.getElementById('useExistingHidden').value = 'true';
+            // Clear any file the candidate had selected in the upload zone
+            const fi = document.getElementById('resumeFile');
+            if (fi) fi.value = '';
+            const label = document.getElementById('resumeFileName');
+            if (label) label.textContent = '';
         }
 
         // Show file name when upload selected
@@ -383,11 +350,25 @@
             var container = document.getElementById('toastContainer');
             var toast = document.createElement('div');
             toast.className = 'masar-toast ' + (isError ? 'masar-toast-error' : 'masar-toast-success');
-            toast.innerHTML = `<span class="iconify" data-icon="${isError ? 'lucide:circle-x' : 'lucide:check-circle'}" style="font-size:1.5rem"></span> <div>${message}</div>`;
+
+            var icon = `<span class="iconify"
+                data-icon="${isError ? 'lucide:circle-x' : 'lucide:check-circle'}"
+                style="font-size:1.5rem;flex-shrink:0;"></span>`;
+
+            var body;
+            if (Array.isArray(message) && message.length > 1) {
+                var items = message.map(m => `<li>${m}</li>`).join('');
+                body = `<ul style="margin:0;padding-left:1.1rem;line-height:1.6;">${items}</ul>`;
+            } else {
+                var text = Array.isArray(message) ? message[0] : message;
+                body = `<div>${text}</div>`;
+            }
+
+            toast.innerHTML = `${icon} ${body}`;
             container.appendChild(toast);
             Iconify.scan(toast);
             setTimeout(() => toast.classList.add('show'), 10);
-            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 5000);
         }
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -421,18 +402,7 @@
             const form = this;
             const fileInput = document.getElementById('resumeFile');
             const requireCv = @job.RequireCv.ToString().ToLower();
-
-            // Check if user chose to use an existing resume
-            const useExistingRadio = document.querySelector('input[name="Form.UseExistingResume"]:checked');
-            // If they don't have an existing resume, the hidden input value="false" will be used
-            const hiddenUseExisting = document.querySelector('input[type="hidden"][name="Form.UseExistingResume"]');
-
-            let useExisting = false;
-            if (useExistingRadio && useExistingRadio.value === 'true') {
-                useExisting = true;
-            } else if (hiddenUseExisting && hiddenUseExisting.value === 'true') {
-                useExisting = true; // Just in case
-            }
+            const useExisting = document.getElementById('useExistingHidden')?.value === 'true';
 
             // File Validation
             if (requireCv && !useExisting) {
@@ -493,7 +463,7 @@
                             showToast("Application submitted successfully!");
                             setTimeout(() => window.location.href = res.redirectUrl, 1500);
                         } else {
-                            showToast(res.message || "An error occurred during submission.", true);
+                            showToast(res.messages || res.message || "An error occurred during submission.", true);
                             resetBtn();
                         }
                     } catch {

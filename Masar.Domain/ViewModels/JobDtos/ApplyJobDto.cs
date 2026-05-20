@@ -30,7 +30,7 @@ namespace Masar.Domain.ViewModels.JobDtos
         public string? ExistingResumeUrl { get; set; }
 
         // ── Cover Letter ──────────────────────────────────────
-        public string CoverLetter { get; set; } = string.Empty;
+        public string? CoverLetter { get; set; }
 
         // ── Terms ─────────────────────────────────────────────
         [Range(typeof(bool), "true", "true", ErrorMessage = "You must agree to the terms and conditions.")]

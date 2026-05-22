@@ -404,10 +404,17 @@ namespace Masar.Core.Services
 
             bool isSaved = false;
             bool hasApplied = false;
+            int completionScore = 0;
+            bool isProfileComplete = true;
 
             if (!string.IsNullOrEmpty(candidateUserId))
             {
+                var user = await _context.Users.FindAsync(candidateUserId);
+
                 var profile = await _context.CandidateProfiles
+                    .Include(p => p.CandidateSkills)
+                    .Include(p => p.Educations)
+                    .Include(p => p.ProfessionalLinks)
                     .FirstOrDefaultAsync(p => p.UserId == candidateUserId);
 
                 if (profile != null)
@@ -417,6 +424,13 @@ namespace Masar.Core.Services
 
                     hasApplied = await _context.JobApplications
                         .AnyAsync(a => a.CandidateProfileId == profile.Id && a.JobId == jobId);
+
+                    completionScore = profile.CalculateProfileCompletion(user);
+                    isProfileComplete = profile.IsProfileComplete(user);
+                }
+                else
+                {
+                    isProfileComplete = false;
                 }
             }
 
@@ -447,7 +461,9 @@ namespace Masar.Core.Services
                 CompanySize = job.Company.Size?.ToString(),
                 CreatedAt = job.Company.CreatedAt.ToString("yyyy"),
                 IsSaved = isSaved,
-                HasApplied = hasApplied
+                HasApplied = hasApplied,
+                IsProfileComplete = isProfileComplete,
+                ProfileCompletionPercentage = completionScore
             };
         }
 

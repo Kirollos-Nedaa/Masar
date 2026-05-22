@@ -41,5 +41,7 @@ namespace Masar.Domain.ViewModels.JobDtos
         // ── Candidate State ───────────────────────────────────
         public bool IsSaved { get; set; }
         public bool HasApplied { get; set; }
+        public bool IsProfileComplete { get; set; }
+        public int ProfileCompletionPercentage { get; set; }
     }
 }

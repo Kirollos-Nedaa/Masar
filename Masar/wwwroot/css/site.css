@@ -469,6 +469,180 @@ body.app-body {
     padding: 1.5rem;
 }
 
+/* ── Security Card ───────────────────────────────────────────────── */
+.connected-card-row {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 8px 12px;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+}
+
+/* ── Typography & Hierarchy ──────────────────────────────────────── */
+.connected-row-title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--dark);
+    transition: color 0.2s ease;
+}
+
+/* ── Icon Container ──────────────────────────────────────────────── */
+.connected-row-icon {
+    width: 40px;
+    height: 40px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+    .connected-row-icon .iconify {
+        width: 1.1rem;
+        height: 1.1rem;
+    }
+
+.connected-chevron-icon {
+    color: var(--green-dark);
+    font-size: 1.2rem;
+}
+
+/* ── Security Card ───────────────────────────────────────────────── */
+.security-card-row {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 8px 12px;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+}
+
+    .security-card-row:hover {
+        border-color: var(--blue);
+        background: var(--blue-100);
+    }
+        .security-card-row:hover .iconify {
+            color: var(--blue);
+        }
+
+/* ── Typography & Hierarchy ──────────────────────────────────────── */
+.security-row-title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--dark);
+    transition: color 0.2s ease;
+}
+
+.security-card-row:hover .security-row-title {
+    color: var(--blue);
+}
+
+.security-card-row:hover .security-row-icon:hover .iconify {
+    color: var(--blue);
+}
+
+.security-card-row:hover .security-row-icon {
+    color: var(--blue);
+    border-color: var(--blue);
+}
+
+
+/* ── Icon Container ──────────────────────────────────────────────── */
+.security-row-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+}
+    .security-row-icon .iconify {
+        color: var(--dark);
+        width: 1.1rem;
+        height: 1.1rem;
+        transition: all 0.15s ease;
+    }
+
+.chevron-icon {
+    color: var(--dark);
+    font-size: 1.2rem;
+    transition: all 0.15s ease-in-out;
+}
+
+.security-card-row:hover .chevron-icon {
+    transform: translateX(4px);
+}
+
+/* ── Delete Card ───────────────────────────────────────────────── */
+.delete-card-row {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 8px 12px;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+}
+
+    .delete-card-row:hover {
+        border-color: var(--red);
+        background: var(--red-50);
+    }
+
+        .delete-card-row:hover .iconify {
+            color: var(--red);
+        }
+
+/* ── Typography & Hierarchy ──────────────────────────────────────── */
+.delete-row-title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--dark);
+    transition: color 0.2s ease;
+}
+
+.delete-card-row:hover .delete-row-title {
+    color: var(--red);
+}
+
+.delete-card-row:hover .delete-row-icon:hover .iconify {
+    color: var(--red);
+}
+
+.delete-card-row:hover .delete-row-icon {
+    color: var(--red);
+}
+
+
+/* ── Icon Container ──────────────────────────────────────────────── */
+.delete-row-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+}
+
+    .delete-row-icon .iconify {
+        color: var(--dark);
+        width: 1.1rem;
+        height: 1.1rem;
+        transition: all 0.15s ease;
+    }
+
+.chevron-icon {
+    color: var(--dark);
+    font-size: 1.2rem;
+    transition: all 0.15s ease-in-out;
+}
+
+.delete-card-row:hover .chevron-icon {
+    transform: translateX(4px);
+}
+
 /* ── Stat cards ──────────────────────────────────────────── */
 .stat-card {
     background: var(--white);

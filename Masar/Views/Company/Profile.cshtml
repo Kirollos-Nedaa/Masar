@@ -6,7 +6,7 @@
 }
 
 @section Sidebar {
-    <partial name="_CompanySidebar" />
+<partial name="_CompanySidebar" />
 }
 
 @* ── Page Header ──────────────────────────────────────────── *@
@@ -178,8 +178,8 @@
                 <div class="d-flex align-items-center">
                     <div class="saved-link-icon-wrap">
                         <span class="iconify"
-                              data-icon="@icon"
-                              style="color:@color;width:1.1rem;height:1.1rem;"></span>
+                        data-icon="@icon"
+                        style="color:@color;width:1.1rem;height:1.1rem;"></span>
                     </div>
                     <span class="saved-link-name">@label</span>
                     <a href="@link.Url" target="_blank" class="saved-link-url">@link.Url</a>
@@ -191,29 +191,99 @@
     {
         <div class="text-center py-3">
             <span class="iconify"
-                  data-icon="lucide:link"
-                  style="width:2rem;height:2rem;color:var(--border);display:block;margin:0 auto .5rem;"></span>
+            data-icon="lucide:link"
+            style="width:2rem;height:2rem;color:var(--border);display:block;margin:0 auto .5rem;"></span>
             <p class="text-muted mb-2" style="font-size:.875rem;">No links added yet.</p>
         </div>
     }
 </div>
 
-@* ── Security ────────────────────────────────────────────── *@
+@* ── Connected Service ────────────────────────────────────────────── *@
 <div class="app-card mb-4">
     <div class="card-section-header">
         <div class="card-section-title">
-            <span class="iconify" data-icon="lucide:lock-keyhole"></span>
-            Security
+            <span class="iconify" data-icon="lucide:shield-check"></span>
+            Authentication Methods
         </div>
-        <a asp-controller="Company" asp-action="ChangePassword" class="btn-edit-section">
-            <span class="iconify" data-icon="lucide:square-pen"></span> Change
-        </a>
     </div>
 
-    <div class="col-12">
-        <div class="profile-field-label">Current Password</div>
-        <div class="profile-field-value">
-            **************************
+    <div class="d-flex flex-column gap-3 col-12">
+        @if (Model.HasLocalPassword)
+        {
+            <div class="connected-card-row d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="connected-row-icon">
+                        <span class="iconify" data-icon="lucide:mail"></span>
+                    </div>
+                    <div class="d-flex flex-column">
+                        <span class="connected-row-title">Email & Password</span>
+                    </div>
+                </div>
+                <span class="iconify connected-chevron-icon" data-icon="lucide:check"></span>
+            </div>
+        }
+
+        @foreach (var provider in Model.LoginProviders)
+        {
+            <div class="connected-card-row d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="connected-row-icon">
+                        @* Dynamically select the icon based on the provider name *@
+                        @if (provider.Equals("Google", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <span class="iconify" data-icon="flat-color-icons:google"></span>
+                        }
+                        else if (provider.Equals("GitHub", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <span class="iconify" data-icon="mdi:github" style="color: #333;"></span>
+                        }
+                        else
+                        {
+                            @* Fallback icon for other future providers *@
+                            <span class="iconify" data-icon="lucide:key"></span>
+                        }
+                    </div>
+                    <div class="d-flex flex-column">
+                        <span class="connected-row-title">@provider</span>
+                    </div>
+                </div>
+                <span class="iconify connected-chevron-icon" data-icon="lucide:check"></span>
+            </div>
+        }
+    </div>
+</div>
+
+@* ── Account Management ────────────────────────────────────────────── *@
+<div class="app-card mb-4">
+    <div class="card-section-header">
+        <div class="card-section-title">
+            <span class="iconify" data-icon="lucide:activity"></span>
+            Account Managemet
         </div>
+    </div>
+
+    <div class="d-flex flex-column gap-3 col-12">
+        <a asp-controller="Company" asp-action="ChangePassword" class="security-card-row d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+                <div class="security-row-icon">
+                    <span class="iconify" data-icon="lucide:lock-keyhole"></span>
+                </div>
+                <div class="d-flex flex-column">
+                    <span class="security-row-title">Change Password</span>
+                </div>
+            </div>
+            <span class="iconify chevron-icon" data-icon="lucide:chevron-right"></span>
+        </a>
+        <a asp-controller="Company" asp-action="DeleteAccount" method="post" class="delete-card-row d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+                <div class="delete-row-icon">
+                    <span class="iconify" data-icon="lucide:trash-2"></span>
+                </div>
+                <div class="d-flex flex-column">
+                    <span class="delete-row-title">Delete Account</span>
+                </div>
+            </div>
+            <span class="iconify chevron-icon" data-icon="lucide:chevron-right"></span>
+        </a>
     </div>
 </div>

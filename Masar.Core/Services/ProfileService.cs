@@ -43,17 +43,39 @@ namespace Masar.Core.Services
                 .Include(p => p.ProfessionalLinks)
                 .FirstOrDefaultAsync(p => p.UserId == userId);
 
-            return MapToCandidateProfileDto(user, profile);
+            var dto = MapToCandidateProfileDto(user, profile);
+
+            if (user != null)
+            {
+                dto.LoginProviders = (await _userManager.GetLoginsAsync(user))
+                                          .Select(l => l.LoginProvider)
+                                          .ToList();
+                dto.HasLocalPassword = await _userManager.HasPasswordAsync(user);
+            }
+
+            return dto;
         }
 
         public async Task<CompanyProfileDto> GetMyCompanyProfileAsync(string userId)
         {
+            var user = await _userManager.FindByIdAsync(userId);
+
             var profile = await _context.CompanyProfiles
                 .Include(p => p.ContactInfo)
                 .Include(p => p.ProfessionalLinks)
                 .FirstOrDefaultAsync(p => p.UserId == userId);
 
-            return MapToCompanyProfileDto(profile);
+            var dto = MapToCompanyProfileDto(profile);
+
+            if (user != null)
+            {
+                dto.LoginProviders = (await _userManager.GetLoginsAsync(user))
+                                          .Select(l => l.LoginProvider)
+                                          .ToList();
+                dto.HasLocalPassword = await _userManager.HasPasswordAsync(user);
+            }
+
+            return dto;
         }
 
         public async Task<CandidateProfileDto> GetCandidateProfileAsync(int candidateProfileId)

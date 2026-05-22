@@ -25,5 +25,8 @@ namespace Masar.Domain.ViewModels.CompanyDtos
 
         // ── Social Links ──────────────────────────────────────
         public List<ProfessionalLinkDto> ProfessionalLinks { get; set; } = new();
+
+        public IList<string> LoginProviders { get; set; } = new List<string>();
+        public bool HasLocalPassword { get; set; }
     }
 }

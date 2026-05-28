@@ -46,7 +46,7 @@ namespace Masar.Domain.ViewModels.Job
 
         // ── Application Details ───────────────────────────────
         [Required(ErrorMessage = "Application deadline is required.")]
-        [FutureDateTime(ErrorMessage = "Application deadline must be later than the current time.")]
+        [FutureDateTime]
         public DateTime ApplicationDeadline { get; set; } = DateTime.Now.AddDays(30);
 
         [Required(ErrorMessage = "Number of openings is required.")]

@@ -59,32 +59,19 @@
                             </td>
                             <td>
                                 <div class="d-flex gap-2 align-items-center">
-                                    <a asp-controller="Company"
-                                       asp-action="Applicants"
-                                       asp-route-jobId="@job.Id"
-                                       class="btn-table-action">
+                                    <a asp-controller="Company" asp-action="Applicants" asp-route-jobId="@job.Id" class="btn-table-action">
                                         <span class="iconify" data-icon="lucide:users"></span>
                                         Applicants
                                     </a>
-                                    <a asp-controller="Company"
-                                       asp-action="EditJob"
-                                       asp-route-id="@job.Id"
-                                       class="btn-table-action btn-table-ghost"
-                                       title="Edit">
+                                    <a asp-controller="Company" asp-action="EditJob" asp-route-id="@job.Id" class="btn-table-action btn-table-ghost" title="Edit">
                                         <span class="iconify" data-icon="lucide:pencil"></span>
                                     </a>
-                                    <form asp-controller="Company"
-                                          asp-action="ToggleJobStatus"
-                                          method="post"
-                                          style="display:inline;">
+                                    <form asp-controller="Company" asp-action="ToggleJobStatus" method="post" style="display:inline;">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="jobId" value="@job.Id" />
-                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
-                                        <button type="submit"
-                                                class="btn-table-action btn-table-ghost"
-                                                title="@(job.IsActive ? "Close" : "Reopen")">
-                                            <span class="iconify"
-                                                  data-icon="@(job.IsActive ? "lucide:archive" : "lucide:refresh-cw")"></span>
+                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                                        <button type="submit" class="btn-table-action btn-table-ghost" title="@(job.IsActive ? "Close" : "Reopen")">
+                                            <span class="iconify" data-icon="@(job.IsActive ? "lucide:archive" : "lucide:refresh-cw")"></span>
                                         </button>
                                     </form>
                                 </div>
@@ -106,27 +93,18 @@
                 </div>
 
                 <div class="app-pagination">
-                    <a asp-action="Jobs"
-                       asp-controller="Company"
-                       asp-route-page="@(Model.Page - 1)"
-                       class="app-page-btn @(Model.HasPreviousPage ? string.Empty : "disabled")">
+                    <a asp-action="Jobs" asp-controller="Company" asp-route-page="@(Model.Page - 1)" class="app-page-btn @(Model.HasPreviousPage ? string.Empty : "disabled")">
                         Previous
                     </a>
 
                     @for (var p = 1; p <= Model.TotalPages; p++)
                     {
-                        <a asp-action="Jobs"
-                           asp-controller="Company"
-                           asp-route-page="@p"
-                           class="app-page-btn @(p == Model.Page ? "active" : string.Empty)">
+                        <a asp-action="Jobs" asp-controller="Company" asp-route-page="@p" class="app-page-btn @(p == Model.Page ? "active" : string.Empty)">
                             @p
                         </a>
                     }
 
-                    <a asp-action="Jobs"
-                       asp-controller="Company"
-                       asp-route-page="@(Model.Page + 1)"
-                       class="app-page-btn @(Model.HasNextPage ? string.Empty : "disabled")">
+                    <a asp-action="Jobs" asp-controller="Company" asp-route-page="@(Model.Page + 1)" class="app-page-btn @(Model.HasNextPage ? string.Empty : "disabled")">
                         Next
                     </a>
                 </div>
@@ -136,8 +114,7 @@
     else
     {
         <div class="text-center py-5">
-            <span class="iconify" style="font-size:3rem;color:var(--border);display:block;margin:0 auto .75rem;"
-                  data-icon="lucide:briefcase"></span>
+            <span class="iconify" style="font-size:3rem;color:var(--border);display:block;margin:0 auto .75rem;" data-icon="lucide:briefcase"></span>
             <p class="text-muted mb-3">You haven't posted any jobs yet.</p>
             <a asp-controller="Company" asp-action="PostJob" class="btn-primary-app">
                 <span class="iconify" data-icon="lucide:plus-circle"></span>

@@ -10,7 +10,7 @@ namespace Masar.Core.IService
         Task<int> PostJobAsync(string userId, PostJobDto dto);
         Task<bool> UpdateJobAsync(string userId, int jobId, PostJobDto dto);
         Task<bool> DeleteJobAsync(string userId, int jobId);
-        Task<bool> ToggleJobStatusAsync(string userId, int jobId);
+        Task<(bool Success, bool WasExtended)> ToggleJobStatusAsync(string userId, int jobId);
         Task<PostJobDto?> GetJobForEditAsync(string userId, int jobId);
         Task<CompanyJobsViewDto> GetCompanyJobsAsync(string userId, int page = 1, int pageSize = 10);
 

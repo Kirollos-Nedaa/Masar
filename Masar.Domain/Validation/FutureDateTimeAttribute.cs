@@ -13,7 +13,7 @@ namespace Masar.Domain.Validation
 
             if (dateTime <= DateTime.Now)
             {
-                var message = ErrorMessage ?? $"{validationContext.DisplayName} must be later than the current time.";
+                var message = ErrorMessage ?? $"Date must be after {DateTime.Now.ToString("MM/dd/yyyy - HH:mm")}";
                 return new ValidationResult(message);
             }
 

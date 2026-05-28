@@ -41,7 +41,6 @@ namespace Masar.Controllers
         }
 
         // ── Dashboard ─────────────────────────────────────────
-
         [HttpGet]
         public async Task<IActionResult> Dashboard()
         {
@@ -51,7 +50,6 @@ namespace Masar.Controllers
         }
 
         // ── Profile ───────────────────────────────────────────
-
         [HttpGet]
         public async Task<IActionResult> Profile()
         {
@@ -123,11 +121,11 @@ namespace Masar.Controllers
 
             var userId = _userManager.GetUserId(User);
             await _profileService.UpdateCompanyInfoAsync(userId, dto);
+            TempData["SuccessMessage"] = "Company information updated successfully.";
             return RedirectToAction(nameof(Profile));
         }
 
         // ── Edit Links ──────────────────────────────────────
-
         [HttpGet]
         public async Task<IActionResult> EditLinks()
         {
@@ -141,11 +139,11 @@ namespace Masar.Controllers
         {
             var userId = _userManager.GetUserId(User);
             await _profileService.UpdateCompanyLinksAsync(userId, links);
+            TempData["SuccessMessage"] = "Links updated successfully.";
             return RedirectToAction(nameof(Profile));
         }
 
         // ── View Candidate Profile (read-only) ────────────────
-
         [HttpGet]
         public async Task<IActionResult> ViewCandidate(int id)
         {
@@ -154,7 +152,6 @@ namespace Masar.Controllers
         }
 
         // ── Job Posting ──────────────────────────────────────────
-
         [HttpGet]
         public IActionResult PostJob()
         {
@@ -166,14 +163,18 @@ namespace Masar.Controllers
         public async Task<IActionResult> PostJob(PostJobDto dto)
         {
             if (!ModelState.IsValid)
+            {
+                TempData["ErrorMessage"] = "Please complete all of the rquired fields.";
                 return View(dto);
+            }
 
             var userId = _userManager.GetUserId(User);
 
             try
             {
                 await _jobService.PostJobAsync(userId, dto);
-                TempData["Success"] = "Job posted successfully!";
+
+                TempData["SuccessMessage"] = "Job posted successfully!";
                 return RedirectToAction(nameof(Jobs));
             }
             catch (ValidationException ex)
@@ -189,7 +190,6 @@ namespace Masar.Controllers
         }
 
         // ── Edit Job ──────────────────────────────────────────
-
         [HttpGet]
         public async Task<IActionResult> EditJob(int id)
         {
@@ -233,7 +233,7 @@ namespace Masar.Controllers
             if (!success)
                 return NotFound();
 
-            TempData["Success"] = "Job updated successfully!";
+            TempData["SuccessMessage"] = "Job updated successfully!";
             return RedirectToAction(nameof(Jobs));
         }
 
@@ -267,38 +267,41 @@ namespace Masar.Controllers
                 return View(dto);
             }
 
-            TempData["ProfileSuccess"] = "Password changed successfully.";
+            TempData["SuccessMessage"] = "Password changed successfully.";
             return RedirectToAction(nameof(Profile));
         }
 
         // ── Toggle Active/Closed ──────────────────────────────
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleJobStatus(int jobId, string returnUrl = null)
         {
             var userId = _userManager.GetUserId(User);
-            await _jobService.ToggleJobStatusAsync(userId, jobId);
+            var result = await _jobService.ToggleJobStatusAsync(userId, jobId);
 
-            return LocalRedirect(returnUrl);
+            if (result.Success && result.WasExtended)
+            {
+                TempData["SuccessMessage"] = "The application deadline was automatically extended by 15 days.";
+            }
+            else if (result.Success)
+            {
+                TempData["SuccessMessage"] = "Job status updated successfully.";
+            }
+
+            return LocalRedirect(returnUrl ?? Url.Action("Jobs"));
         }
 
         // ── Jobs List ─────────────────────────────────────────
-
         [HttpGet]
         public async Task<IActionResult> Jobs(int page = 1)
         {
             var userId = _userManager.GetUserId(User);
             var jobs = await _jobService.GetCompanyJobsAsync(userId, page);
 
-            if (TempData["Success"] is string msg)
-                ViewBag.SuccessMessage = msg;
-
             return View(jobs);
         }
 
         // ── Applicants ────────────────────────────────────────
-
         [HttpGet]
         public async Task<IActionResult> Applicants(int jobId, string? search = null, string? status = null, string? sort = null, int page = 1)
         {
@@ -313,7 +316,6 @@ namespace Masar.Controllers
         }
 
         // ── Review application (GET — transitions Applied → UnderReview) ──────────────
-
         [HttpGet]
         public async Task<IActionResult> ReviewApplication(int applicationId)
         {
@@ -328,7 +330,6 @@ namespace Masar.Controllers
         }
 
         // ── Accept (POST) ─────────────────────────────────────────────────────────────
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AcceptApplication(int applicationId, int jobId)
@@ -339,12 +340,11 @@ namespace Masar.Controllers
             var ok = await _applicationService.AcceptApplicationAsync(applicationId, userId);
             if (!ok) return NotFound();
 
-            TempData["Success"] = "Applicant accepted successfully.";
+            TempData["SuccessMessage"] = "Applicant accepted successfully.";
             return RedirectToAction(nameof(Applicants), new { jobId });
         }
 
         // ── Reject (POST) ─────────────────────────────────────────────────────────────
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RejectApplication(int applicationId, int jobId)
@@ -355,13 +355,14 @@ namespace Masar.Controllers
             var ok = await _applicationService.RejectApplicationAsync(applicationId, userId);
             if (!ok) return NotFound();
 
-            TempData["Success"] = "Applicant rejected.";
+            TempData["SuccessMessage"] = "Applicant rejected.";
             return RedirectToAction(nameof(Applicants), new { jobId });
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateApplicationStatus(
-            int applicationId, int jobId, string newStatus)
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateApplicationStatus(int applicationId, int jobId, string newStatus)
         {
             if (!Enum.TryParse<ApplicationStatus>(newStatus, out var status))
                 return BadRequest();

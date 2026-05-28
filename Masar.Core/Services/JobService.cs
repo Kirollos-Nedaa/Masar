@@ -108,14 +108,24 @@ namespace Masar.Core.Services
             return true;
         }
 
-        public async Task<bool> ToggleJobStatusAsync(string userId, int jobId)
+        public async Task<(bool Success, bool WasExtended)> ToggleJobStatusAsync(string userId, int jobId)
         {
             var job = await GetOwnedJobAsync(userId, jobId);
-            if (job == null) return false;
+            if (job == null) return (false, false);
+
+            bool isReopening = !job.IsActive;
+            bool wasExtended = false;
+
+            if (isReopening && job.ApplicationDeadline <= DateTime.Now)
+            {
+                job.ApplicationDeadline = DateTime.Now.AddDays(15);
+                wasExtended = true;
+            }
 
             job.IsActive = !job.IsActive;
             await _context.SaveChangesAsync();
-            return true;
+
+            return (true, wasExtended);
         }
 
         public async Task<PostJobDto?> GetJobForEditAsync(string userId, int jobId)

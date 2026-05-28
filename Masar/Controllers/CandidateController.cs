@@ -72,7 +72,7 @@ namespace Masar.Controllers
             }
 
             if (!result.Success) TempData["ProfileError"] = result.Error;
-            else TempData["ProfileSuccess"] = "Resume uploaded successfully.";
+            else TempData["SuccessMessage"] = "Resume uploaded successfully.";
 
             return RedirectToAction(nameof(Profile));
         }
@@ -124,6 +124,7 @@ namespace Masar.Controllers
 
             var userId = _userManager.GetUserId(User);
             await _profileService.UpdatePersonalInfoAsync(userId, dto);
+            TempData["SuccessMessage"] = "Personal information updated successfully.";
             return RedirectToAction(nameof(Profile));
         }
 
@@ -157,7 +158,7 @@ namespace Masar.Controllers
                 return View(dto);
             }
 
-            TempData["ProfileSuccess"] = "Password changed successfully.";
+            TempData["SuccessMessage"] = "Password changed successfully.";
             return RedirectToAction(nameof(Profile));
         }
 
@@ -180,6 +181,7 @@ namespace Masar.Controllers
 
             var userId = _userManager.GetUserId(User);
             await _profileService.UpdateEducationAsync(userId, dto);
+            TempData["SuccessMessage"] = "Education updated successfully.";
             return RedirectToAction(nameof(Profile));
         }
 
@@ -206,6 +208,7 @@ namespace Masar.Controllers
                 return View(refreshed);
             }
 
+            TempData["SuccessMessage"] = "Skills updated successfully.";
             return RedirectToAction(nameof(Profile));
         }
 
@@ -224,6 +227,7 @@ namespace Masar.Controllers
         {
             var userId = _userManager.GetUserId(User);
             await _profileService.UpdateCandidateLinksAsync(userId, links);
+            TempData["SuccessMessage"] = "Links updated successfully.";
             return RedirectToAction(nameof(Profile));
         }
 
@@ -277,7 +281,7 @@ namespace Masar.Controllers
         {
             var userId = _userManager.GetUserId(User);
             await _profileService.ClearSavedJobsAsync(userId);
-            TempData["SavedJobsSuccess"] = "All saved jobs have been cleared.";
+            TempData["SuccessMessage"] = "All saved jobs have been cleared.";
             return RedirectToAction(nameof(SavedJobs));
         }
     }

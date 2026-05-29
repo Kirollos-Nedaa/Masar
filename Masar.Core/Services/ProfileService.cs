@@ -1,4 +1,5 @@
-﻿using Masar.Core.IService;
+﻿using Humanizer;
+using Masar.Core.IService;
 using Masar.Domain.Enums;
 using Masar.Domain.Helpers;
 using Masar.Domain.Models;
@@ -32,7 +33,6 @@ namespace Masar.Core.Services
         }
 
         // ── GET ───────────────────────────────────────────────────
-
         public async Task<CandidateProfileDto> GetMyCandidateProfileAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -101,7 +101,6 @@ namespace Masar.Core.Services
         }
 
         // ── EDIT — Candidate ──────────────────────────────────────
-
         public async Task UpdatePersonalInfoAsync(string userId, PersonalInfoDto dto)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -421,23 +420,60 @@ namespace Masar.Core.Services
         }
 
         // ── EDIT — Company ────────────────────────────────────────
+        public async Task<EditCompanyInfoDto> GetCompanyInfoForEditAsync(string userId)
+        {
+            var profile = await _context.CompanyProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
+            if (profile == null) return null;
 
-        public async Task UpdateCompanyInfoAsync(string userId, CompanyInfoDto dto)
+            return new EditCompanyInfoDto
+            {
+                CompanyName = profile.Name,
+                Description = profile.Description,
+                Industry = Enum.TryParse<Industries>(profile.Industry, true, out var ind) ? ind : Industries.None,
+                Size = profile.Size ?? default
+            };
+        }
+
+        public async Task<bool> UpdateCompanyInfoAsync(string userId, EditCompanyInfoDto dto)
+        {
+            var profile = await _context.CompanyProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
+            if (profile == null) return false;
+
+            profile.Name = dto.CompanyName;
+            profile.Description = dto.Description;
+            profile.Size = dto.Size;
+            profile.Industry = dto.Industry == Industries.None ? null : dto.Industry.ToString();
+
+            _context.CompanyProfiles.Update(profile);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        // ── EDIT — Company Contact ────────────────────────────────────────
+
+        public async Task<EditCompanyContactDto> GetCompanyContactForEditAsync(string userId)
         {
             var profile = await _context.CompanyProfiles
                 .Include(p => p.ContactInfo)
                 .FirstOrDefaultAsync(p => p.UserId == userId);
 
-            if (profile == null)
-            {
-                profile = new CompanyProfile { UserId = userId };
-                _context.CompanyProfiles.Add(profile);
-            }
+            if (profile == null) return null;
 
-            profile.Name = dto.CompanyName;
-            profile.Industry = dto.Industry == Industries.None ? null : dto.Industry.ToString();
-            profile.Size = dto.Size;
-            profile.Description = dto.Description ?? string.Empty;
+            return new EditCompanyContactDto
+            {
+                Address = profile.ContactInfo?.Address,
+                ContactPhone = profile.ContactInfo?.PhoneNumber,
+                ContactEmail = profile.ContactInfo?.Email
+            };
+        }
+
+        public async Task<bool> UpdateCompanyContactAsync(string userId, EditCompanyContactDto dto)
+        {
+            var profile = await _context.CompanyProfiles
+                .Include(p => p.ContactInfo)
+                .FirstOrDefaultAsync(p => p.UserId == userId);
+
+            if (profile == null) return false;
 
             if (profile.ContactInfo == null)
             {
@@ -445,11 +481,13 @@ namespace Masar.Core.Services
                 _context.CompanyContactInfos.Add(profile.ContactInfo);
             }
 
-            profile.ContactInfo.Email = dto.ContactEmail;
-            profile.ContactInfo.PhoneNumber = dto.ContactPhone;
             profile.ContactInfo.Address = dto.Address;
+            profile.ContactInfo.PhoneNumber = dto.ContactPhone;
+            profile.ContactInfo.Email = dto.ContactEmail;
 
+            _context.CompanyProfiles.Update(profile);
             await _context.SaveChangesAsync();
+            return true;
         }
 
         public async Task UpdateCompanyLinksAsync(string userId, List<ProfessionalLinkDto> links)

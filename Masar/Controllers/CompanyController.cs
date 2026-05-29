@@ -11,6 +11,10 @@ using Masar.Domain.Enums;
 using Microsoft.AspNetCore.Components.RenderTree;
 using System.ComponentModel.DataAnnotations;
 using Masar.Domain.ViewModels.AuthDtos;
+using System.Security.Claims;
+using Masar.Domain.Helpers;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Humanizer;
 
 namespace Masar.Controllers
 {
@@ -96,32 +100,44 @@ namespace Masar.Controllers
         public async Task<IActionResult> EditInfo()
         {
             var userId = _userManager.GetUserId(User);
-            var profile = await _profileService.GetMyCompanyProfileAsync(userId);
-
-            var dto = new CompanyInfoDto
-            {
-                CompanyName = profile.CompanyName,
-                Industry = Enum.TryParse<Industries>(profile.Industry, true, out var ind) ? ind : Industries.None,
-                Size = profile.Size,
-                Description = profile.Description,
-                ContactEmail = profile.ContactEmail,
-                ContactPhone = profile.ContactPhone,
-                Address = profile.Address,
-                LogoUrl = profile.LogoUrl
-            };
-
+            var dto = await _profileService.GetCompanyInfoForEditAsync(userId);
+            if (dto == null) return NotFound();
             return View(dto);
         }
 
         [HttpPost]
-        public async Task<IActionResult> EditInfo(CompanyInfoDto dto)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditInfo(EditCompanyInfoDto dto)
         {
-            if (!ModelState.IsValid)
-                return View(dto);
+            if (!ModelState.IsValid) return View(dto);
 
             var userId = _userManager.GetUserId(User);
             await _profileService.UpdateCompanyInfoAsync(userId, dto);
+
             TempData["SuccessMessage"] = "Company information updated successfully.";
+            return RedirectToAction(nameof(Profile));
+        }
+
+        // ── Edit Contact Info ─────────────────────────────────
+        [HttpGet]
+        public async Task<IActionResult> EditContact()
+        {
+            var userId = _userManager.GetUserId(User);
+            var dto = await _profileService.GetCompanyContactForEditAsync(userId);
+            if (dto == null) return NotFound();
+            return View(dto);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditContact(EditCompanyContactDto dto)
+        {
+            if (!ModelState.IsValid) return View(dto);
+
+            var userId = _userManager.GetUserId(User);
+            await _profileService.UpdateCompanyContactAsync(userId, dto);
+
+            TempData["SuccessMessage"] = "Contact information updated successfully.";
             return RedirectToAction(nameof(Profile));
         }
 

@@ -42,7 +42,7 @@ namespace Masar.Core.Services
                 CompanyProfileId = company.Id,
                 Title = dto.Title,
                 JobType = dto.JobType,
-                Department = dto.Department, // Saved cleanly as Department enum
+                Department = dto.Department,
                 Location = dto.Location,
                 WorkMode = dto.WorkMode,
                 MinSalary = dto.MinSalary,

@@ -1,4 +1,5 @@
 ﻿@model Masar.Domain.ViewModels.CompanyDtos.CompanyProfileDto
+@using Masar.Domain.Helpers
 
 @{
     ViewData["Title"] = "Company Profile";
@@ -6,132 +7,112 @@
 }
 
 @section Sidebar {
-<partial name="_CompanySidebar" />
+    <partial name="_CompanySidebar" />
 }
 
-@* ── Page Header ──────────────────────────────────────────── *@
-<div class="page-header d-flex align-items-center justify-content-between">
+@* ── Page Header ── *@
+<div class="page-header d-flex align-items-center justify-content-between mb-4">
     <div>
         <h1 class="page-title">Company Profile</h1>
-        <p class="page-subtitle">Your company information visible to candidates</p>
-    </div>
-    <a asp-controller="Company" asp-action="EditInfo" class="btn-primary-app">
-        <span class="iconify" data-icon="lucide:square-pen"></span> Edit Profile
-    </a>
-</div>
-
-@* ── Logo + Basic Info ────────────────────────────────────── *@
-<div class="app-card mb-4">
-    <div class="card-section-header">
-        <div class="card-section-title">Company Information</div>
-        <a asp-controller="Company" asp-action="EditInfo" class="btn-edit-section">
-            <span class="iconify" data-icon="lucide:square-pen"></span> Edit
-        </a>
-    </div>
-
-    <div class="company-profile-header mb-4">
-        @* Logo *@
-        <div class="company-logo-wrap">
-            @if (!string.IsNullOrEmpty(Model.LogoUrl))
-            {
-                <img src="@Model.LogoUrl" alt="@Model.CompanyName logo" class="company-logo-img" />
-            }
-            else
-            {
-                <div class="company-logo-placeholder">
-                    <span class="iconify" data-icon="lucide:building-2"></span>
-                </div>
-            }
-        </div>
-
-        @* Name + Industry + Size *@
-        <div class="company-profile-meta">
-            <h2 class="company-profile-name">
-                @(Model.CompanyName ?? "Company Name Not Set")
-            </h2>
-            <div class="company-profile-tags">
-                @if (!string.IsNullOrEmpty(Model.Industry))
-                {
-                    <span class="company-tag">
-                        <span class="iconify" data-icon="lucide:briefcase"></span>
-                        @Model.Industry
-                    </span>
-                }
-                @if (Model.Size.HasValue && Model.Size.Value != Masar.Domain.Enums.CompanySize.None)
-                {
-                    string sizeLabel = Model.Size.Value switch
-                    {
-                        Masar.Domain.Enums.CompanySize.Mini => "1–10 employees",
-                        Masar.Domain.Enums.CompanySize.Small => "11–50 employees",
-                        Masar.Domain.Enums.CompanySize.Medium => "51–250 employees",
-                        Masar.Domain.Enums.CompanySize.Large => "251–1,000 employees",
-                        Masar.Domain.Enums.CompanySize.Enterprise => "1,001+ employees",
-                        _ => ""
-                    };
-                    <span class="company-tag">
-                        <span class="iconify" data-icon="lucide:users"></span>
-                        @sizeLabel
-                    </span>
-                }
-            </div>
-        </div>
-    </div>
-
-    @* Description *@
-    <div class="profile-field-label">About</div>
-    <div class="profile-field-value">
-        @(string.IsNullOrEmpty(Model.Description) ? "No description added yet." : Model.Description)
+        <p class="page-subtitle">Manage your company presence and details</p>
     </div>
 </div>
 
-@* ── Contact Information ──────────────────────────────────── *@
+@* ── Logo Management Card ── *@
 <div class="app-card mb-4">
     <div class="card-section-header">
-        <div class="card-section-title">Contact Information</div>
-        <a asp-controller="Company" asp-action="EditInfo" class="btn-edit-section">
+        <div class="card-section-title">
+            <span class="iconify" data-icon="lucide:image"></span> Company Logo
+        </div>
+    </div>
+
+    @if (string.IsNullOrEmpty(Model.LogoUrl))
+    {
+        <div class="upload-box text-center p-4 border rounded bg-light mt-3">
+            <span class="iconify mb-2 text-muted" data-icon="lucide:upload-cloud" style="font-size: 2.5rem;"></span>
+            <p class="text-muted mb-3">Upload your company logo to stand out to candidates.</p>
+            <form asp-action="UploadLogo" method="post" enctype="multipart/form-data" class="d-flex justify-content-center gap-2">
+                <input type="file" name="Logo" accept="image/*" class="form-control w-auto" required />
+                <button type="submit" class="btn-primary-app">Upload Logo</button>
+            </form>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex align-items-center gap-4 mt-3">
+            <img src="@Model.LogoUrl" alt="Company Logo" class="border shadow-sm" style="width: 120px; height: 120px; object-fit: cover; border-radius: 999px;" />
+            <div class="d-flex flex-column gap-3">
+                <form asp-action="UploadLogo" method="post" enctype="multipart/form-data" class="d-flex align-items-center gap-2">
+                    <input type="file" name="Logo" accept="image/*" class="form-control form-control-sm w-auto" required />
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Update Logo</button>
+                </form>
+                <form asp-action="DeleteLogo" method="post">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <span class="iconify" data-icon="lucide:trash-2"></span> Remove Logo
+                    </button>
+                </form>
+            </div>
+        </div>
+    }
+</div>
+
+@* ── General Information Card ── *@
+<div class="app-card mb-4">
+    <div class="card-section-header">
+        <div class="card-section-title">
+            <span class="iconify" data-icon="lucide:building"></span> General Information
+        </div>
+        <a asp-action="EditInfo" class="btn-edit-section">
             <span class="iconify" data-icon="lucide:square-pen"></span> Edit
         </a>
     </div>
+    <div class="row mt-3">
+        <div class="col-md-12 mb-3">
+            <div class="profile-field-label">Company Name</div>
+            <div class="profile-field-value">@(string.IsNullOrEmpty(Model.CompanyName) ? "Not set" : Model.CompanyName)</div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="profile-field-label">Industry</div>
+            <div class="profile-field-value">
+                @{
+                    var hasInd = Enum.TryParse<Masar.Domain.Enums.Industries>(Model.Industry, out var indEnum);
+                }
+                @(hasInd ? IndustryMetadata.GetDisplayName(indEnum) : (Model.Industry ?? "Not set"))
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="profile-field-label">Company Size</div>
+            <div class="profile-field-value">@(Model.Size?.ToString() ?? "Not set")</div>
+        </div>
+        <div class="col-12 mt-2">
+            <div class="profile-field-label">About the Company</div>
+            <div class="profile-field-value mb-0">@(string.IsNullOrEmpty(Model.Description) ? "No description provided." : Model.Description)</div>
+        </div>
+    </div>
+</div>
 
-    <div class="row g-3">
-        <div class="col-12 col-sm-4">
-            <div class="contact-info-item">
-                <div class="contact-info-icon">
-                    <span class="iconify" data-icon="lucide:mail"></span>
-                </div>
-                <div>
-                    <div class="profile-field-label">Email</div>
-                    <div class="profile-field-value">
-                        @(Model.ContactEmail ?? "Not provided")
-                    </div>
-                </div>
-            </div>
+@* ── Contact Information Card ── *@
+<div class="app-card mb-4">
+    <div class="card-section-header">
+        <div class="card-section-title">
+            <span class="iconify" data-icon="lucide:contact"></span> Contact Information
         </div>
-        <div class="col-12 col-sm-4">
-            <div class="contact-info-item">
-                <div class="contact-info-icon">
-                    <span class="iconify" data-icon="lucide:phone"></span>
-                </div>
-                <div>
-                    <div class="profile-field-label">Phone</div>
-                    <div class="profile-field-value">
-                        @(Model.ContactPhone ?? "Not provided")
-                    </div>
-                </div>
-            </div>
+        <a asp-action="EditContact" class="btn-edit-section">
+            <span class="iconify" data-icon="lucide:square-pen"></span> Edit
+        </a>
+    </div>
+    <div class="col mt-3">
+        <div class="mb-3">
+            <div class="profile-field-label">Email Address</div>
+            <div class="profile-field-value">@(string.IsNullOrEmpty(Model.ContactEmail) ? "Not set" : Model.ContactEmail)</div>
         </div>
-        <div class="col-12 col-sm-4">
-            <div class="contact-info-item">
-                <div class="contact-info-icon">
-                    <span class="iconify" data-icon="lucide:map-pin"></span>
-                </div>
-                <div>
-                    <div class="profile-field-label">Address</div>
-                    <div class="profile-field-value">
-                        @(Model.Address ?? "Not provided")
-                    </div>
-                </div>
-            </div>
+        <div class="mb-3">
+            <div class="profile-field-label">Phone Number</div>
+            <div class="profile-field-value">@(string.IsNullOrEmpty(Model.ContactPhone) ? "Not set" : Model.ContactPhone)</div>
+        </div>
+        <div>
+            <div class="profile-field-label">Office Address</div>
+            <div class="profile-field-value">@(string.IsNullOrEmpty(Model.Address) ? "Not set" : Model.Address)</div>
         </div>
     </div>
 </div>
@@ -139,7 +120,10 @@
 @* ── Professional Links ───────────────────────────────────── *@
 <div class="app-card mb-4">
     <div class="card-section-header">
-        <div class="card-section-title">Links</div>
+        <div class="card-section-title">
+            <span class="iconify" data-icon="lucide:link-2"></span>
+            Professional Links
+        </div>
         <a asp-controller="Company" asp-action="EditLinks" class="btn-edit-section">
             <span class="iconify" data-icon="lucide:settings-2"></span> Manage Links
         </a>
@@ -175,11 +159,11 @@
                     _ => "Other"
                 };
 
-                <div class="d-flex align-items-center">
+                <div class="d-flex align-items-center gap-3">
                     <div class="saved-link-icon-wrap">
                         <span class="iconify"
-                        data-icon="@icon"
-                        style="color:@color;width:1.1rem;height:1.1rem;"></span>
+                              data-icon="@icon"
+                              style="color:@color;width:1.1rem;height:1.1rem;"></span>
                     </div>
                     <span class="saved-link-name">@label</span>
                     <a href="@link.Url" target="_blank" class="saved-link-url">@link.Url</a>
@@ -191,8 +175,8 @@
     {
         <div class="text-center py-3">
             <span class="iconify"
-            data-icon="lucide:link"
-            style="width:2rem;height:2rem;color:var(--border);display:block;margin:0 auto .5rem;"></span>
+                  data-icon="lucide:link"
+                  style="width:2rem;height:2rem;color:var(--border);display:block;margin:0 auto .5rem;"></span>
             <p class="text-muted mb-2" style="font-size:.875rem;">No links added yet.</p>
         </div>
     }
@@ -263,10 +247,14 @@
     </div>
 
     <div class="d-flex flex-column gap-3 col-12">
-        <a asp-controller="Company" asp-action="ChangePassword" class="security-card-row d-flex align-items-center justify-content-between">
+        <a asp-controller="Company"
+           asp-action="ChangePassword"
+           class="security-card-row d-flex align-items-center justify-content-between">
+
             <div class="d-flex align-items-center">
                 <div class="security-row-icon">
-                    <span class="iconify" data-icon="lucide:lock-keyhole"></span>
+                    <span class="iconify"
+                          data-icon="lucide:lock-keyhole"></span>
                 </div>
                 <div class="d-flex flex-column">
                     <span class="security-row-title">Change Password</span>
@@ -277,7 +265,8 @@
         <a asp-controller="Company" asp-action="DeleteAccount" method="post" class="delete-card-row d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center">
                 <div class="delete-row-icon">
-                    <span class="iconify" data-icon="lucide:trash-2"></span>
+                    <span class="iconify"
+                          data-icon="lucide:trash-2"></span>
                 </div>
                 <div class="d-flex flex-column">
                     <span class="delete-row-title">Delete Account</span>

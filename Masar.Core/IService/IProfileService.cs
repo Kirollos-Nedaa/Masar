@@ -31,7 +31,11 @@ namespace Masar.Core.IService
         Task<(bool Success, string? Error)> ClearSavedJobsAsync(string userId);
 
         // ── EDIT — Company ────────────────────────────────────────
-        Task UpdateCompanyInfoAsync(string userId, CompanyInfoDto dto);
+        Task<EditCompanyInfoDto> GetCompanyInfoForEditAsync(string userId);
+        Task<bool> UpdateCompanyInfoAsync(string userId, EditCompanyInfoDto dto);
+        Task<EditCompanyContactDto> GetCompanyContactForEditAsync(string userId);
+        Task<bool> UpdateCompanyContactAsync(string userId, EditCompanyContactDto dto);
+
         Task UpdateCompanyLinksAsync(string userId, List<ProfessionalLinkDto> links);
         Task<(bool Success, string? Error)> UpdateLogoAsync(string userId, IFormFile file);
         Task<(bool Success, string? Error)> DeleteLogoAsync(string userId);

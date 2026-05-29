@@ -1,4 +1,5 @@
 ﻿using Masar.Domain.Enums;
+using Masar.Domain.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -23,7 +24,7 @@ namespace Masar.Domain.Models
         public string? Industry { get; set; }
         public CompanySize? Size { get; set; }
         public string? Description { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = AppTime.Now;
 
         public CompanyContactInfo? ContactInfo { get; set; }
         public ICollection<ProfessionalLink> ProfessionalLinks { get; set; } = new List<ProfessionalLink>();

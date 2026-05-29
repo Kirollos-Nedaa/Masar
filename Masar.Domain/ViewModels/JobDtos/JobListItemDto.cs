@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Masar.Domain.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,6 +21,6 @@ namespace Masar.Domain.ViewModels.Job
         public DateTime PostedDate { get; set; }
         public DateTime ApplicationDeadline { get; set; }
         public string PostedDateDisplay { get; set; } = string.Empty;
-        public bool IsExpired => ApplicationDeadline < DateTime.Now;
+        public bool IsExpired => ApplicationDeadline < AppTime.Now;
     }
 }

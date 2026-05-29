@@ -126,7 +126,7 @@ namespace Masar.Core.Services
                 return new CompanyDashboardDto();
 
             var companyId = companyProfile.Id;
-            var cutoff24h = DateTime.Now.AddHours(-24);
+            var cutoff24h = AppTime.Now.AddHours(-24);
 
             // ── Stats ──────────────────────────────────────────
             var activeJobs = await _context.Jobs
@@ -238,7 +238,7 @@ namespace Masar.Core.Services
             var recentUsers = await _context.Users
                 .Where(u => !_context.UserRoles.Any(ur => ur.UserId == u.Id && ur.RoleId == adminRoleId))
                 .OrderByDescending(u => u.CreatedAt)
-                .Take(5)
+                .Take(6)
                 .Select(u => new AdminRecentUserDto
                 {
                     Id = u.Id,

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Masar.Domain.Enums;
+using Masar.Domain.Helpers;
 
 namespace Masar.Domain.Models
 {
@@ -23,7 +24,7 @@ namespace Masar.Domain.Models
         public string? Location { get; set; }
         public DateOnly? DateOfBirth { get; set; }
         public string? Bio { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = AppTime.Now;
 
         public ICollection<Education> Educations { get; set; } = new List<Education>();
 

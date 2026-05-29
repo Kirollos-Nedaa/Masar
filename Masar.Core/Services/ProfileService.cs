@@ -264,7 +264,7 @@ namespace Masar.Core.Services
 
                 profile.ResumeUrl = url;
                 profile.ResumeOriginalName = file.FileName;
-                profile.ResumeUploadedAt = DateTime.Now.ToDetailedDisplayDate();
+                profile.ResumeUploadedAt = AppTime.Now.ToDetailedDisplayDate();
 
                 await _context.SaveChangesAsync();
                 return (true, null);
@@ -413,7 +413,7 @@ namespace Masar.Core.Services
             {
                 CandidateProfileId = profile.Id,
                 JobId = jobId,
-                SavedAt = DateTime.Now
+                SavedAt = AppTime.Now
             });
 
             await _context.SaveChangesAsync();

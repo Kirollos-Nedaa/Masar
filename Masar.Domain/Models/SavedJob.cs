@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Masar.Domain.Helpers;
 
 namespace Masar.Domain.Models
 {
@@ -17,6 +18,6 @@ namespace Masar.Domain.Models
         public int JobId { get; set; }
         public Job Job { get; set; }
 
-        public DateTime SavedAt { get; set; } = DateTime.Now;
+        public DateTime SavedAt { get; set; } = AppTime.Now;
     }
 }

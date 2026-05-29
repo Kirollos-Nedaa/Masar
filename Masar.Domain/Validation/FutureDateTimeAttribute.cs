@@ -1,3 +1,4 @@
+using Masar.Domain.Helpers;
 using System.ComponentModel.DataAnnotations;
 
 namespace Masar.Domain.Validation
@@ -11,9 +12,9 @@ namespace Masar.Domain.Validation
                 return ValidationResult.Success;
             }
 
-            if (dateTime <= DateTime.Now)
+            if (dateTime <= AppTime.Now)
             {
-                var message = ErrorMessage ?? $"Date must be after {DateTime.Now.ToString("MM/dd/yyyy - HH:mm")}";
+                var message = ErrorMessage ?? $"Date must be after {AppTime.Now.ToString("MM/dd/yyyy - hh:mmtt")}";
                 return new ValidationResult(message);
             }
 

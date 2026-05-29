@@ -1,4 +1,5 @@
 ﻿using Masar.Domain.Enums;
+using Masar.Domain.Helpers;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace Masar.Domain.Models
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = AppTime.Now;
 
         public CandidateProfile? CandidateProfile { get; set; }
         public CompanyProfile? CompanyProfile { get; set; }

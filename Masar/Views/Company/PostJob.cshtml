@@ -270,7 +270,13 @@
             <div class="col-12 col-sm-6">
                 <label class="epi-label">Application Deadline <span style="color:var(--red)">*</span></label>
                 <div class="date-input-wrap">
-                    <input asp-for="ApplicationDeadline" type="datetime-local" class="epi-input" id="ApplicationDeadline" />
+                    <input asp-for="ApplicationDeadline"
+                           asp-format="{0:yyyy-MM-ddTHH:mm}"
+                           type="datetime-local"
+                           class="epi-input"
+                           id="ApplicationDeadline"
+                           min="@AppTime.Now.ToString("yyyy-MM-ddTHH:mm")"
+                           data-msg-min="Date must be after @AppTime.Now.ToString("MM/dd/yyyy - hh:mmtt")" />
                 </div>
                 <span asp-validation-for="ApplicationDeadline" class="epi-error"></span>
             </div>

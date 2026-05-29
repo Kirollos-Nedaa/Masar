@@ -56,7 +56,7 @@ namespace Masar.Core.Services
                 RequireCoverLetter = dto.RequireCoverLetter,
                 IsActive = true,
                 IsFeatured = false,
-                PostedDate = DateTime.Now
+                PostedDate = AppTime.Now
             };
 
             _context.Jobs.Add(job);
@@ -116,9 +116,9 @@ namespace Masar.Core.Services
             bool isReopening = !job.IsActive;
             bool wasExtended = false;
 
-            if (isReopening && job.ApplicationDeadline <= DateTime.Now)
+            if (isReopening && job.ApplicationDeadline <= AppTime.Now)
             {
-                job.ApplicationDeadline = DateTime.Now.AddDays(15);
+                job.ApplicationDeadline = AppTime.Now.AddDays(15);
                 wasExtended = true;
             }
 
@@ -594,7 +594,7 @@ namespace Masar.Core.Services
 
         private static void EnsureDeadlineIsInFuture(DateTime applicationDeadline)
         {
-            if (applicationDeadline <= DateTime.Now)
+            if (applicationDeadline <= AppTime.Now)
                 throw new ValidationException("Application deadline must be later than the current time.");
         }
     }

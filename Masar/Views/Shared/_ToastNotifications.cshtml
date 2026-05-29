@@ -1,27 +1,15 @@
-﻿<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1055;">
+﻿<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1055;"></div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body">
-                    <span class="iconify me-2" data-icon="lucide:check-circle"></span>
-                    @TempData["SuccessMessage"]
-                </div>
-                <button type="button" class="btn-close btn-close-red me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        </div>
+        @:window.showToast(@Html.Raw(Json.Serialize(TempData["SuccessMessage"])), false);
     }
 
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body">
-                    <span class="iconify me-2" data-icon="lucide:alert-circle"></span>
-                    @TempData["ErrorMessage"]
-                </div>
-                <button type="button" class="btn-close btn-close-red me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        </div>
+        @:window.showToast(@Html.Raw(Json.Serialize(TempData["ErrorMessage"])), true);
     }
-</div>
+    });
+</script>

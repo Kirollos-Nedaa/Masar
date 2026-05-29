@@ -25,7 +25,7 @@ namespace Masar.Core.Services
             await _jobLifecycleService.CloseExpiredJobsAsync();
 
             // shifts the time to get the latest 24h
-            var cutoffTime = DateTime.Now.AddHours(-24);
+            var cutoffTime = AppTime.Now.AddHours(-24);
 
             // ── 1. Latest 6 active jobs ──────────────────────────────
             var latestOpenings = await _context.Jobs

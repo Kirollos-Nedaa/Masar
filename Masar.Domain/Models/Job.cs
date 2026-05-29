@@ -1,4 +1,5 @@
 ﻿using Masar.Domain.Enums;
+using Masar.Domain.Helpers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -37,7 +38,7 @@ namespace Masar.Domain.Models
 
         public bool IsActive { get; set; }
         public bool IsFeatured { get; set; }
-        public DateTime PostedDate { get; set; } = DateTime.Now;
+        public DateTime PostedDate { get; set; } = AppTime.Now;
 
         public ICollection<JobApplication> JobApplications { get; set; } = new List<JobApplication>();
         public ICollection<SavedJob> SavedJobs { get; set; } = new List<SavedJob>();
